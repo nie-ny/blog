@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <canvas id="c2d" class="c2d" width="390" height="290"></canvas>
+    <script type="text/javascript">
+      var oC2 = document.getElementById('c2d');
+      var ctx = oC2.getContext('2d');
+
+      // 获取宽高
+      var width = oC2.width;
+      var height = oC2.height;
+
+      var maxX = 18; // 路的 列数
+      var maxY = 13; // 路的 行数
+
+      var firstGrid; // 开始点
+      var endGrid; // 结束点
+
+      /**
+       * 创建格
+       */
+      function Grid(x, y) {
+        this.x = x;
+        this.y = y;
+        this.choosed = false; // 是否标记
+        this.children = [];
+        this.initNeighbor();
+      }
+
+      Grid.prototype.initNeighbor = function () {
+        var x = this.x;
+        var y = this.y;
+
+        this.neighbor = [];
+
+        if (y > 0) {
+          this.neighbor.push({
+            x: x,
+            y: y - 1,
+          });
+        }
+
+        if (y < maxY) {
+          this.neighbor.push({
+            x: x,
+            y: y + 1,
+          });
+        }
+
+        if (x > 0) {
+          this.neighbor.push({
+            x: x - 1,
+            y: y,
+          });
+        }
+
+        if (x < maxX) {
+          this.neighbor.push({
+            x: x + 1,
+            y: y,
+          });
+        }
+
+        // 随机排序
+        this.neighbor.sort(function () {
+          return 0.5 - Math.random();
+        });
+      };
+
+      //
+      Grid.prototype.getNeighbor = function () {
+        var x, y, neighbor;
+
+        this.choosed = true;
+
+        for (var i = 0; i < this.neighbor.length; i++) {
+          x = this.neighbor[i].x;
+          y = this.neighbor[i].y;
+
+          neighbor = maze.grids[y][x];
+
+          if (!neighbor.choosed) {
+            neighbor.parent = this;
+
+            return neighbor;
+          }
+        }
+
+        if (this.parent === firstGrid) {
+          return 0;
+        } else {
+          return 1;
+        }
+      };
+    </script>
+  </body>
+</html>
