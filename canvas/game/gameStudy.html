@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <style type="text/css">
+    .canvasDiv {
+      margin: 0 auto;
+      width: 500px;
+    }
+  </style>
+  <body>
+    <div class="canvasDiv">
+      <canvas width="600" height="500" id="canvas"></canvas>
+    </div>
+    <script src="./gamecore.js"></script>
+    <script type="text/javascript">
+      /** @type {HTMLCanvasElement} */
+      var can = document.getElementById("canvas");
+      var c = can.getContext("2d");
+
+      // =========== 全局状态 ============
+      // 游戏状态
+      var game = {
+        state: "start",
+      };
+      // 敌人
+      var enemies = [];
+      // 敌方子弹
+      var enemyBullets = [];
+      // 自己
+      var II = {
+        x: 300,
+        y: 400,
+        width: 20,
+        height: 30,
+        state: "alive", // alive: 存活 hit: 击中 dead: 死亡
+      };
+
+      // =========== 添加背景 ============
+      function drawBackground(c) {
+        c.fillStyle = "black";
+        c.fillRect(0, 0, can.width, can.height);
+      }
+
+      // =========== 敌人 ============
+      function updateEnemies() {
+        var num = 10; // 敌人数量
+        if (game.state === "start") {
+          enemies = [];
+
+          for (var i = 0; i < num; i++) {
+            enemies.push({
+              x: 50 + i * 50,
+              y: 10,
+              width: 40,
+              height: 40,
+              state: "alive", // alive: 存活 hit: 击中 dead: 死亡
+              // counter: 0, //
+              // phase: Math.floor(Math.random() * 50), //
+              // shrink: 20,
+            });
+          }
+        }
+
+        for (var i = 0; i < num; i++) {
+          var enemy = enemies[i];
+          if (!enemy) continue;
+        }
+
+        // 清除死亡的敌人
+        enemies = enemies.filter(function (e) {
+          if (e && e.state != "dead") {
+            return true;
+          }
+          return false;
+        });
+      }
+
+      // 生成敌人
+      function drawEnemies(c) {
+        for (var key in enemies) {
+          var enemy = enemies[key];
+
+          if (enemy.state === "alive") {
+            // 存活
+            c.fillStyle = "green";
+            c.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+          }
+
+          if (enemy.state === "hit") {
+            // 击中
+            c.fillStyle = "purple";
+            c.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+          }
+
+          if (enemy.state === "dead") {
+            // 死亡
+            c.fillStyle = "black";
+            c.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+          }
+        }
+      }
+
+      // =========== II ============
+      function drawII(c) {
+        // 绘制自己
+
+        if (II.state === "alive") {
+          c.fillStyle = "red";
+          c.fillRect(II.x, II.y, II.width, II.height);
+        }
+
+        if (II.state === "hit") {
+          c.fillStyle = "yellow";
+          c.fillRect(II.x, II.y, II.width, II.height);
+        }
+
+        if (II.state === "dead") {
+          return;
+        }
+      }
+
+      // =========== 初始化 ============
+      function mainLoop() {
+        // 初始化 敌人
+        updateEnemies();
+
+        // 添加背景
+        drawBackground(c);
+        // 绘制敌人
+        drawEnemies(c);
+        // 绘制自己
+        drawII(c);
+      }
+      mainLoop();
+    </script>
+  </body>
+</html>

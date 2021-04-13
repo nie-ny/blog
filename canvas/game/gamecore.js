@@ -44,6 +44,7 @@ function updateGame() {
     overlay.counter++;
   }
 }
+
 function updatePlayer() {
   if (player.state == "dead") return;
 
