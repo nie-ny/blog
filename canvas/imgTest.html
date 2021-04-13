@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <canvas width="500" height="500" id="canvas"></canvas>
+    <script type="text/javascript">
+      var data = [16, 68, 20, 30, 54];
+      /** @type {HTMLCanvasElement} */
+      var canvas = document.getElementById("canvas");
+      var ctx = canvas.getContext("2d");
+
+      ctx.fillStyle = "red";
+      ctx.fillRect(0, 0, 400, 100);
+
+      ctx.beginPath();
+      ctx.moveTo(200, 50);
+      ctx.lineTo(250, 150);
+      ctx.lineTo(150, 150);
+      // closePath() 创建从当前点到开始点的路径。
+      ctx.closePath();
+
+      ctx.lineWidth = 5;
+      ctx.stroke();
+
+      // clip()从原始画布中剪切任意形状和尺寸
+      ctx.clip();
+
+      ctx.fillStyle = "yellow";
+      ctx.fillRect(0, 0, 400, 100);
+
+      // var img = new Image();
+      // img.addEventListener("load", loadHandler);
+      // img.src = "./1.jpg";
+      // // document.body.appendChild(img);
+
+      // function loadHandler(e) {
+      //   // createPattern() 在指定的方向上重复元图像
+      //   var pat1 = ctx.createPattern(img, "repeat");
+      //   ctx.fillStyle = pat1; // 设置为背景
+      //   ctx.fillRect(0, 0, 500, 500);
+      //   var pat2 = ctx.createPattern(img, "repeat-y");
+      //   ctx.fillStyle = pat2;
+      //   ctx.translate(200, 0);
+      //   ctx.fillRect(0, 0, 500, 200);
+      // }
+    </script>
+  </body>
+</html>

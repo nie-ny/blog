@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <canvas width="500" height="500" id="canvas"></canvas>
+    <script type="text/javascript">
+      var data = [16, 68, 20, 30, 54];
+      /** @type {HTMLCanvasElement} */
+      var canvas = document.getElementById("canvas");
+      var c = canvas.getContext("2d");
+
+      // fillStyle 属性设置或返回用于填充绘画的颜色、渐变或模式。
+      //draw
+      c.fillStyle = "gray";
+      // fillRect() 绘制有填充颜色的矩形
+      c.fillRect(0, 0, 500, 500);
+
+      c.fillStyle = "#87CEFA";
+      for (var i = 0; i < data.length; i++) {
+        var dp = data[i];
+        // c.fillRect(25 + i * 100, 30, 50, dp * 5);
+        c.fillRect(40 + i * 100, 460 - dp * 5, 50, dp * 5);
+      }
+
+      // 画坐标
+      c.fillStyle = "black";
+      // lineWidth 属性设置或返回当前线条的宽度，以像素计。
+      c.lineWidth = 2.0;
+      // beginPath() 方法开始 画一条路径
+      c.beginPath();
+      // moveTo() 移动路劲位置 不划线
+      c.moveTo(30, 10);
+      // lineTo() 添加一个新点，然后在画布中 创建 从该点(当前点位置) 到最后 指定点的线条。不会画线
+      c.lineTo(30, 460);
+      c.lineTo(490, 460);
+      // stroke() 绘制已定义的路径。
+      c.stroke();
+
+      // 画坐标分段点
+      c.fillStyle = "black";
+      for (var i = 0; i < 6; i++) {
+        // fillText()在画布上绘制填色的文本。
+        c.fillText((5 - i) * 20 + "", 4, i * 80 + 60);
+        c.beginPath();
+        c.moveTo(25, i * 80 + 60); // 移动线开始点
+        c.lineTo(30, i * 80 + 60); // 确认线结束点
+        c.stroke();
+      }
+
+      var labels = ["一", "二", "三", "四", "五"];
+      //draw horiz text
+      for (var i = 0; i < 5; i++) {
+        c.fillText(labels[i], 60 + i * 100, 475);
+      }
+    </script>
+  </body>
+</html>

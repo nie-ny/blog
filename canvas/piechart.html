@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <canvas width="500" height="500" id="canvas"></canvas>
+    <script type="text/javascript">
+      var data = [16, 68, 20, 30, 54];
+      /** @type {HTMLCanvasElement} */
+      var canvas = document.getElementById("canvas");
+      var c = canvas.getContext("2d");
+
+      c.fillStyle = "white";
+      c.fillRect(0, 0, 500, 500);
+
+      var colors = ["orange", "green", "blue", "yellow", "teal"];
+
+      var total = 0; // 总长度
+      for (var i = 0; i < data.length; i++) {
+        total += data[i];
+      }
+
+      var prevAngle = 0;
+      for (var j = 0; j < data.length; j++) {
+        // 获取 数据 比例
+        var fraction = data[j] / total;
+        // 计算园弧 长度
+        var angle = prevAngle + fraction * Math.PI * 2;
+
+        // 添加颜色
+        // c.fillStyle = colors[j];
+
+        // createRadialGradient()创建放射状/圆形渐变对象。
+        var grad = c.createRadialGradient(250, 250, 10, 250, 250, 100);
+        // 规定 gradient 对象中的颜色和位置
+        grad.addColorStop(0, "white");
+        grad.addColorStop(1, colors[j]);
+        c.fillStyle = grad;
+
+        c.beginPath();
+        c.moveTo(250, 250); // 画布中心
+        // arc()方法创建弧/曲线（用于创建圆或部分圆）。
+        c.arc(250, 250, 100, prevAngle, angle, false);
+        c.lineTo(250, 250);
+
+        // fill() 方法填充当前的图像（路径）
+        c.fill();
+
+        // 边框线
+        c.strokeStyle = "black";
+        c.stroke();
+
+        prevAngle = angle;
+      }
+    </script>
+  </body>
+</html>

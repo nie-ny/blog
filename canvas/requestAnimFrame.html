@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <canvas width="500" height="500" id="canvas"></canvas>
+    <script type="text/javascript">
+      // 兼容性处理
+      window.requestAnimFrame = (function () {
+        return (
+          window.requestAnimationFrame ||
+          window.webkitRequestAnimationFrame ||
+          window.mozRequestAnimationFrame ||
+          window.oRequestAnimationFrame ||
+          window.msRequestAnimationFrame ||
+          function (callback, element) {
+            window.setTimeout(callback, 1000 / 60);
+          }
+        );
+      })();
+
+      /** @type {HTMLCanvasElement} */
+      var canvas = document.getElementById("canvas");
+      var c = canvas.getContext("2d");
+
+      // var x = 0;
+      // function drawIt() {
+      //   window.requestAnimFrame(drawIt);
+      //   // clearRect() 清空给定矩形内的指定像素。
+      //   c.clearRect(0, 0, canvas.width, canvas.height);
+      //   c.fillStyle = "red";
+      //   c.fillRect(x, 100, 200, 100);
+      //   x += 5;
+      // }
+      // window.requestAnimFrame(drawIt);
+
+      // var tick = 0;
+      // var particles = []; // 点对象
+      // // 创建 下落点
+      // function createPar() {
+      //   if (tick % 10 === 0) {
+      //     if (particles.length <= 100) {
+      //       particles.push({
+      //         x: Math.random() * canvas.width,
+      //         y: 0,
+      //         speed: 2 + Math.random() * 3, // 下落数独
+      //         radius: 5 + Math.random() * 5,
+      //         color: "white",
+      //       });
+      //     }
+      //   }
+      //   tick++;
+      // }
+
+      // // 修改点 下落位置
+      // function updateParticles() {
+      //   for (var i in particles) {
+      //     var part = particles[i];
+      //     part.y += part.speed;
+      //   }
+      // }
+
+      // // 到底部后 重复利用
+      // function killParticles() {
+      //   for (var i in particles) {
+      //     var part = particles[i];
+      //     if (part.y > canvas.height) {
+      //       part.y = 0;
+      //     }
+      //   }
+      // }
+
+      // // 页面画点
+      // function drawParticles() {
+      //   c.fillStyle = "black";
+      //   c.fillRect(0, 0, canvas.width, canvas.height);
+      //   for (var i in particles) {
+      //     var part = particles[i];
+      //     c.beginPath();
+      //     c.arc(part.x, part.y, part.radius, 0, Math.PI * 2);
+      //     c.closePath();
+      //     c.fillStyle = part.color;
+      //     c.fill();
+      //   }
+      // }
+
+      // function loop() {
+      //   window.requestAnimFrame(loop);
+      //   createPar();
+      //   updateParticles();
+      //   killParticles();
+      //   drawParticles();
+      // }
+      // window.requestAnimFrame(loop);
+
+      var img = new Image();
+      img.addEventListener("load", loadHandler);
+      img.src = "./sprite.png";
+
+      function loadHandler(e) {
+        // drawImage() 在画布上绘制图像、画布或视频。
+        // c.drawImage(img, 36.3, 0, 13, 13, 0, 0, 13, 13);
+        var tick = 0;
+        // var y = 0;
+        function loop() {
+          window.requestAnimFrame(loop);
+          // if (y % 10 == 0) {
+          var frame = tick % 10;
+          var x = frame * 12;
+          tick++;
+
+          c.clearRect(0, 0, canvas.width, canvas.height);
+          c.drawImage(img, x + 0.3, 0, 13, 13, 0, 0, 13, 13);
+        }
+        // y++;
+        // }
+        window.requestAnimFrame(loop);
+      }
+    </script>
+  </body>
+</html>
