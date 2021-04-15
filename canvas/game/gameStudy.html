@@ -14,12 +14,29 @@
   </style>
   <body>
     <div class="canvasDiv">
-      <canvas width="600" height="500" id="canvas"></canvas>
+      <canvas width="650" height="500" id="canvas"></canvas>
     </div>
     <script src="./gamecore.js"></script>
     <script type="text/javascript">
       /** @type {HTMLCanvasElement} */
       var can = document.getElementById("canvas");
+
+      // =========== 资源加载 ============
+      // 自己
+      var sprite_image = new Image();
+      sprite_image.src = "./sprite.png";
+
+      // 敌人
+      var hunter1_image = new Image();
+      hunter1_image.src = "./Hunter1.png";
+
+      // 炸弹
+      var hbomb_image = new Image();
+      hbomb_image.src = "./hbomb.png";
+
+      // 子弹
+      var hunter1_image = new Image();
+      hunter1_image.src = "./Hunter1.png";
 
       // =========== 全局状态 ============
       // 游戏状态
@@ -40,8 +57,8 @@
       var II = {
         x: 300,
         y: 400,
-        width: 20,
-        height: 30,
+        width: 50,
+        height: 50,
         state: "alive", // alive: 存活 hit: 击中 dead: 死亡
       };
       // 自己的子弹
@@ -198,7 +215,18 @@
           if (enemy.state === "alive") {
             // 存活
             c.fillStyle = "green";
-            c.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+            // c.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+            c.drawImage(
+              hunter1_image,
+              25,
+              48,
+              25,
+              25,
+              enemy.x,
+              enemy.y,
+              enemy.width,
+              enemy.height //dst coords
+            );
           }
 
           if (enemy.state === "hit") {
@@ -220,8 +248,8 @@
       // 添加子弹对象
       function fireIIBullets() {
         IIBullets.push({
-          x: II.x,
-          y: II.y - 5,
+          x: II.x + 20,
+          y: II.y - 3,
           width: 10,
           height: 10,
         });
@@ -292,7 +320,18 @@
       function drawII(c) {
         if (II.state === "alive") {
           c.fillStyle = "red";
-          c.fillRect(II.x, II.y, II.width, II.height);
+          // c.fillRect(II.x, II.y, II.width, II.height);
+          c.drawImage(
+            sprite_image,
+            201,
+            0,
+            70,
+            80,
+            II.x,
+            II.y,
+            II.width,
+            II.height //dst coords
+          );
         }
 
         if (II.state === "hit") {
@@ -390,7 +429,7 @@
         // 初始化 敌人 添加子弹 并位移
         updateEnemies();
         // 初始自己
-        updatePlayer();
+        // updatePlayer();
 
         // 修改自己子弹的位置
         updateIIBullets();
@@ -405,7 +444,7 @@
         // 绘制敌人
         drawEnemies(c);
         // 绘制自己
-        drawII(c);
+        // drawII(c);
         // 绘制敌人子弹
         drawEnemyBullets(c);
         // 绘制自己的子弹
