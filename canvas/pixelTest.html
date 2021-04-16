@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <canvas width="500" height="500" id="canvas"></canvas>
+    <script type="text/javascript">
+      /** @type {HTMLCanvasElement} */
+      var canvas = document.getElementById("canvas");
+      var c = canvas.getContext("2d");
+
+      // // createImageData() 创建新的空白 ImageData 对象
+      // // 对于 ImageData 对象中的每个像素，都存在着四方面的信息，即 RGBA 值：
+      // // R - 红色 (0-255)
+      // // G - 绿色 (0-255)
+      // // B - 蓝色 (0-255)
+      // // A - alpha 通道 (0-255; 0 是透明的，255 是完全可见的)
+      // var data = c.createImageData(300, 200);
+      // console.log("data", data);
+      // for (var x = 0; x < data.width; x++) {
+      //   for (var y = 0; y < data.height; y++) {
+      //     var val = 0;
+      //     var horz = Math.floor(x / 8) % 2 == 0; //
+      //     var vert = Math.floor(y / 8) % 2 == 0; //
+      //     // 只要 一个 满足 就设置黑色
+      //     if ((horz && !vert) || (!horz && vert)) {
+      //       val = 255;
+      //     } else {
+      //       val = 0;
+      //     }
+
+      //     // * 4 因为 数组长度 4高 位置代表一个像是
+      //     var index = (y * data.width + x) * 4; //calculate index
+      //     // console.log("index", index);
+      //     data.data[index] = val; // red
+      //     data.data[index + 1] = val; // green
+      //     data.data[index + 2] = val; // blue
+      //     data.data[index + 3] = 255; // force alpha to 100%
+      //   }
+      // }
+
+      // // putImageData() 将图像数据（从指定的 ImageData 对象）放回画布上
+      // c.putImageData(data, 0, 0);
+
+      // var img = new Image();
+      // img.src = "1.jpg";
+      // img.onload = function () {
+      //   //draw the image to the canvas
+      //   c.drawImage(img, 0, 0);
+      //   //get the canvas data
+      //   var data = c.getImageData(0, 0, canvas.width, canvas.height);
+      //   //invert each pixel
+      //   // for (n = 0; n < data.width * data.height; n++) {
+      //   //   var index = n * 4;
+      //   //   data.data[index] = 255 - data.data[index];
+      //   //   data.data[index + 1] = 255 - data.data[index + 1];
+      //   //   data.data[index + 2] = 255 - data.data[index + 2];
+      //   //   // don't touch the alpha
+      //   // }
+      //   for (n = 0; n < data.width * data.height; n++) {
+      //     var index = n * 4;
+      //     var r = data.data[index];
+      //     var g = data.data[index + 1];
+      //     var b = data.data[index + 2];
+      //     var v = r * 0.21 + g * 0.71 + b * 0.07; // weighted average
+      //     data.data[index] = v;
+      //     data.data[index + 1] = v;
+      //     data.data[index + 2] = v;
+      //     //don't touch the alpha
+      //   }
+
+      //   //set the data back
+      //   c.putImageData(data, 0, 0);
+      // };
+    </script>
+  </body>
+</html>

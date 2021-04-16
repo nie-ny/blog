@@ -16,7 +16,6 @@
     <div class="canvasDiv">
       <canvas width="650" height="500" id="canvas"></canvas>
     </div>
-    <script src="./gamecore.js"></script>
     <script type="text/javascript">
       /** @type {HTMLCanvasElement} */
       var can = document.getElementById("canvas");
@@ -31,12 +30,12 @@
       hunter1_image.src = "./Hunter1.png";
 
       // 炸弹
-      var hbomb_image = new Image();
-      hbomb_image.src = "./hbomb.png";
+      var bomb_image = new Image();
+      bomb_image.src = "./bomb.png";
 
       // 子弹
-      var hunter1_image = new Image();
-      hunter1_image.src = "./Hunter1.png";
+      var bullets_image = new Image();
+      bullets_image.src = "./bullets.png";
 
       // =========== 全局状态 ============
       // 游戏状态
@@ -63,6 +62,8 @@
       };
       // 自己的子弹
       var IIBullets = [];
+
+      var keyboard = [];
 
       // =========== 游戏状态 ============
       function updateGame() {
@@ -96,16 +97,16 @@
         if (game.state == "over") {
           c.fillStyle = "white";
           c.font = "Bold 40pt Arial";
-          c.fillText("游戏结束", 140, 200);
+          c.fillText("游戏结束", 225, 200);
           c.font = "14pt Arial";
-          c.fillText("按空格键重新播放", 190, 250);
+          c.fillText("按空格键重新播放", 250, 250);
         }
         if (game.state == "won") {
           c.fillStyle = "white";
           c.font = "Bold 40pt Arial";
-          c.fillText("游戏胜利", 50, 200);
+          c.fillText("游戏胜利", 225, 200);
           c.font = "14pt Arial";
-          c.fillText("按空格键重新播放", 190, 250);
+          c.fillText("按空格键重新播放", 250, 250);
         }
       }
 
@@ -147,7 +148,7 @@
             // 敌人 位移
             enemy.x += Math.sin((enemy.counter * Math.PI * 2) / 100) * 2;
             // 错开 添加 子弹时间
-            if ((enemy.counter + enemy.phase) % 200 == 0) {
+            if ((enemy.counter + enemy.phase) % 100 == 0) {
               enemyBullets.push(createEnemyBullet(enemy));
             }
           }
@@ -178,8 +179,8 @@
         return {
           x: enemy.x,
           y: enemy.y + enemy.height,
-          width: 4,
-          height: 12,
+          width: 20,
+          height: 20,
           counter: 0,
         };
       }
@@ -202,8 +203,22 @@
       function drawEnemyBullets(c) {
         for (var i in enemyBullets) {
           var bullet = enemyBullets[i];
-          c.fillStyle = "yellow";
-          c.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+          // c.fillStyle = "yellow";
+          // c.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+          // 切换 雪碧图 位置实现动画
+          var xoff = (bullet.counter % 9) * 12 + 2;
+          var yoff = 1;
+          c.drawImage(
+            bomb_image,
+            xoff,
+            yoff,
+            9,
+            10,
+            bullet.x,
+            bullet.y,
+            bullet.width,
+            bullet.height
+          );
         }
       }
 
@@ -231,7 +246,7 @@
 
           if (enemy.state === "hit") {
             // 击中
-            c.fillStyle = "purple";
+            c.fillStyle = "black";
             c.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
           }
 
@@ -248,10 +263,11 @@
       // 添加子弹对象
       function fireIIBullets() {
         IIBullets.push({
-          x: II.x + 20,
-          y: II.y - 3,
-          width: 10,
-          height: 10,
+          x: II.x + 17.5,
+          y: II.y - 7,
+          width: 15,
+          height: 15,
+          counter: 0,
         });
       }
 
@@ -312,7 +328,20 @@
         c.fillStyle = "blue";
         for (i in IIBullets) {
           var bullet = IIBullets[i];
-          c.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+          // c.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+          var count = Math.floor(bullet.counter / 4);
+          var xoff = (count % 4) * 24;
+          c.drawImage(
+            bullets_image,
+            xoff + 10,
+            0 + 7.5,
+            8,
+            13,
+            bullet.x,
+            bullet.y,
+            bullet.width,
+            bullet.height //dst
+          );
         }
       }
 
@@ -335,17 +364,49 @@
         }
 
         if (II.state === "hit") {
-          c.fillStyle = "yellow";
+          c.fillStyle = "black";
           c.fillRect(II.x, II.y, II.width, II.height);
+          drawExplosion(c);
         }
 
         if (II.state === "dead") {
           return;
         }
       }
+      // ===========  爆炸粒子模拟 ===========
+      var particles = [];
+      function drawExplosion(c) {
+        // 被击中后 计数从0开始
+        if (II.counter == 0) {
+          // 生成粒子
+          particles = [];
+          for (var i = 0; i < 50; i++) {
+            particles.push({
+              x: II.x + II.width / 2,
+              y: II.y + II.height / 2,
+              xv: (Math.random() - 0.5) * 2.0 * 5.0, // x velocity
+              yv: (Math.random() - 0.5) * 2.0 * 5.0, // y velocity
+              age: 0, // v\\\存在时间
+            });
+          }
+        }
+
+        if (II.counter > 0) {
+          for (var i = 0; i < particles.length; i++) {
+            var p = particles[i];
+            p.x += p.xv;
+            p.y += p.yv;
+            var v = 255 - p.age * 3;
+            c.fillStyle = "rgb(" + v + "," + v + "," + v + ")";
+            c.fillRect(p.x, p.y, 3, 3);
+            p.age++;
+          }
+        }
+      }
 
       // =========== 碰撞检测 ============
       function checkCollisions() {
+        // 自己被击中
         for (var key in IIBullets) {
           var bullet = IIBullets[key];
           for (var j in enemies) {
@@ -359,6 +420,8 @@
         }
 
         if (II.state == "hit" || II.state == "dead") return;
+
+        // 敌人被击中
         for (var i in enemyBullets) {
           var bullet = enemyBullets[i];
           if (collided(bullet, II)) {
@@ -429,7 +492,7 @@
         // 初始化 敌人 添加子弹 并位移
         updateEnemies();
         // 初始自己
-        // updatePlayer();
+        updatePlayer();
 
         // 修改自己子弹的位置
         updateIIBullets();
@@ -444,7 +507,7 @@
         // 绘制敌人
         drawEnemies(c);
         // 绘制自己
-        // drawII(c);
+        drawII(c);
         // 绘制敌人子弹
         drawEnemyBullets(c);
         // 绘制自己的子弹
