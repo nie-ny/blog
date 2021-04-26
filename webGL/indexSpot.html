@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+
+  <body>
+    <canvas width="500" height="500" id="canvas"></canvas>
+    <script src="./lib/webgl-utils.js"></script>
+    <script src="./lib/webgl-debug.js"></script>
+    <script src="./lib/cuon-utils.js"></script>
+    <script type="text/javascript">
+      /** @type {HTMLCanvasElement} */
+      var canvas = document.getElementById("canvas");
+      // 初始化WebGL上下文
+      const gl = canvas.getContext("webgl");
+      // var gl = getWebGLContext(canvas);
+
+      // 目前最重要的是,你必须知道,WebL程序包括运行在浏览器中的 Javascript和
+      // 运行在 WebGL系统的着色器程序这两个部分
+
+      // GLSL ES是一种强类型的编程语言
+
+      // vec4 gl_Position 表示顶点的位置(这里,就是要绘制的点的位置)
+      // float gl_Pointsize 表示点的尺寸
+      // vec4 表示由4个浮点数组成的矢量
+
+      // vec4 gl_Fragcolor 指定片元颜色(RGBA格式)
+
+      // 顶点着色器代码
+      var VSHADER = `
+      attribute vec4 a_Position;
+      attribute float a_PointSize;
+      void main(){
+        gl_Position = a_Position;
+        gl_PointSize = a_PointSize;
+      }`;
+      // 片段着色器代码
+      var FSHADER = `void main(){
+        gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0);
+      }`;
+
+      //
+      if (!initShaders(gl, VSHADER, FSHADER)) {
+        console.log("着色器初始化失败!");
+      }
+
+      // 获取 attribute变量 储存位置
+      var a_Position = gl.getAttribLocation(gl.program, "a_Position");
+      // gl.getUniformLocation; 获取 uniform变量的 储存位置
+
+      // 获取 attribute变量 储存位置
+      var a_PointSize = gl.getAttribLocation(gl.program, "a_PointSize");
+
+      gl.vertexAttrib1f(a_PointSize, 10.0);
+
+      gl.clearColor(0.0, 0.0, 0.0, 1.0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+
+      canvas.onmousedown = function (ev) {
+        click(ev, gl, canvas, a_Position);
+      };
+
+      var g_point = [];
+      function click(ev, gl, canvas, a_Position) {
+        var x = ev.clientX;
+        var y = ev.clientY;
+        var rect = ev.target.getBoundingClientRect();
+        x = (x - rect.left - canvas.height / 2) / (canvas.height / 2);
+        y = (canvas.width / 2 - (y - rect.top)) / (canvas.width / 2);
+        g_point.push(x);
+        g_point.push(y);
+
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
+        for (var i = 0; i < g_point.length; i += 2) {
+          gl.vertexAttrib3f(a_Position, g_point[i], g_point[i + 1], 0.0);
+          gl.drawArrays(gl.POINTS, 0, 1);
+        }
+      }
+
+      // 给a_Position 变量设置值
+      // gl.vertexAttrib3f(a_Position, 0.0, 0.0, 0.0);
+      // 给uniform变量 变量设置值
+      // gl.uniform1f()
+
+      // gl.clearColor(0.0, 0.0, 0.0, 1.0);
+      // gl.clear(gl.COLOR_BUFFER_BIT);
+
+      // 绘制各种图像
+      // gl.drawArrays(gl.POINTS, 0, 1);
+    </script>
+  </body>
+</html>

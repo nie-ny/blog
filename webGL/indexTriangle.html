@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+
+  <body>
+    <canvas width="500" height="500" id="canvas"></canvas>
+    <script src="./lib/webgl-utils.js"></script>
+    <script src="./lib/webgl-debug.js"></script>
+    <script src="./lib/cuon-utils.js"></script>
+    <script type="text/javascript">
+      /** @type {HTMLCanvasElement} */
+      var canvas = document.getElementById("canvas");
+      // 初始化WebGL上下文
+      const gl = canvas.getContext("webgl");
+
+      // 顶点着色器代码
+      var VSHADER = `
+      attribute vec4 a_Position;
+      attribute float a_PointSize;
+      void main(){
+        gl_Position = a_Position;
+        gl_PointSize = a_PointSize;
+      }`;
+      // 片段着色器代码
+      var FSHADER = `void main(){
+        gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0);
+      }`;
+
+      //
+      if (!initShaders(gl, VSHADER, FSHADER)) {
+        console.log("着色器初始化失败!");
+      }
+
+      // 获取 attribute变量 储存位置
+      var a_Position = gl.getAttribLocation(gl.program, "a_Position");
+      // 获取 attribute变量 储存位置
+      var a_PointSize = gl.getAttribLocation(gl.program, "a_PointSize");
+      gl.vertexAttrib1f(a_PointSize, 10.0);
+
+      gl.clearColor(0.0, 0.0, 0.0, 1.0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+    </script>
+  </body>
+</html>
