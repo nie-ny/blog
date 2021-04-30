@@ -13,7 +13,7 @@
     <script type="text/javascript">
       //
 
-      // 矩形
+      // 举证
       const mat4 = glMatrix.mat4;
 
       /** @type {HTMLCanvasElement} */
@@ -99,10 +99,7 @@
       const programInfo = {
         program: shaderProgram,
         attribLocations: {
-          vertexPosition: gl.getAttribLocation(
-            shaderProgram,
-            "aVertexPosition"
-          ),
+          vertexPosition: gl.getAttribLocation(shaderProgram, "aVertexPosition")
         },
         uniformLocations: {
           projectionMatrix: gl.getUniformLocation(
@@ -112,8 +109,8 @@
           modelViewMatrix: gl.getUniformLocation(
             shaderProgram,
             "uModelViewMatrix"
-          ),
-        },
+          )
+        }
       };
 
       function initBuffers(gl) {
@@ -132,7 +129,7 @@
           0.0,
           -1.0,
           -1.0,
-          0.0,
+          0.0
         ];
 
         gl.bufferData(
@@ -142,7 +139,7 @@
         );
 
         return {
-          position: positionBuffer,
+          position: positionBuffer
         };
       }
 
