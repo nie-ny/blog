@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+
+  <body>
+    <canvas width="500" height="500" id="canvas"></canvas>
+    <script src="./lib/webgl-utils.js"></script>
+    <script src="./lib/webgl-debug.js"></script>
+    <script src="./lib/cuon-utils.js"></script>
+    <script type="text/javascript">
+      /** @type {HTMLCanvasElement} */
+      var canvas = document.getElementById("canvas");
+      // 初始化WebGL上下文
+      const gl = canvas.getContext("webgl");
+
+      // 顶点着色器代码
+      var VSHADER = `
+        uniform mat4 u_xformMatrix;
+        attribute vec4 a_Position;
+        void main(){
+          gl_Position = a_Position * u_xformMatrix;
+        }`;
+
+      // 片段着色器代码
+      var FSHADER = `void main(){
+          gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0);
+        }`;
+
+      if (!initShaders(gl, VSHADER, FSHADER)) {
+        console.log("着色器初始化失败!");
+      }
+
+      var a_r = 45.0; // 旋转度数
+      function main() {
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
+        var nn = initVertexB(gl);
+
+        var u_xformMatrix = gl.getAttribLocation(gl.program, "u_xformMatrix");
+        var a_r_t = 0;
+        var modelM = new Matrix4();
+      }
+
+      function initVertexB(gl) {
+        // 获取 attribute变量 储存位置
+        var a_Position = gl.getAttribLocation(gl.program, "a_Position");
+
+        // var verts = new Float32Array([0.0, 0.5, -0.5, -0.5, 0.5, -0.5]);
+        var verts = new Float32Array([
+          -0.5,
+          0.5,
+          -0.5,
+          -0.5,
+          0.5,
+          0.5,
+          0.5,
+          -0.5
+        ]);
+        var n = 4;
+        // 创建缓冲区
+        var verB = gl.createBuffer();
+
+        // 将缓冲区对象绑定到目标
+        gl.bindBuffer(gl.ARRAY_BUFFER, verB);
+
+        // 向缓冲区对象中写入数据
+        gl.bufferData(gl.ARRAY_BUFFER, verts, gl.STATIC_DRAW);
+
+        // 将缓冲区对象分配给 a position变量
+        gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 0, 0);
+
+        // 连接 a_Position变量与分配给它的缓冲区对象
+        gl.enableVertexAttribArray(a_Position);
+
+        return n;
+      }
+    </script>
+  </body>
+</html>

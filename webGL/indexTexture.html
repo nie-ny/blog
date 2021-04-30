@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+
+  <body>
+    <canvas width="500" height="500" id="canvas"></canvas>
+    <script src="./lib/webgl-utils.js"></script>
+    <script src="./lib/webgl-debug.js"></script>
+    <script src="./lib/cuon-utils.js"></script>
+    <script type="text/javascript">
+      /** @type {HTMLCanvasElement} */
+      var canvas = document.getElementById("canvas");
+      // 初始化WebGL上下文
+      const gl = canvas.getContext("webgl");
+
+      // 顶点着色器代码
+      var VSHADER = `
+        uniform mat4 u_xformMatrix;
+        attribute vec4 a_Position;
+        void main(){
+          gl_Position = a_Position * u_xformMatrix;
+        }`;
+
+      // 片段着色器代码
+      var FSHADER = `void main(){
+          gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0);
+        }`;
+
+      if (!initShaders(gl, VSHADER, FSHADER)) {
+        console.log("着色器初始化失败!");
+      }
+    </script>
+  </body>
+</html>

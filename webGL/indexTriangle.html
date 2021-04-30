@@ -20,16 +20,34 @@
 
       // 顶点着色器代码
       var VSHADER = `
-      attribute vec4 a_Position;
-      attribute float a_PointSize;
-      void main(){
-        gl_Position = a_Position;
-        gl_PointSize = a_PointSize;
-      }`;
+        uniform mat4 u_xformMatrix;
+        attribute vec4 a_Position;
+        void main(){
+          gl_Position = a_Position * u_xformMatrix;
+        }`;
+
+      // // 顶点着色器代码
+      // var VSHADER = `
+      //   uniform float u_CosB, u_SinB;
+      //   attribute vec4 a_Position;
+      //   void main(){
+      //     gl_Position.x = a_Position.x * u_CosB - a_Position.y * u_SinB;
+      //     gl_Position.y = a_Position.x * u_SinB + a_Position.y * u_CosB;
+      //     gl_Position.z = a_Position.z;
+      //     gl_Position.w = 1.0;
+      //   }`;
+
+      // // 顶点着色器代码
+      // var VSHADER = `
+      //       attribute vec4 a_Position;
+      //       uniform vec4 u_Translation;
+      //       void main(){
+      //         gl_Position = a_Position + u_Translation;
+      //       }`;
       // 片段着色器代码
       var FSHADER = `void main(){
-        gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0);
-      }`;
+              gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0);
+            }`;
 
       //
       if (!initShaders(gl, VSHADER, FSHADER)) {
@@ -39,11 +57,96 @@
       // 获取 attribute变量 储存位置
       var a_Position = gl.getAttribLocation(gl.program, "a_Position");
       // 获取 attribute变量 储存位置
-      var a_PointSize = gl.getAttribLocation(gl.program, "a_PointSize");
-      gl.vertexAttrib1f(a_PointSize, 10.0);
+      // var a_PointSize = gl.getAttribLocation(gl.program, "a_PointSize");
+      // gl.vertexAttrib1f(a_PointSize, 10.0);
+
+      // 平移
+      // var tx = 0.3,
+      //   ty = 0.2,
+      //   tz = 0;
+
+      // var u_Translation = gl.getUniformLocation(gl.program, "u_Translation");
+      // gl.uniform4f(u_Translation, tx, ty, tz, 0.0);
+
+      // 旋转
+      var r = 45;
+      var radian = (Math.PI * r) / 180.0;
+      var cosB = Math.cos(radian);
+      var sinB = Math.sin(radian);
+
+      // var u_CosB = gl.getUniformLocation(gl.program, "u_CosB");
+      // var u_SinB = gl.getUniformLocation(gl.program, "u_SinB");
+
+      // gl.uniform1f(u_CosB, cosB);
+      // gl.uniform1f(u_SinB, sinB);
+
+      var xformMatrix = new Float32Array([
+        cosB,
+        sinB,
+        0.0,
+        0.0,
+
+        -sinB,
+        cosB,
+        0.0,
+        0.0,
+
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]);
+
+      var u_xformMatrix = gl.getUniformLocation(gl.program, "u_xformMatrix");
+      gl.uniformMatrix4fv(u_xformMatrix, false, xformMatrix);
 
       gl.clearColor(0.0, 0.0, 0.0, 1.0);
       gl.clear(gl.COLOR_BUFFER_BIT);
+
+      var nn = initVertexB(gl);
+
+      gl.drawArrays(gl.TRIANGLES, 0, nn);
+      // gl.drawArrays(gl.LINE_STRIP, 0, nn);
+      // gl.drawArrays(gl.LINE_LOOP, 0, nn);
+
+      // gl.drawArrays(gl.TRIANGLE_STRIP, 0, nn);
+      // gl.drawArrays(gl.TRIANGLE_FAN, 0, nn);
+
+      function initVertexB(gl) {
+        // var verts = new Float32Array([0.0, 0.5, -0.5, -0.5, 0.5, -0.5]);
+        var verts = new Float32Array([
+          -0.5,
+          0.5,
+          -0.5,
+          -0.5,
+          0.5,
+          0.5,
+          0.5,
+          -0.5
+        ]);
+        var n = 4;
+        // 创建缓冲区
+        var verB = gl.createBuffer();
+
+        // 将缓冲区对象绑定到目标
+        gl.bindBuffer(gl.ARRAY_BUFFER, verB);
+
+        // 向缓冲区对象中写入数据
+        gl.bufferData(gl.ARRAY_BUFFER, verts, gl.STATIC_DRAW);
+
+        // 将缓冲区对象分配给 a position变量
+        gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 0, 0);
+
+        // 连接 a_Position变量与分配给它的缓冲区对象
+        gl.enableVertexAttribArray(a_Position);
+
+        return n;
+      }
     </script>
   </body>
 </html>
