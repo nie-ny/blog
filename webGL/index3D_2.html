@@ -22,13 +22,12 @@
       // 顶点着色器代码
       var VSHADER = `
               attribute vec4 a_Position;
-              uniform mat4 u_ViewMatrix;
-              uniform mat4 u_ModelMatrix;
+              uniform mat4 u_ProjMatrix;
 
               attribute vec4 a_Color;
               varying vec4 v_Color;
               void main(){
-                gl_Position = a_Position * u_ViewMatrix;
+                gl_Position = a_Position * u_ProjMatrix;
                 v_Color = a_Color;
               }`;
 
@@ -52,9 +51,9 @@
         gl.clear(gl.COLOR_BUFFER_BIT);
         var n = initVertexB(gl);
 
-        var u_ViewMatrix = gl.getUniformLocation(gl.program, "u_ViewMatrix");
+        var u_ProjMatrix = gl.getUniformLocation(gl.program, "u_ProjMatrix");
         // var u_ModelMatrix = gl.getUniformLocation(gl.program, "u_ModelMatrix");
-        var viewMatrix = new Matrix4();
+        var ProjMatrix = new Matrix4();
 
         // 旋转
         // var modelMatrix = new Matrix4();
@@ -63,33 +62,42 @@
 
         document.onkeydown = function (ev) {
           console.log(ev);
-          keydown(ev, gl, n, u_ViewMatrix, viewMatrix);
+          keydown(ev, gl, n, u_ProjMatrix, ProjMatrix);
         };
 
         // gl.drawArrays(gl.TRIANGLES, 0, n);
-        draw(gl, n, u_ViewMatrix, viewMatrix);
+        draw(gl, n, u_ProjMatrix, ProjMatrix);
       }
 
-      var g_eyeX = 0.2,
-        g_eyeY = 0.25,
-        g_eyeZ = 0.25;
+      var g_near = 0.0,
+        g_far = 0.5;
       // 键盘事件
-      function keydown(ev, gl, n, u_ViewMatrix, viewMatrix) {
-        if (ev.keyCode == 39) {
-          g_eyeX += 0.01;
-        } else if (ev.keyCode == 37) {
-          g_eyeY -= 0.01;
-        } else {
-          return;
+      function keydown(ev, gl, n, u_ProjMatrix, ProjMatrix) {
+        switch (ev.keyCode) {
+          case 39:
+            g_near += 0.01;
+            break;
+          case 37:
+            g_near -= 0.01;
+            break;
+          case 38:
+            g_far += 0.01;
+            break;
+          case 40:
+            g_far -= 0.01;
+            break;
+          default:
+            return;
         }
-        draw(gl, n, u_ViewMatrix, viewMatrix);
+
+        draw(gl, n, u_ProjMatrix, ProjMatrix);
       }
 
-      function draw(gl, n, u_ViewMatrix, viewMatrix) {
+      function draw(gl, n, u_ProjMatrix, ProjMatrix) {
         gl.clear(gl.COLOR_BUFFER_BIT);
-        // 视点 和 视线
-        viewMatrix.setLookAt(g_eyeX, g_eyeY, g_eyeZ, 0, 0, 0, 0, 1, 0);
-        gl.uniformMatrix4fv(u_ViewMatrix, false, viewMatrix.elements);
+
+        ProjMatrix.setOrtho(-1, 1, -1, 1, g_near, g_far);
+        gl.uniformMatrix4fv(u_ProjMatrix, false, ProjMatrix.elements);
 
         gl.drawArrays(gl.TRIANGLES, 0, n);
       }
