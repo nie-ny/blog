@@ -43,19 +43,11 @@
         // stats = new Stats();
         // container.appendChild(stats.dom);
         // 创建相机
-        camera = new THREE.PerspectiveCamera(
-          45,
-          window.innerWidth / window.innerHeight,
-          1,
-          10000
-        );
+        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
         camera.position.set(100, 500, 500); //设置相机位置
 
         // 设置鼠标操作（控制器）
-        controls = new THREE.OrbitControls(
-          camera,
-          document.querySelector("canvas")
-        );
+        controls = new THREE.OrbitControls(camera, document.querySelector("canvas"));
         controls.update(); //更新控制器
 
         // 设置场景
@@ -111,7 +103,7 @@
 
       function loadModel() {
         // 模型地址
-        const url = "./1.fbx";
+        const url = "./file/1.fbx";
         const loader = new THREE.FBXLoader();
         loader.load(url, function (loadedModel) {
           scene.add(loadedModel);
