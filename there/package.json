@@ -8,11 +8,13 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev":"live-server ./ --port=9090"
+    "dev2": "live-server ./ --port=9090",
+    "dev": "http-server"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "http-server": "^0.12.3",
     "live-server": "^1.2.1"
   }
 }

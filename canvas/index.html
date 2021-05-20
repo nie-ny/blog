@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+  <body>
+    <canvas width="500" height="500" id="canvas"></canvas>
+    <script type="text/javascript">
+      // 获取元素DOM
+      var canvas = document.getElementById("canvas");
+
+      // 获取画布上下文
+      var c = canvas.getContext("2d");
+
+      // 绘制背景
+      c.fillStyle = "gray";
+      c.fillRect(0, 0, 500, 500);
+
+      // 绘制轴线
+      c.fillStyle = "black";
+      c.lineWidth = 2.0;
+      c.beginPath();
+      c.moveTo(30, 10);
+      c.lineTo(30, 460);
+      c.lineTo(490, 460);
+      c.stroke();
+
+      // 绘制 Y轴 刻度值
+      c.fillStyle = "black";
+      for (var i = 0; i < 6; i++) {
+        // 绘制是 从上向下绘制的
+        c.fillText((5 - i) * 20 + "", 4, i * 80 + 60);
+        c.beginPath();
+        c.moveTo(25, i * 80 + 60);
+        c.lineTo(30, i * 80 + 60);
+        c.stroke();
+      }
+
+      // 绘制 X 轴刻度
+      var labels = ["一", "二", "三", "四", "五"];
+      // 添加刻个 从左向右绘制
+      for (var i = 0; i < 5; i++) {
+        c.fillText(labels[i], 50 + i * 100, 475);
+        c.beginPath();
+        c.moveTo(55 + i * 100, 460);
+        c.lineTo(55 + i * 100, 465);
+        c.stroke();
+      }
+
+      // 添加数据
+      var data = [20, 10, 20, 30, 54];
+      c.beginPath();
+      for (var i = 0; i < data.length; i++) {
+        var dp = data[i];
+        if (dp) {
+          if (i != 0) {
+            c.lineTo(55 + i * 100, 460 - dp * 4);
+          }
+          c.stroke();
+          c.beginPath();
+
+          c.arc(55 + i * 100, 460 - dp * 4, 3, 0, 2 * Math.PI);
+          c.fill();
+          c.beginPath();
+
+          c.moveTo(55 + i * 100, 460 - dp * 4);
+        } else {
+          c.beginPath();
+        }
+      }
+
+      // 获取最大值
+      var maxData = [...data].sort((a, b) => a - b)[data.length - 1];
+
+      // 添加渐变色
+      var g1 = c.createLinearGradient(0, 460 - maxData, 0, 460);
+      g1.addColorStop(0, "rgba(5, 234, 200, 0.8)");
+      g1.addColorStop(1, "rgba(5, 234, 200, 0.1)");
+      c.fillStyle = g1;
+
+      // 绘制填充
+      for (var i = 0; i < data.length; i++) {
+        var dp = data[i];
+        if (dp) {
+          if (data[i + 1]) {
+            // 绘制 当前点 和 后一个点组合成 的图形 填充
+            c.moveTo(55 + i * 100, 460 - dp * 4);
+            c.lineTo(55 + (i + 1) * 100, 460 - data[i + 1] * 4);
+            c.lineTo(55 + (i + 1) * 100, 460);
+            c.lineTo(55 + i * 100, 460);
+
+            c.fill();
+            c.beginPath();
+          }
+        } else {
+          c.beginPath();
+        }
+      }
+      //
+    </script>
+  </body>
+</html>
