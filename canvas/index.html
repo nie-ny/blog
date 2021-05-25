@@ -3,24 +3,93 @@
   <body>
     <canvas width="500" height="500" id="canvas"></canvas>
     <script type="text/javascript">
-      // 获取元素DOM
-      var canvas = document.getElementById("canvas");
-      // 获取画布上下文
-      var ctx = canvas.getContext("2d");
+      window.requestAnimFrame = (function () {
+        return (
+          window.requestAnimationFrame ||
+          window.webkitRequestAnimationFrame ||
+          window.mozRequestAnimationFrame ||
+          window.oRequestAnimationFrame ||
+          window.msRequestAnimationFrame ||
+          function (callback) {
+            window.setTimeout(callback, 1000 / 60)
+          }
+        )
+      })()
 
-      var data = [10, 60, 40, 50];
-      ctx.fillStyle = "black";
-      for (var i = 0; i < data.length; i++) {
-        ctx.save();
-        var dp = data[i];
-        ctx.translate(100, 0);
-        if (i === 2) {
-          var rads = (30 * Math.PI * 2.0) / 360.0;
-          ctx.rotate(rads);
-        }
-        ctx.fillRect(0, 0, 50, dp);
-        ctx.restore();
+      const canvas = document.getElementById('canvas')
+      const context = canvas.getContext('2d')
+      // canvas.width = document.body.clientWidth
+      // canvas.height = document.body.clientHeight
+      let warea = {
+        x: null,
+        y: null,
+        max: 20000
       }
+      window.onmousemove = (e) => {
+        //获取鼠标活动时的鼠标坐标
+        warea.x = e.clientX
+        warea.y = e.clientY
+      }
+      window.onmouseout = (e) => {
+        //鼠标移出界面时清空
+        warea.x = null
+        warea.y = null
+      }
+      var dots = [] // 所有粒子`
+      for (var i = 0; i < 200; i++) {
+        dots.push({
+          x: Math.random() * canvas.width, // x  , y  为  粒子坐标
+          y: Math.random() * canvas.height,
+          xa: Math.random() * 2 - 1, // xa , ya 为  粒子 xy 轴加速度
+          ya: Math.random() * 2 - 1,
+          max: 6000 //max为  连线的最大距离
+        })
+      }
+      // setTimeout(animate(), 100)// 延迟100秒开始执行动画，如果立即执行有时位置计算会出错
+      function animate() {
+        context.clearRect(0, 0, canvas.width, canvas.height)
+        var ndots = [warea].concat(dots)
+        dots.forEach((dot) => {
+          // 粒子位移
+          dot.x += dot.xa
+          dot.y += dot.ya
+          // 遇到边界将加速度反向
+          dot.xa *= dot.x > canvas.width || dot.x < 0 ? -1 : 1
+          dot.ya *= dot.y > canvas.height || dot.y < 0 ? -1 : 1
+          // 绘制点
+          context.fillRect(dot.x - 1, dot.y - 1, 2, 2)
+          context.fillStyle = 'rgba(255,218,27,1)'
+          // 循环比对粒子间的距离
+          for (var i = 0; i < ndots.length; i++) {
+            var d2 = ndots[i]
+            if (dot === d2 || d2.x === null || d2.y === null) continue
+            let [xc, yc, dis, ratio] = [dot.x - d2.x, dot.y - d2.y, '', '']
+            // 两个粒子之间的距离
+            dis = xc * xc + yc * yc
+            // 如果两个粒子之间的距离小于粒子对象的max值
+            //则在两个粒子间画线
+            if (dis < d2.max) {
+              // 如果是鼠标，则让粒子向鼠标的位置移动
+              if (d2 === warea && dis > d2.max / 2) {
+                dot.x -= xc * 0.03
+                dot.y -= yc * 0.03
+              }
+              // 计算距离比
+              ratio = (d2.max - dis) / d2.max
+              // 画线
+              context.beginPath()
+              context.lineWidth = ratio / 2
+              context.strokeStyle = 'rgba(255,218,27,1)'
+              context.moveTo(dot.x, dot.y)
+              context.lineTo(d2.x, d2.y)
+              context.stroke()
+            }
+          }
+          ndots.splice(ndots.indexOf(dot), 1) // 从数组中删除已经计算过的粒子
+        })
+        window.requestAnimFrame(animate)
+      }
+      window.requestAnimFrame(animate)
     </script>
   </body>
 </html>
