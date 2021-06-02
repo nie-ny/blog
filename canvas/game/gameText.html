@@ -33,7 +33,7 @@
 
       /** @type {HTMLCanvasElement} */
       var canvas = document.getElementById('canvas')
-      var c = canvas.getContext('2d')
+      var cxt = canvas.getContext('2d')
 
       // =========== 资源加载 ============
       // 雪碧图 -- 自己的飞船 、 游戏背景物体
@@ -43,6 +43,10 @@
       // 雪碧图 敌人的飞船
       var hunter1_image = new Image()
       hunter1_image.src = './Hunter1.png'
+
+      // 炸弹 敌人的子弹
+      var bomb_image = new Image()
+      bomb_image.src = './bomb.png'
 
       // =========== 游戏状态 ============
       var game = {
@@ -79,7 +83,7 @@
             })
           }
 
-          game.state = 'playing'
+          // game.state = 'playing'
         }
 
         // 位置移动
@@ -94,27 +98,151 @@
         }
       }
 
+      // 绘制 背景图像
       function drawBackground(c) {
-        c.fillStyle = 'black'
-        c.fillRect(0, 0, canvas.width, canvas.height)
+        cxt.fillStyle = 'black'
+        cxt.fillRect(0, 0, canvas.width, canvas.height)
 
         for (var key in backImgs) {
           var backImg = backImgs[key]
           var imPos = backImg.imagePos
           // 绘制图形
-          c.drawImage(sprite_image, imPos.x, imPos.y, imPos.imgX, imPos.imgY, backImg.x, backImg.y, imPos.canX, imPos.canY)
+          cxt.drawImage(sprite_image, imPos.x, imPos.y, imPos.imgX, imPos.imgY, backImg.x, backImg.y, imPos.canX, imPos.canY)
+        }
+      }
+
+      // =========== 敌人 ============
+      // 敌人
+      var enemies = []
+      // 敌方 子弹
+      var enemyBullets = []
+
+      var num = 10 // 敌人数量
+      // 修改 敌人对象
+      function updateEnemies() {
+        if (game.state === 'start') {
+          // 每次重新开始 初始化敌人
+          enemies = [] // 清空敌人
+          enemyBullets = [] // 清空子弹
+          for (var i = 0; i < num; i++) {
+            enemies.push({
+              x: 50 + i * 50, // x轴 位置
+              y: 10,
+              width: 40,
+              height: 40,
+              state: 'alive', // alive: 存活 hit: 击中 dead: 死亡
+              counter: 0, // 计量
+              phase: Math.floor(Math.random() * 100) // 添加子弹的时间
+            })
+          }
+          game.state = 'playing'
+        }
+
+        // 添加子弹
+        for (var i = 0; i < num; i++) {
+          var enemy = enemies[i]
+          if (!enemy) continue
+
+          if (enemy && enemy.state == 'alive') {
+            // 存活 状态才继续
+            enemy.counter++
+            // 敌人 左右位移
+            enemy.x += Math.sin((enemy.counter * Math.PI * 2) / 100) * 2
+            // 添加 子弹时间
+            if ((enemy.counter + enemy.phase) % 200 == 0) {
+              enemyBullets.push({
+                x: enemy.x,
+                y: enemy.y + enemy.height,
+                width: 20,
+                height: 20,
+                counter: 0
+              })
+            }
+          }
+
+          // 被击中状态
+          if (enemy && enemy.state == 'hit') {
+            enemy.counter++
+
+            // 一段时间后 修改为 死亡状态
+            if (enemy.counter >= 20) {
+              enemy.state = 'dead'
+              enemy.counter = 0
+            }
+          }
+        }
+
+        // 清除死亡的敌人
+        enemies = enemies.filter(function (e) {
+          if (e && e.state != 'dead') {
+            return true
+          }
+          return false
+        })
+
+        // 修改 子弹位置
+        if (enemyBullets.length) {
+          for (var i in enemyBullets) {
+            var bullet = enemyBullets[i]
+            bullet.y += 1.2
+            bullet.counter++
+          }
+
+          // 超出屏幕 删除子弹
+          enemyBullets = enemyBullets.filter(function (bullet) {
+            return bullet.y < 600
+          })
+        }
+      }
+
+      // 绘制 敌人
+      function drawEnemies(cxt) {
+        // 敌人绘制
+        for (var key in enemies) {
+          var enemy = enemies[key]
+
+          if (enemy.state === 'alive') {
+            // 存活
+            // c.fillStyle = 'green'
+            cxt.drawImage(hunter1_image, 25, 50, 22, 22, enemy.x, enemy.y, enemy.width, enemy.height)
+          }
+
+          if (enemy.state === 'hit') {
+            // 击中 -- 修改为黑色
+            cxt.fillStyle = 'black'
+            cxt.fillRect(enemy.x, enemy.y, enemy.width, enemy.height)
+          }
+
+          if (enemy.state === 'dead') {
+            // 死亡 -- 修改为黑色
+            cxt.fillStyle = 'black'
+            cxt.fillRect(enemy.x, enemy.y, enemy.width, enemy.height)
+          }
+        }
+
+        // 子弹 --绘制
+        for (var i in enemyBullets) {
+          var bullet = enemyBullets[i]
+          // 切换 雪碧图 位置实现动画
+          var xoff = (bullet.counter % 9) * 12 + 2
+          var yoff = 1
+          cxt.drawImage(bomb_image, xoff, yoff, 9, 10, bullet.x, bullet.y, bullet.width, bullet.height)
         }
       }
 
       // =========== 初始化 ============
       function mainLoop() {
         // 清空画布
-        c.clearRect(0, 0, 650, 500)
+        cxt.clearRect(0, 0, 650, 500)
         // 修改 图像精灵
         updatebackground()
+        // 修改 敌人对象 敌人子弹对象
+        updateEnemies()
 
-        // 绘制
-        drawBackground(c)
+        // 绘制 背景图像
+        drawBackground(cxt)
+        // 绘制 --敌人 -- 敌人子弹
+        drawEnemies(cxt)
         window.requestAnimFrame(mainLoop)
       }
       window.requestAnimFrame(mainLoop)
