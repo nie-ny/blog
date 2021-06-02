@@ -1,115 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
   <body>
-    <canvas width="500" height="500" id="canvas"></canvas>
+    <canvas width="400" height="400" id="canvas"></canvas>
+
     <script type="text/javascript">
-      // 动画兼容函数
-      window.requestAnimFrame = (function () {
-        return (
-          window.requestAnimationFrame ||
-          window.webkitRequestAnimationFrame ||
-          window.mozRequestAnimationFrame ||
-          window.oRequestAnimationFrame ||
-          window.msRequestAnimationFrame ||
-          function (callback) {
-            window.setTimeout(callback, 1000 / 60)
-          }
-        )
-      })()
+      var canvas = document.getElementById('canvas')
+      var c = canvas.getContext('2d')
 
-      const canvas = document.getElementById('canvas')
-      const context = canvas.getContext('2d')
-      // canvas.width = document.body.clientWidth
-      // canvas.height = document.body.clientHeight
+      c.fillStyle = 'black'
+      c.fillRect(0, 0, canvas.width, canvas.height)
 
-      // 鼠标位置
-      let warea = {
-        x: null,
-        y: null,
-        max: 200
-      }
-      //获取鼠标活动时的鼠标坐标
-      window.onmousemove = (e) => {
-        warea.x = e.clientX
-        warea.y = e.clientY
-      }
-      //鼠标移出界面时清空
-      window.onmouseout = (e) => {
-        warea.x = null
-        warea.y = null
-      }
+      c.shadowColor = 'white' // 设置或返回用于阴影的颜色
+      c.shadowOffsetX = 0 // 设置或返回形状与阴影的水平距离
+      c.shadowOffsetY = 0
+      c.shadowBlur = 30 // 设置或返回阴影的模糊级数
 
-      // 所有粒子
-      var dots = []
-      for (var i = 0; i < 100; i++) {
-        dots.push({
-          x: Math.random() * canvas.width, // x  , y  为  粒子坐标
-          y: Math.random() * canvas.height,
-          xa: Math.random() * 3 - 1, // xa , ya 为  粒子 xy 轴加速度
-          ya: Math.random() * 3 - 1,
-          max: 100 // max为  连线的最大距离
-        })
-      }
-
-      function animate() {
-        context.clearRect(0, 0, canvas.width, canvas.height)
-        context.fillStyle = 'rgba(0,43,54,1)'
-        context.fillRect(0, 0, canvas.width, canvas.height)
-
-        // 加入鼠标位对象
-        var ndots = [warea].concat(dots)
-
-        // 循环加载粒子
-        dots.forEach((dot) => {
-          // 粒子位移
-          dot.x += dot.xa
-          dot.y += dot.ya
-
-          // 遇到边界将 加速度 反向
-          dot.xa *= dot.x > canvas.width || dot.x < 0 ? -1 : 1
-          dot.ya *= dot.y > canvas.height || dot.y < 0 ? -1 : 1
-
-          // 绘制点
-          context.fillRect(dot.x - 1, dot.y - 1, 2, 2)
-          context.fillStyle = 'rgba(255,218,27,1)'
-
-          // 循环比对粒子间的距离
-          for (var i = 0; i < ndots.length; i++) {
-            var d2 = ndots[i]
-
-            if (dot === d2 || d2.x === null || d2.y === null) continue
-
-            let [xc, yc, dis, ratio] = [dot.x - d2.x, dot.y - d2.y, '', '']
-
-            // 两个粒子之间的距离
-            dis = Math.sqrt(xc * xc + yc * yc)
-
-            // 如果两个粒子之间的距离小于粒子对象的max值
-            // 则在两个粒子间画线
-            if (dis < d2.max) {
-              // 如果是鼠标，则让粒子向鼠标的位置移动
-              if (d2 === warea && dis > d2.max / 2) {
-                dot.x -= xc * 0.03
-                dot.y -= yc * 0.03
-              }
-              // 计算距离比
-              ratio = (d2.max - dis) / d2.max
-              // 画线
-              context.beginPath()
-              context.lineWidth = ratio / 2
-              context.strokeStyle = 'rgba(255,218,27,1)'
-              context.moveTo(dot.x, dot.y)
-              context.lineTo(d2.x, d2.y)
-              context.stroke()
-            }
-          }
-
-          // 从数组中删除已经计算过的粒子
-          ndots.splice(ndots.indexOf(dot), 1)
-        })
-        window.requestAnimFrame(animate)
-      }
-      window.requestAnimFrame(animate)
+      c.font = 'bold 80pt Arial'
+      c.fillStyle = '#55cc55'
+      c.fillText('快乐', 30, 200)
     </script>
   </body>
 </html>

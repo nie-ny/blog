@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <style type="text/css">
+    .canvasDiv {
+      margin: 0 auto;
+      width: 500px;
+    }
+  </style>
+  <body>
+    <div class="canvasDiv">
+      <canvas width="650" height="500" id="canvas"></canvas>
+    </div>
+    <script type="text/javascript">
+      // 兼容性处理
+      window.requestAnimFrame = (function () {
+        return (
+          window.requestAnimationFrame ||
+          window.webkitRequestAnimationFrame ||
+          window.mozRequestAnimationFrame ||
+          window.oRequestAnimationFrame ||
+          window.msRequestAnimationFrame ||
+          function (callback, element) {
+            window.setTimeout(callback, 1000 / 60)
+          }
+        )
+      })()
+
+      /** @type {HTMLCanvasElement} */
+      var canvas = document.getElementById('canvas')
+      var c = canvas.getContext('2d')
+
+      // =========== 资源加载 ============
+      // 雪碧图 -- 自己的飞船 、 游戏背景物体
+      var sprite_image = new Image()
+      sprite_image.src = './sprite.png'
+
+      // 雪碧图 敌人的飞船
+      var hunter1_image = new Image()
+      hunter1_image.src = './Hunter1.png'
+
+      // =========== 游戏状态 ============
+      var game = {
+        state: 'start' // start:开始 playing:启动中 won:胜利 over:死亡
+      }
+
+      // =========== 背景动画 ============
+      // 背景图 对象
+      var backImgs = []
+      // 加载背景图数
+      function updatebackground() {
+        if (game.state === 'start') {
+          // 开始状态 重置 背景图片
+          backImgs = []
+          for (var i = 0; i < 4; i++) {
+            // 图片 精灵 位置
+            var imagePos =
+              i % 2
+                ? { x: 270, y: 0, imgX: 150, imgY: 150, canX: 150, canY: 150 }
+                : {
+                    x: 0,
+                    y: 0,
+                    imgX: 200,
+                    imgY: 200,
+                    canX: 200,
+                    canY: 200
+                  }
+            backImgs.push({
+              x: Math.round(Math.random() * 500), // x轴位置
+              y: 200 * i, // y轴位置
+              speed: 1, // 移动速度
+              // 图片中精灵的位置
+              imagePos: imagePos
+            })
+          }
+
+          game.state = 'playing'
+        }
+
+        // 位置移动
+        for (var key in backImgs) {
+          var backImg = backImgs[key]
+          if (backImg.y + 200 === 0) {
+            // 到顶部 返回底部
+            backImg.y = 650
+            backImg.x = Math.round(Math.random() * 500) // x 轴位置
+          }
+          backImg.y = backImg.y - backImg.speed
+        }
+      }
+
+      function drawBackground(c) {
+        c.fillStyle = 'black'
+        c.fillRect(0, 0, canvas.width, canvas.height)
+
+        for (var key in backImgs) {
+          var backImg = backImgs[key]
+          var imPos = backImg.imagePos
+          // 绘制图形
+          c.drawImage(sprite_image, imPos.x, imPos.y, imPos.imgX, imPos.imgY, backImg.x, backImg.y, imPos.canX, imPos.canY)
+        }
+      }
+
+      // =========== 初始化 ============
+      function mainLoop() {
+        // 清空画布
+        c.clearRect(0, 0, 650, 500)
+        // 修改 图像精灵
+        updatebackground()
+
+        // 绘制
+        drawBackground(c)
+        window.requestAnimFrame(mainLoop)
+      }
+      window.requestAnimFrame(mainLoop)
+    </script>
+  </body>
+</html>
