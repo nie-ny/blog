@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <style type="text/css">
+    canvas {
+      background-color: #fff;
+      border: 1px solid #ccc;
+      margin: 0 auto;
+      display: block;
+    }
+  </style>
+  <body>
+    <canvas height="200" width="600" id="canvas"></canvas>
+  </body>
+  <script>
+    // 圆滑曲线
+
+    /** @type {HTMLCanvasElement} */
+    var canvas = document.getElementById('canvas')
+    var ctx = canvas.getContext('2d')
+
+    var width = canvas.width
+    var height = canvas.height
+
+    // 数据组装
+    var points = []
+    for (var i = 0; i < 30; i++) {
+      // 按照echarts
+      points.push(Math.random() * 20)
+    }
+
+    // var tick = 0
+
+    // function loop() {
+    //   if (1 < tick && tick < 4) {
+    //     draw(tick)
+    //   }
+    //   tick++
+    // }
+
+    // setInterval(loop, 100)
+    draw()
+    function draw() {
+      var dataMax = 0 // y 轴最大值
+      var dataMin = points[0] //  y 轴最小值
+      var diffY = 0 // y轴 中间点
+      var diffX = 0 // x轴 中间点
+      // var self = this
+      // 最大 最小点
+      points.forEach(function (obj, i) {
+        if (dataMax < obj) dataMax = obj
+        if (dataMin > obj) dataMin = obj
+      })
+
+      diffY = height / (dataMax - dataMin)
+      diffX = width / points.length
+
+      ctx.beginPath()
+      ctx.lineTo(0, height)
+
+      points.forEach(function (item, index) {
+        if (index === 0) {
+          ctx.lineTo(nowX, nowY)
+          return
+        }
+        //找到前一个点到下一个点中间的控制点
+        var scale = 0.1
+        var last1X = diffX * (index - 1),
+          last1Y = Math.floor(height - diffY * (points[index - 1] - dataMin)),
+          last2X = diffX * (index - 2),
+          last2Y = Math.floor(height - diffY * (points[index - 2] - dataMin)),
+          nowX = diffX * index,
+          nowY = Math.floor(height - diffY * (points[index] - dataMin)),
+          nextX = diffX * (index + 1),
+          nextY = Math.floor(height - diffY * (points[index + 1] - dataMin)),
+          cAx = last1X + (nowX - last2X) * scale,
+          cAy = last1Y + (nowY - last2Y) * scale,
+          cBx = nowX - (nextX - last1X) * scale,
+          cBy = nowY - (nextY - last1Y) * scale
+        if (index === 1) {
+          cAx = last1X + (nowX - 0) * scale
+          cAy = last1Y + (nowY - height) * scale
+        } else if (index === points.length - 1) {
+          cBx = nowX - (nowX - last1X) * scale
+          cBy = nowY - (nowY - last1Y) * scale
+        }
+        ctx.bezierCurveTo(cAx, cAy, cBx, cBy, nowX, nowY)
+      })
+
+      // 渐变色
+      var lingrad = ctx.createLinearGradient(0, 0, 0, width)
+      lingrad.addColorStop(0, 'rgb(255, 158, 68)')
+      lingrad.addColorStop(1, 'rgb(255, 70, 131)')
+
+      ctx.strokeStyle = 'rgb(255, 70, 131)'
+      ctx.stroke()
+    }
+  </script>
+</html>
