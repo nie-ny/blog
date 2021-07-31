@@ -1,49 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
-  <style>
-    body {
-      display: flex;
-    }
-    .scrollbar {
-      width: 200px;
-      height: 200px;
-      overflow-x: scroll;
-    }
-    .test {
-      height: 400px;
-      margin: 0 auto;
-    }
-
-    .scrollbar::-webkit-scrollbar {
-      /*滚动条整体样式*/
-      width: 6px; /*高宽分别对应横竖滚动条的尺寸*/
-      height: 0px;
-    }
-    .scrollbar::-webkit-scrollbar-thumb {
-      /*滚动条里面小方块*/
-      border-radius: 10px;
-      background-color: rgba(0, 0, 0, 0.8);
-      background-image: linear-gradient(
-        45deg,
-        rgba(255, 255, 255, 0.2) 10%,
-        rgba(255, 255, 255, 0.8) 30%,
-        rgba(255, 255, 255, 0.5) 50%,
-        rgba(255, 255, 255, 0.5) 50%,
-        rgba(255, 255, 255, 0.8) 70%,
-        rgba(255, 255, 255, 0.5) 70%,
-        rgba(255, 255, 255, 0.2) 100%
-      );
-    }
-    .scrollbar::-webkit-scrollbar-track {
-      /*滚动条里面轨道*/
-      box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
-      background: #ededed;
-      border-radius: 2px;
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <style type="text/css">
+    .title {
     }
   </style>
   <body>
-    <div class="scrollbar">
-      <div class="test">11111111111111 111111111 1111 11111 111111111 11111111111 111 111111 11111111 1 111111111111111 11111111 1</div>
-    </div>
+    <div class="title"></div>
+    <canvas height="400" width="700" id="canvas" class="canvas"></canvas>
   </body>
+  <script>
+    /** @type {HTMLCanvasElement} */
+    var canvas = document.getElementById('canvas')
+    var ctx = canvas.getContext('2d')
+
+    let width = canvas.width
+    let height = canvas.height
+
+    //
+  </script>
 </html>

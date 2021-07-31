@@ -9,163 +9,160 @@
   <body>
     <canvas id="c2d" class="c2d" width="390" height="290"></canvas>
     <script type="text/javascript">
-      var oC2 = document.getElementById("c2d");
-      var ctx = oC2.getContext("2d");
+      var oC2 = document.getElementById('c2d')
+      var ctx = oC2.getContext('2d')
 
       // 获取宽高
-      var width = oC2.width;
-      var height = oC2.height;
+      var width = oC2.width
+      var height = oC2.height
 
-      var maxX = 18; // 路的 列数
-      var maxY = 13; // 路的 行数
+      var maxX = 18 // 路的 列数
+      var maxY = 13 // 路的 行数
 
-      var firstGrid; // 开始点
-      var endGrid; // 结束点
+      var firstGrid // 开始点
+      var endGrid // 结束点
 
       /**
        * 创建格
        */
       function Grid(x, y) {
-        this.x = x;
-        this.y = y;
-        this.choosed = false; // 是否标记
-        this.children = [];
-        this.initNeighbor();
+        this.x = x
+        this.y = y
+        this.choosed = false // 是否标记
+        this.children = []
+        this.initNeighbor()
       }
 
       // 获取当前格 对应的邻格
       Grid.prototype.initNeighbor = function () {
-        var x = this.x;
-        var y = this.y;
+        var x = this.x
+        var y = this.y
 
-        this.neighbor = [];
+        this.neighbor = []
 
         if (y > 0) {
           this.neighbor.push({
             x: x,
-            y: y - 1,
-          });
+            y: y - 1
+          })
         }
 
         if (y < maxY) {
           this.neighbor.push({
             x: x,
-            y: y + 1,
-          });
+            y: y + 1
+          })
         }
 
         if (x > 0) {
           this.neighbor.push({
             x: x - 1,
-            y: y,
-          });
+            y: y
+          })
         }
 
         if (x < maxX) {
           this.neighbor.push({
             x: x + 1,
-            y: y,
-          });
+            y: y
+          })
         }
 
         // 随机排序
         this.neighbor.sort(function () {
-          return 0.5 - Math.random();
-        });
-      };
+          return 0.5 - Math.random()
+        })
+      }
 
       // 获取 邻格 并设置 当前格为父级 -- 进入就会标记 保证 格子 子关联一次
       Grid.prototype.getNeighbor = function () {
-        var x, y, neighbor;
+        var x, y, neighbor
         // 标记格
-        this.choosed = true;
+        this.choosed = true
         // console.log("🚀 ~ file: mi.html ~ line 82 ~ this", this);
 
         for (var i = 0; i < this.neighbor.length; i++) {
-          x = this.neighbor[i].x;
-          y = this.neighbor[i].y;
+          x = this.neighbor[i].x
+          y = this.neighbor[i].y
 
           // 迷宫 对应位置的白色格子
-          neighbor = maze.grids[y][x];
+          neighbor = maze.grids[y][x]
 
           // 当格子未标记 返回当前格子 并设置parent为 操作的格子
           if (!neighbor.choosed) {
-            neighbor.parent = this;
-            return neighbor;
+            neighbor.parent = this
+            return neighbor
           }
         }
 
         //
         if (this.parent === firstGrid) {
-          return 0;
+          return 0
         } else {
-          return 1;
+          return 1
         }
-      };
+      }
 
       /**
        * 迷宫实例
        */
       function Maze() {
-        this.path = [];
-        this.grids = []; // 格子
-        this.stack = [];
-        this.init();
+        this.path = []
+        this.grids = [] // 格子
+        this.stack = []
+        this.init()
       }
       /**
        * 组装 整个迷宫 白色格子数据
        */
       Maze.prototype.init = function () {
         for (var i = 0; i <= maxY; i++) {
-          this.grids[i] = [];
+          this.grids[i] = []
           for (var j = 0; j <= maxX; j++) {
-            this.grids[i][j] = new Grid(j, i);
+            this.grids[i][j] = new Grid(j, i)
           }
         }
-        firstGrid = this.grids[0][0]; // 开始格
-        endGrid = this.grids[13][18]; // 结束格
-      };
+        firstGrid = this.grids[0][0] // 开始格
+        endGrid = this.grids[13][18] // 结束格
+      }
       /**
        * 开始寻找路径
        */
       Maze.prototype.findPath = function () {
-        var tmp;
+        var tmp
         // 得到第一格
-        var curr = firstGrid;
+        var curr = firstGrid
 
         while (1) {
-          tmp = curr.getNeighbor();
+          tmp = curr.getNeighbor()
 
           if (tmp === 0) {
-            console.log("路径找寻结束");
-            break;
+            console.log('路径找寻结束')
+            break
           } else if (tmp === 1) {
             // 当邻格 都标记了 操作父级
-            curr = curr.parent;
+            curr = curr.parent
           } else {
             // 返回的 相邻格子 设置为 children 形成树
-            curr.children[curr.children.length] = tmp;
-            curr = tmp;
+            curr.children[curr.children.length] = tmp
+            curr = tmp
           }
         }
-      };
+      }
 
       // 循环绘制 路
       function drawPath(node) {
         // console.log("🚀 ~ file: mi.html ~ line 154 ~ drawPath ~ node", node);
-        var i = 0;
+        var i = 0
         // 绘制 邻格
-        drawRect(node.x * 20, node.y * 20);
+        drawRect(node.x * 20, node.y * 20)
 
         for (; i < node.children.length; i++) {
           if (node.children[i]) {
             // 邻格 中间打通
-            drawRect(
-              node.x * 20 + (node.children[i].x - node.x) * 10,
-              node.y * 20 + (node.children[i].y - node.y) * 10
-            );
+            drawRect(node.x * 20 + (node.children[i].x - node.x) * 10, node.y * 20 + (node.children[i].y - node.y) * 10)
             // 画路
-            drawPath(node.children[i]);
+            drawPath(node.children[i])
           }
         }
       }
@@ -174,7 +171,7 @@
        */
       function drawRect(x, y) {
         // + 10 从内框开始画
-        ctx.fillRect(x + 10, y + 10, 10, 10);
+        ctx.fillRect(x + 10, y + 10, 10, 10)
       }
       // function drawDebug(x, y, color) {
       //   // 开始一条路径
@@ -188,21 +185,21 @@
       //   ctx.closePath();
       // }
       // 绘制迷宫背景 黑色
-      ctx.fillStyle = "black";
-      ctx.fillRect(0, 0, width, height);
-      ctx.fillStyle = "white";
+      ctx.fillStyle = 'black'
+      ctx.fillRect(0, 0, width, height)
+      ctx.fillStyle = 'white'
 
-      var maze = new Maze();
+      var maze = new Maze()
 
-      maze.findPath();
+      maze.findPath()
 
-      drawPath(firstGrid);
+      drawPath(firstGrid)
 
       // 开始 结束方格 画上
-      drawStartEnd();
+      drawStartEnd()
       function drawStartEnd() {
-        ctx.fillRect(0, 10, 10, 10);
-        ctx.fillRect(19 * 20, 13 * 20 + 10, 10, 10);
+        ctx.fillRect(0, 10, 10, 10)
+        ctx.fillRect(19 * 20, 13 * 20 + 10, 10, 10)
       }
     </script>
   </body>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <style>
+    .selectedItem {
+      width: 150px;
+      cursor: pointer;
+    }
+    .selectedItem ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    /* 已选中的选项 */
+    .selectedItem .promptText {
+      position: relative;
+      width: 150px;
+      height: 28px;
+      font-size: 14px;
+      font-weight: 400;
+      color: #eeeeee;
+      line-height: 28px;
+      background: rgba(110, 231, 183, 0.8);
+
+      display: flex;
+      align-items: center;
+    }
+    /* 箭头图标 */
+    .selectedItem .promptText .arrows {
+      width: 0;
+      height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 5px solid rgba(238, 238, 238, 1);
+    }
+    /* 选中数据 */
+    .selectedItem .promptText .spanText {
+      width: 115px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-left: 15px;
+      margin-right: 1px;
+    }
+
+    /* 下拉可选项包含层 */
+    .selectedItem .choiceDescription {
+      position: absolute;
+      display: none;
+      width: 150px;
+      background: rgba(127, 128, 132, 1);
+    }
+
+    /* 下拉可选项 */
+    .selectedItem .item {
+      height: 28px;
+      font-size: 14px;
+      line-height: 28px;
+      font-weight: 400;
+      color: #eeeeee;
+
+      padding-left: 15px;
+
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .selectedItem .item:hover {
+      background: rgba(110, 231, 183, 0.8);
+    }
+    .selectedItem .itemsLi {
+      background: rgba(110, 231, 183, 0.8);
+    }
+    .selectedItem .show {
+      display: block;
+    }
+  </style>
+  <body>
+    <div class="selectedItem">
+      <div class="promptText"><span title="" class="spanText">万水千山:陪你一起看</span><span class="arrows"></span></div>
+      <ul class="choiceDescription">
+        <li class="item">万水千山，陪你一起看</li>
+        <li class="item">万水千山，陪你一起看1</li>
+        <li class="item itemsLi">万水千山，陪你一起看2</li>
+        <li class="item">万水千山，陪你一起看3</li>
+        <li class="item">万水千山，陪你一起看4</li>
+      </ul>
+    </div>
+    <script>
+      // 自定义下拉选项
+
+      // 是否 下拉
+      let isDown = false
+      let choiceDescription = document.querySelector('.choiceDescription')
+      let selectedItem = document.querySelector('.selectedItem')
+
+      /* 对点击下拉进行监听 */
+      selectedItem.addEventListener('click', function () {
+        isDown = !isDown
+        if (isDown) {
+          /* 如果是下拉状态，则显示下拉的选项，并把图标显示为向下的图标 */
+          choiceDescription.className += ' show'
+        } else {
+          choiceDescription.className = 'choiceDescription'
+        }
+      })
+
+      // 选中数据
+      choiceDescription.addEventListener('click', function (e) {
+        let promptText = document.querySelector('.spanText')
+        let selectElement = e.target
+
+        /* 判断是否点击的是li标签，防止点击了li标签以外的空白位置 */
+        while (selectElement.tagName !== 'LI') {
+          /* 如果点中的是当前容器层 */
+          if (selectElement == choiceDescription) {
+            selectElement = null
+            break
+          }
+
+          /* 若果不是，则再找父级容器 */
+          selectElement = selectElement.parentNode
+        }
+
+        /* innerText、innerHTML、value
+         * innerText 是指html标签里的文字信息，单纯的文本，不会有html标签，存在兼容性
+         * innerHTML 是指包含在html标签里的所有子元素，包括空格、html标签
+         * value 表单里的元素属性值
+         * */
+        if (selectElement) {
+          promptText.innerHTML = e.target.innerHTML
+          promptText.title = e.target.innerHTML
+        }
+      })
+    </script>
+  </body>
+</html>
