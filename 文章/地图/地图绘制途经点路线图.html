@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>地图</title>
+    <style type="text/css">
+      html,
+      body {
+        height: 100%;
+        width: 100%;
+      }
+      .bmap {
+        height: 100%;
+        width: 100%;
+      }
+    </style>
+    <script src="https://api.map.baidu.com/api?type=webgl&v=1.0&ak=2fNpWlpStH5BTSAdGI4piuql45LiLCc6"></script>
+  </head>
+
+  <body>
+    <div id="bmap" class="bmap"></div>
+    <script>
+      var map = new BMapGL.Map('bmap') // 创建Map实例
+      // 初始化地图,设置中心点坐标和地图级别
+      map.centerAndZoom(new BMapGL.Point(121.480509, 31.23592), 10)
+      // 启用 鼠标滚轮事件
+      map.enableScrollWheelZoom()
+
+      var pot1 = new BMapGL.Point(106.55276, 29.567551) // 重庆
+      var pot2 = new BMapGL.Point(112.94432, 28.236163) // 长沙
+      var pot3 = new BMapGL.Point(120.211486, 30.255827) // 杭州
+      var pot4 = new BMapGL.Point(121.481115, 31.235682) // 上海
+
+      // 创建驾车实例
+      var driv = new BMapGL.DrivingRoute(map)
+      // 路线规划
+      driv.search(pot1, pot2)
+      driv.search(pot2, pot3)
+      driv.search(pot3, pot4)
+
+      driv.setSearchCompleteCallback(function () {
+        // 通过驾车实例，获得一系列点的数组
+        var pts = driv.getResults().getPlan(0).getRoute(0).getPath()
+        var polyline = new BMapGL.Polyline(pts)
+        map.addOverlay(polyline)
+      })
+
+      // 给每个点创建Marker
+      var m1 = new BMapGL.Marker(pot1)
+      var m2 = new BMapGL.Marker(pot2)
+      var m3 = new BMapGL.Marker(pot3)
+      var m4 = new BMapGL.Marker(pot4)
+      map.addOverlay(m1)
+      map.addOverlay(m2)
+      map.addOverlay(m3)
+      map.addOverlay(m4)
+
+      // 自定义文本标注样式
+      var style = {
+        borderRadius: '5px',
+        borderColor: '#ccc',
+        padding: '5px',
+        fontSize: '16px',
+        height: '30px',
+        lineHeight: '30px',
+        fontFamily: '微软雅黑'
+      }
+
+      // 添加说明
+      var lab1 = new BMapGL.Label('起点', { position: pot1 })
+      style.backgroundColor = '#00FFFF'
+      lab1.setStyle(style)
+      var lab2 = new BMapGL.Label('途径点', { position: pot2 })
+      style.backgroundColor = '#F5F5DC'
+      lab2.setStyle(style)
+      var lab3 = new BMapGL.Label('途径点', { position: pot3 })
+      style.backgroundColor = '#F5F5DC'
+      lab3.setStyle(style)
+      var lab4 = new BMapGL.Label('终点', { position: pot4 })
+      style.backgroundColor = '#DC143C'
+      lab4.setStyle(style)
+      map.addOverlay(lab1)
+      map.addOverlay(lab2)
+      map.addOverlay(lab3)
+      map.addOverlay(lab4)
+
+      setTimeout(function () {
+        // 调整到最佳视野
+        map.setViewport([pot1, pot2, pot3, pot4])
+      }, 1000)
+    </script>
+  </body>
+</html>
