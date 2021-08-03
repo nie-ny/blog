@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>地图</title>
+    <style type="text/css">
+      html,
+      body,
+      .bmap {
+        height: 100%;
+        width: 100%;
+      }
+    </style>
+    <script src="https://api.map.baidu.com/api?type=webgl&v=1.0&ak=2fNpWlpStH5BTSAdGI4piuql45LiLCc6"></script>
+  </head>
+
+  <body>
+    <button onclick="onBut()">下一页</button>
+    <div id="bmap" class="bmap"></div>
+    <div id="r-result"></div>
+    <script>
+      var map = new BMapGL.Map('bmap') // 创建Map实例
+      // 初始化地图,设置中心点坐标和地图级别
+      map.centerAndZoom(new BMapGL.Point(121.480509, 31.23592), 10)
+      // 启用 鼠标滚轮事件
+      map.enableScrollWheelZoom()
+
+      // 总页数
+      var pageAll = 0
+      var myKeys = ['酒店', '医院']
+      var local = new BMapGL.LocalSearch(map, {
+        renderOptions: { map: map, panel: 'r-result' },
+        onSearchComplete: function (res) {
+          console.log('🚀 ~ file: 地图周边检索.html ~ line 35 ~ res', res)
+          pageAll = res[0].getNumPages()
+        }
+      })
+      local.setPageCapacity(20)
+      local.search(myKeys)
+
+      var i = 0 // 页数
+      function onBut() {
+        if (i === pageAll) {
+          i = 0
+        } else {
+          i++
+        }
+        local.gotoPage(i)
+      }
+    </script>
+  </body>
+</html>
