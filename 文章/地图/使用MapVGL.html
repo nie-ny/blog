@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>地图</title>
+    <style type="text/css">
+      html,
+      body,
+      .bmap {
+        height: 100%;
+        width: 100%;
+        padding: 0;
+        margin: 0;
+      }
+    </style>
+    <script src="https://api.map.baidu.com/api?type=webgl&v=1.0&ak=2fNpWlpStH5BTSAdGI4piuql45LiLCc6"></script>
+    <!-- <script src="https://unpkg.com/mapvgl/dist/mapvgl.min.js"></script> -->
+    <script src="./dist/mapvgl.min.js"></script>
+    <!-- 如果使用到Three.js相关的图层需要引用 -->
+    <!-- <script src="https://unpkg.com/mapvgl/dist/mapvgl.threelayers.min.js"></script> -->
+    <script src="./dist/mapvgl.threelayers.min.js"></script>
+  </head>
+
+  <body>
+    <!-- 百度地图-->
+    <div id="bmap" class="bmap"></div>
+    <script>
+      // 百度地图API功能
+      var map = new BMapGL.Map('bmap') // 创建Map实例
+      // 初始化地图,设置中心点坐标和地图级别
+      map.centerAndZoom(new BMapGL.Point(121.480509, 31.23592), 10)
+      // 启用 鼠标滚轮事件
+      map.enableScrollWheelZoom()
+
+      // 2. 创建MapVGL图层管理器
+      var view = new mapvgl.View({
+        effects: [
+          new mapvgl.BrightEffect({
+            threshold: 0.2,
+            blurSize: 2,
+            clarity: 0.5
+          }),
+          new mapvgl.BloomEffect({
+            threshold: 0.2,
+            blurSize: 2.0
+          })
+        ],
+        map: map
+      })
+
+      // 3. 创建可视化图层，并添加到图层管理器中
+      var layer = new mapvgl.PointLayer({
+        color: 'rgba(153,50,204, 1)',
+        blend: 'lighter',
+        size: 11,
+        enablePicked: true, // 是否可以拾取
+        selectedIndex: -1, // 选中数据项索引
+        selectedColor: '#ff0000', // 选中项颜色
+        autoSelect: true, // 根据鼠标位置来自动设置选中项
+        onClick: (e) => {
+          // 点击事件
+          console.log(e)
+        }
+      })
+      view.addLayer(layer)
+
+      // 4. 准备好规范化坐标数据
+      var data = []
+      for (var i = 0; i < 1000; i++) {
+        data.push({
+          geometry: {
+            type: 'Point',
+            coordinates: [Math.random() * 25 + 100, Math.random() * 25 + 20]
+          }
+        })
+      }
+
+      // 5. 关联图层与数据，享受震撼的可视化效果
+      layer.setData(data)
+    </script>
+  </body>
+</html>
