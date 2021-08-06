@@ -18,8 +18,8 @@
     <!-- <script src="https://unpkg.com/mapvgl/dist/mapvgl.min.js"></script> -->
     <script src="./dist/mapvgl.min.js"></script>
     <!-- 如果使用到Three.js相关的图层需要引用 -->
-    <!-- <script src="https://unpkg.com/mapvgl/dist/mapvgl.threelayers.min.js"></script> -->
-    <script src="./dist/mapvgl.threelayers.min.js"></script>
+    <script src="https://unpkg.com/mapvgl/dist/mapvgl.threelayers.min.js"></script>
+    <!-- <script src="./dist/mapvgl.threelayers.min.js"></script> -->
   </head>
 
   <body>
@@ -33,47 +33,53 @@
       // 启用 鼠标滚轮事件
       map.enableScrollWheelZoom()
 
-      var projection = mapvgl.MercatorProjection
-      var point = projection.convertLL2MC(new BMapGL.Point(116.403928, 39.914972))
-      var point2 = projection.convertLL2MC(new BMapGL.Point(116.493759, 39.914972))
-
       var view = new mapvgl.View({
         map: map
       })
-
       // 创建 three.js 图层
       var threeLayer = new mapvgl.ThreeLayer()
       view.addLayer(threeLayer)
 
       // 实例化there.js
       var THREE = mapvgl.THREE
+      // 坐标装换
+      var projection = mapvgl.MercatorProjection
+      var point = projection.convertLL2MC(new BMapGL.Point(116.403928, 39.914972))
+      var point2 = projection.convertLL2MC(new BMapGL.Point(116.493928, 39.914972))
 
-      // var geometry = new THREE.BoxGeometry(5500, 5500, 5000)
-      // var material = new THREE.MeshBasicMaterial({ color: 0xff0000, flatShading: true, wireframe: false })
-      // var cube = new THREE.Mesh(geometry, material)
-      // cube.position.x = point.lng
-      // cube.position.y = point.lat
-      // cube.position.z = 2500
-      // threeLayer.add(cube)
-
-      // var geometry = new THREE.BoxGeometry(5500, 5500, 5000)
-      // var material = new THREE.MeshBasicMaterial({ color: 0xffffff, flatShading: true, wireframe: true })
-      // var cube = new THREE.Mesh(geometry, material)
-      // cube.position.x = point.lng
-      // cube.position.y = point.lat
-      console.log('🚀 ~ file: MapVGL使用there.js.html ~ line 64 ~ point.lat', point.lng, point.lat)
-      // cube.position.z = 2500
-      // threeLayer.add(cube)
-
-      var geometry = new THREE.BoxGeometry(5500, 5500, 5500)
+      // 球体网格模型
+      var geometry = new THREE.SphereGeometry(160, 140, 140)
       var material = new THREE.MeshBasicMaterial({ color: 0xff0000, flatShading: true, wireframe: false })
       var cube = new THREE.Mesh(geometry, material)
-
-      cube.position.x = 12958166.99
-      cube.position.y = 4825919.72
-      cube.position.z = 2500
-
+      cube.position.x = point.lng
+      cube.position.y = point.lat
+      cube.position.z = 20
       threeLayer.add(cube)
+
+      // 球体网格模型
+      var geometry2 = new THREE.SphereGeometry(160, 140, 140)
+      var material2 = new THREE.MeshBasicMaterial({ color: 0xff0000 })
+      var cube2 = new THREE.Mesh(geometry2, material2)
+      // cube2.position.x = point2.lng
+      // cube2.position.y = point2.lat
+      cube2.position.z = 20
+      threeLayer.add(cube2, point2)
+
+      let x = 0
+      let i = 0
+      function render() {
+        threeLayer.add(cube2, point2)
+        i++
+        cube2.translateX(x)
+        if (i > 100) {
+          i = 0
+          x = -x
+        } else {
+          x = x + 0.1
+        }
+        requestAnimationFrame(render) //请求再次执行渲染函数render
+      }
+      render()
     </script>
   </body>
 </html>
