@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+
+    <title>地图</title>
+    <style type="text/css">
+      html,
+      body,
+      .bmap {
+        height: 100%;
+        width: 100%;
+      }
+    </style>
+    <!-- echarts -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+    <!-- 百度 -->
+    <script src="https://api.map.baidu.com/api?type=webgl&v=1.0&ak=2fNpWlpStH5BTSAdGI4piuql45LiLCc6"></script>
+  </head>
+
+  <body>
+    <!-- 百度地图-->
+    <div id="bmap" class="bmap"></div>
+    <script>
+      // 百度地图API功能
+      var map = new BMapGL.Map('bmap') // 创建Map实例
+      // 初始化地图,设置中心点坐标和地图级别
+      map.centerAndZoom(new BMapGL.Point(121.480509, 31.23592), 10)
+      // 启用 鼠标滚轮事件
+      map.enableScrollWheelZoom()
+
+      /**
+       * @param width 节点宽
+       * @param height 节点高
+       * @param pot 地图点坐标
+       * @param callback 回调 加载echarts
+       * */
+      function echartsOverlay(width, height, pot, callback) {
+        this._width = width || 100
+        this._height = height || 100
+        this._pot = pot
+        this._callback = callback
+      }
+      // 继承Overlay基类
+      echartsOverlay.prototype = new BMapGL.Overlay()
+
+      echartsOverlay.prototype.initialize = function (map) {
+        this._map = map
+        // DOM节点
+        this._div = document.createElement('div')
+        this._div.style.zIndex = 1
+        this._div.style.width = this._width + 'px'
+        this._div.style.height = this._height + 'px'
+        this._div.style.position = 'absolute'
+        // 将该覆盖物添加到标签覆盖物列表
+        map.getPanes().labelPane.appendChild(this._div)
+        // 传入 dom节点 用于绘制echarts
+        this._callback(this._div)
+        return this._div
+      }
+
+      echartsOverlay.prototype.draw = function () {
+        // pointToOverlayPixel() 根据地理坐标获取对应的覆盖物容器的坐标
+        let rel_xy = this._map.pointToOverlayPixel(this._pot)
+        this._div.style.left = rel_xy.x - this._width / 2 + 'px'
+        this._div.style.top = rel_xy.y - this._height / 2 + 'px'
+      }
+
+      var drawChart = function (obj) {
+        var chartTem = echarts.init(obj)
+        var option = {
+          tooltip: {
+            trigger: 'axis'
+          },
+          radar: [
+            {
+              indicator: [
+                { text: '品牌', max: 100 },
+                { text: '内容', max: 100 },
+                { text: '可用性', max: 100 },
+                { text: '功能', max: 100 }
+              ],
+              center: ['50%', '50%'],
+              radius: 60,
+              splitArea: {
+                areaStyle: {
+                  color: ['#77EADF'],
+                  shadowColor: 'rgba(0, 0, 0, 0.2)',
+                  shadowBlur: 10
+                }
+              },
+              name: {
+                formatter: '【{value}】',
+                textStyle: {
+                  color: '#DC143C'
+                }
+              }
+            }
+          ],
+          series: [
+            {
+              type: 'radar',
+              tooltip: {
+                trigger: 'item'
+              },
+              areaStyle: {},
+              data: [
+                {
+                  value: [60, 73, 85, 40],
+                  name: '某软件'
+                }
+              ]
+            }
+          ]
+        }
+        chartTem.setOption(option)
+      }
+
+      var myCompOverlay = new echartsOverlay(250, 250, new BMapGL.Point(121.480509, 31.23592), drawChart)
+      map.addOverlay(myCompOverlay)
+    </script>
+  </body>
+</html>
