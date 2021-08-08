@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+
+    <title>地图</title>
+    <style type="text/css">
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+      }
+      .bmap {
+        height: 900px;
+      }
+    </style>
+    <!-- 百度 -->
+    <script src="https://api.map.baidu.com/api?v=3.0&ak=2fNpWlpStH5BTSAdGI4piuql45LiLCc6"></script>
+    <!-- echarts -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+    <!-- 百度地图插件 -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts@5/dist/extension/bmap.min.js"></script>
+  </head>
+
+  <body>
+    <!-- 百度地图-->
+    <div id="bmap" class="bmap"></div>
+    <script type="text/javascript">
+      var myChart = echarts.init(document.getElementById('bmap'))
+
+      var planePath =
+        'path://M1705.06,1318.313v-89.254l-319.9-221.799l0.073-208.063c0.521-84.662-26.629-121.796-63.961-121.491c-37.332-0.305-64.482,36.829-63.961,121.491l0.073,208.063l-319.9,221.799v89.254l330.343-157.288l12.238,241.308l-134.449,92.931l0.531,42.034l175.125-42.917l175.125,42.917l0.531-42.034l-134.449-92.931l12.238-241.308L1705.06,1318.313z'
+
+      var option = {
+        // backgroundColor: '#000',
+        // title: {
+        //   text: '模拟航线',
+        //   subtext: '数据纯属虚构',
+        //   left: 'center',
+        //   textStyle: {
+        //     color: '#fff'
+        //   }
+        // },
+        tooltip: {
+          trigger: 'item',
+          formatter: function (params, ticket, callback) {
+            if (params.seriesType == 'effectScatter') {
+              return '线路：' + params.data.name + '' + params.data.value[2]
+            } else if (params.seriesType == 'lines') {
+              return params.data.fromName + ' -> ' + params.data.toName + '<br />' + params.data.value
+            } else {
+              return params.name
+            }
+          }
+        },
+        // legend: {
+        //   orient: 'vertical',
+        //   top: 'bottom',
+        //   left: 'right',
+        //   data: ['西安 Top3', '西宁 Top3', '银川 Top3'],
+        //   textStyle: {
+        //     color: '#fff'
+        //   },
+        //   selectedMode: 'multiple'
+        // },
+        bmap: {
+          center: [106.549238, 29.57553],
+          zoom: 6,
+          roam: true
+        },
+        series: [
+          {
+            name: '重庆' + ' Top3',
+            type: 'lines',
+            coordinateSystem: 'bmap',
+            zlevel: 2,
+            // symbol: ['none', 'arrow'],
+            effect: {
+              show: true,
+              period: 6,
+              trailLength: 0.1,
+              color: 'red', // arrow箭头的颜色
+              symbol: planePath,
+              symbolSize: 15
+            },
+            lineStyle: {
+              normal: {
+                color: '#a6c84c',
+                width: 1,
+                curveness: 0.2
+              }
+            },
+            data: [
+              {
+                fromName: '重庆',
+                toName: '上海',
+                coords: [
+                  [106.549238, 29.57553],
+                  [121.480509, 31.23592]
+                ],
+                value: 100
+              },
+              {
+                fromName: '上海',
+                toName: '北京',
+                coords: [
+                  [121.480509, 31.23592],
+                  [116.403039, 39.914023]
+                ],
+                value: 100
+              }
+            ]
+          },
+          {
+            name: '重庆' + ' Top3',
+            type: 'effectScatter',
+            coordinateSystem: 'bmap',
+            zlevel: 1,
+            rippleEffect: {
+              brushType: 'stroke'
+            },
+            label: {
+              normal: {
+                show: true,
+                position: 'right',
+                formatter: '{b}'
+              }
+            },
+            symbolSize: function (val) {
+              return val[2] / 8
+            },
+            itemStyle: {
+              normal: {
+                color: '#a6c84c'
+              },
+              emphasis: {
+                areaColor: '#2B91B7'
+              }
+            },
+            data: [
+              { name: '重庆', value: [106.549238, 29.57553, 100] },
+              { name: '上海', value: [121.480509, 31.23592, 100] },
+              { name: '北京', value: [116.403039, 39.914023, 100] }
+            ]
+          }
+        ]
+      }
+
+      myChart.setOption(option)
+    </script>
+  </body>
+</html>
