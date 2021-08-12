@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <style type="text/css">
+    .map {
+      height: 500px;
+      width: 100%;
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.6.1/css/ol.css" />
+  <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.6.1/build/ol.js"></script>
+  <body>
+    <button onclick="setCenter()">修改地图中心</button><button onclick="setZoom()">修改缩放</button><button onclick="setRotation()">修改旋转</button
+    ><br />
+    <div id="map" class="map"></div>
+  </body>
+  <script>
+    var map = new ol.Map({
+      target: 'map'
+    })
+
+    // 图层
+    var layerTile = new ol.layer.Tile({
+      source: new ol.source.XYZ({
+        url: 'https://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}'
+      })
+    })
+    // 视图
+    var view = new ol.View({
+      center: ol.proj.fromLonLat([37.41, 8.82]),
+      zoom: 4
+    })
+
+    map.setView(view)
+    map.setLayerGroup(layerTile)
+
+    function setCenter() {
+      console.log('中心点===', view.getCenter())
+      view.setCenter(ol.proj.fromLonLat([Math.random() * 130 + 20, Math.random() * 20 + 10]))
+    }
+    function setZoom() {
+      // 这里要注意 是不每个级别都有对应的 瓦片图。不同的地图要设置不同的最大最小值
+      console.log('缩放===', view.getZoom())
+      console.log('缩放最大===', view.getMaxZoom())
+      console.log('缩放最小===', view.getMinZoom())
+      view.setMaxZoom(9)
+      view.setMinZoom(0)
+      view.setZoom(Math.ceil(Math.random() * 8))
+    }
+
+    function setRotation() {
+      console.log('旋转===', view.getRotation())
+      view.setRotation(Math.ceil(Math.random() * 180))
+    }
+  </script>
+</html>
