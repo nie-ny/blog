@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <style type="text/css">
+    .map {
+      height: 500px;
+      width: 100%;
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.6.1/css/ol.css" />
+  <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.6.1/build/ol.js"></script>
+  <body>
+    <div id="map" class="map"></div>
+  </body>
+  <script>
+    var map = new ol.Map({
+      target: 'map'
+    })
+
+    // 图层
+    var layerTile = new ol.layer.Tile({
+      source: new ol.source.XYZ({
+        url: 'https://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}'
+      })
+    })
+    // 视图
+    var view = new ol.View({
+      center: ol.proj.fromLonLat([37.41, 8.82]),
+      zoom: 4
+    })
+
+    map.setView(view)
+    map.addLayer(layerTile)
+
+    var polygon = new ol.geom.Polygon([
+      [
+        [37, 19],
+        [43, 19],
+        [43, 3],
+        [37, 3],
+        [37, 19]
+      ]
+    ])
+    polygon.applyTransform(ol.proj.getTransform('EPSG:4326', 'EPSG:3857'))
+    // 多边形要素
+    var polygonFeature = new ol.Feature(polygon)
+    // 矢量图层
+    var source = new ol.source.Vector({ features: [polygonFeature] })
+
+    var vectorLayer = new ol.layer.Vector({
+      source: source,
+      style: new ol.style.Style({
+        stroke: new ol.style.Stroke({
+          //线样式
+          color: '#ffcc33',
+          width: 2
+        })
+      })
+    })
+    map.addLayer(vectorLayer)
+
+    // GeoJSON 格式数据
+    const geojsonObject = {
+      type: 'FeatureCollection',
+      crs: {
+        type: 'name',
+        properties: {
+          name: 'EPSG:3857'
+        }
+      },
+      features: [
+        {
+          type: 'Feature',
+          geometry: {
+            type: 'Polygon',
+            coordinates: [
+              [
+                [-5e6, 6e6],
+                [-5e6, 8e6],
+                [-3e6, 8e6],
+                [-3e6, 6e6],
+                [-5e6, 6e6]
+              ]
+            ]
+          }
+        },
+        {
+          type: 'Feature',
+          geometry: {
+            type: 'Polygon',
+            coordinates: [
+              [
+                [-2e6, 6e6],
+                [-2e6, 8e6],
+                [0, 8e6],
+                [0, 6e6],
+                [-2e6, 6e6]
+              ]
+            ]
+          }
+        },
+        {
+          type: 'Feature',
+          geometry: {
+            type: 'Polygon',
+            coordinates: [
+              [
+                [1e6, 6e6],
+                [1e6, 8e6],
+                [3e6, 8e6],
+                [3e6, 6e6],
+                [1e6, 6e6]
+              ]
+            ]
+          }
+        },
+        {
+          type: 'Feature',
+          geometry: {
+            type: 'Polygon',
+            coordinates: [
+              [
+                [-2e6, -1e6],
+                [-1e6, 1e6],
+                [0, -1e6],
+                [-2e6, -1e6]
+              ]
+            ]
+          }
+        }
+      ]
+    }
+    // 矢量图层
+    var source = new ol.source.Vector({ features: new ol.format.GeoJSON().readFeatures(geojsonObject) })
+    var vectorLayer = new ol.layer.Vector({
+      source: source,
+      style: new ol.style.Style({
+        stroke: new ol.style.Stroke({
+          //线样式
+          color: '#ffcc33',
+          width: 2
+        })
+      })
+    })
+    map.addLayer(vectorLayer)
+  </script>
+</html>

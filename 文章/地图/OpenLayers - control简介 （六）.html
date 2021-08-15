@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <style type="text/css">
+    .map {
+      height: 500px;
+      width: 100%;
+    }
+    #mouse-position {
+      height: 20px;
+      width: 100px;
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.6.1/css/ol.css" />
+  <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.6.1/build/ol.js"></script>
+  <body>
+    <div id="mouse-position"></div>
+    <div id="map" class="map"></div>
+  </body>
+  <script>
+    var map = new ol.Map({
+      target: 'map',
+      controls: ol.control
+        .defaults({
+          rotate: false,
+          zoom: false
+        })
+        .extend([])
+    })
+
+    // 图层
+    var layerTile = new ol.layer.Tile({
+      source: new ol.source.XYZ({
+        url: 'https://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}'
+      })
+    })
+    // 视图
+    var view = new ol.View({
+      center: ol.proj.fromLonLat([37.41, 8.82]),
+      zoom: 4
+    })
+
+    map.setView(view)
+    map.addLayer(layerTile)
+
+    map.addControl(new ol.control.FullScreen())
+
+    var mousePositionControl = new ol.control.MousePosition({
+      //地图投影坐标系（若未设置则输出为默认投影坐标系下的坐标）
+      projection: 'EPSG:4326',
+      //显示鼠标位置信息的目标容器
+      target: document.getElementById('mouse-position'),
+      //未定义坐标的标记
+      undefinedHTML: ''
+    })
+    this.map.addControl(mousePositionControl)
+
+    map.addControl(new ol.control.ScaleLine())
+    map.addControl(new ol.control.Zoom())
+    map.addControl(new ol.control.ZoomSlider())
+
+    var overview = new ol.control.OverviewMap({
+      collapsed: false,
+      layers: [
+        new ol.layer.Tile({
+          source: new ol.source.XYZ({
+            url: 'http://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineStreetPurplishBlue/MapServer/tile/{z}/{y}/{x}'
+          })
+        })
+      ]
+    })
+
+    map.addControl(overview)
+  </script>
+</html>
