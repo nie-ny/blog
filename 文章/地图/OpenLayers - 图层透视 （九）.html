@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <style type="text/css">
+    .map {
+      height: 500px;
+      width: 100%;
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.6.1/css/ol.css" />
+  <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.6.1/build/ol.js"></script>
+  <body>
+    <div id="map" class="map"></div>
+  </body>
+  <script>
+    // 图层
+    var roads = new ol.layer.Tile({
+      source: new ol.source.XYZ({
+        url: 'https://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}'
+      })
+    })
+
+    // 图层
+    var imagery = new ol.layer.Tile({
+      source: new ol.source.XYZ({
+        url: 'http://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineStreetPurplishBlue/MapServer/tile/{z}/{y}/{x}'
+      })
+    })
+
+    // 实例
+    const container = document.getElementById('map')
+
+    var map = new ol.Map({
+      target: container,
+      layers: [roads, imagery],
+      view: new ol.View({
+        center: ol.proj.fromLonLat([37.41, 8.82]),
+        zoom: 4
+      })
+    })
+
+    // 半径
+    let radius = 75
+
+    // 地图像素位置
+    let mousePosition = null
+
+    container.addEventListener('mousemove', function (event) {
+      // getEventPixel(event) 根据事件当前位置 返回地图像素位置。
+      mousePosition = map.getEventPixel(event)
+
+      // 重新渲染地图 render()
+      map.render()
+    })
+
+    container.addEventListener('mouseout', function () {
+      mousePosition = null
+      map.render()
+    })
+
+    // 图层渲染之前
+    imagery.on('prerender', function (event) {
+      const ctx = event.context
+      ctx.save() // 保存
+      ctx.beginPath()
+      if (mousePosition) {
+        ctx.arc(mousePosition[0], mousePosition[1], radius, 0, 2 * Math.PI)
+        ctx.lineWidth = (5 * radius) / radius
+        ctx.strokeStyle = 'rgba(0,0,0,0.5)'
+        ctx.stroke()
+      }
+      // 使用裁剪 只加载 圆内数据
+      ctx.clip()
+    })
+
+    // 图层渲染之后
+    imagery.on('postrender', function (event) {
+      const ctx = event.context
+      ctx.restore()
+    })
+  </script>
+</html>

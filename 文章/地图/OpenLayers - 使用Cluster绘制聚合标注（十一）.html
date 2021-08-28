@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <style type="text/css">
+    .map {
+      height: 500px;
+      width: 100%;
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.6.1/css/ol.css" />
+  <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.6.1/build/ol.js"></script>
+  <body>
+    <div id="map" class="map"></div>
+  </body>
+  <script>
+    var map = new ol.Map({
+      target: 'map'
+    })
+
+    // 图层
+    var layerTile = new ol.layer.Tile({
+      source: new ol.source.XYZ({
+        url: 'https://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}'
+      })
+    })
+    // 视图
+    var view = new ol.View({
+      center: ol.proj.fromLonLat([0, 0]),
+      zoom: 4
+    })
+
+    map.setView(view)
+    map.addLayer(layerTile)
+
+    const e = 4500000
+    const count = 21000
+    const features = new Array(count)
+    for (let i = 0; i < count; ++i) {
+      const coordinates = [2 * e * Math.random() - e, 2 * e * Math.random() - e]
+      features[i] = new ol.Feature(new ol.geom.Point(coordinates))
+    }
+    let source = new ol.source.Vector({
+      features: features
+    })
+
+    let clusterSource = new ol.source.Cluster({
+      distance: 40,
+      minDistance: 10,
+      source: source
+    })
+
+    const styleCache = {}
+    let layer = new ol.layer.Vector({
+      source: clusterSource,
+      style: clusterStyle.call(this)
+    })
+    map.addLayer(layer)
+
+    function clusterStyle() {
+      return (feature, solution) => {
+        const size = feature.get('features').length
+
+        let style = new ol.style.Style({
+          image: new ol.style.Circle({
+            radius: 15,
+            stroke: new ol.style.Stroke({
+              color: '#fff'
+            }),
+            fill: new ol.style.Fill({
+              color: getColor(size)
+            })
+          }),
+          text: new ol.style.Text({
+            text: size.toString(),
+            fill: new ol.style.Fill({
+              color: '#fff'
+            })
+          })
+        })
+
+        return style
+      }
+    }
+
+    function getColor(val) {
+      if (val < 100) {
+        return '#444693'
+      } else if (val >= 100 && val < 500) {
+        return '#f47920'
+      } else if (val >= 500) {
+        return '#ef5b9c'
+      }
+    }
+  </script>
+</html>
