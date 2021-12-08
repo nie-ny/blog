@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>学习</title>
+  </head>
+  <body>
+    <canvas id="c2d" class="c2d" width="1000" height="500"></canvas>
+    <script type="module">
+      /**
+       * 绘制天空
+       * **/
+      import * as THREE from 'https://threejs.org/build/three.module.js'
+      import { OrbitControls } from 'https://threejs.org/examples/jsm/controls/OrbitControls.js'
+
+      const canvas = document.querySelector('#c2d')
+      // 渲染器
+      const renderer = new THREE.WebGLRenderer({ canvas })
+      // 该属性用来定义渲染器是否需要清除颜色缓存，默认为true
+      renderer.autoClearColor = false
+
+      const fov = 75 // 视野范围
+      const aspect = 2 // 相机默认值 画布的宽高比
+      const near = 0.1 // 近平面
+      const far = 100 // 远平面
+      // 透视投影相机
+      const camera = new THREE.PerspectiveCamera(fov, aspect, near, far)
+      camera.position.z = 2
+
+      const controls = new OrbitControls(camera, canvas)
+      controls.target.set(0, 0, 0)
+      controls.update()
+
+      // 创建场景
+      const scene = new THREE.Scene()
+
+      {
+        const color = 0xffffff
+        const intensity = 1
+        const light = new THREE.DirectionalLight(color, intensity)
+        light.position.set(-1, 2, 4)
+        scene.add(light)
+      }
+
+      const boxWidth = 1
+      const boxHeight = 1
+      const boxDepth = 1
+      const geometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth)
+      function makeInstance(geometry, color, x) {
+        const material = new THREE.MeshPhongMaterial({ color })
+        const cube = new THREE.Mesh(geometry, material)
+        scene.add(cube)
+        cube.position.x = x
+        return cube
+      }
+
+      // const cubes = [makeInstance(geometry, 0x44aa88, 0)]
+
+      // 加载背景图
+      // const loader = new THREE.TextureLoader()
+      // const bgTexture = loader.load('https://threejs.org/manual/examples/resources/images/daikanyama.jpg')
+      // scene.background = bgTexture
+
+      // {
+      //   const loader = new THREE.CubeTextureLoader()
+      //   const texture = loader.load([
+      //     'https://threejs.org/manual/examples/resources/images/cubemaps/computer-history-museum/pos-x.jpg',
+      //     'https://threejs.org/manual/examples/resources/images/cubemaps/computer-history-museum/neg-x.jpg',
+      //     'https://threejs.org/manual/examples/resources/images/cubemaps/computer-history-museum/pos-y.jpg',
+      //     'https://threejs.org/manual/examples/resources/images/cubemaps/computer-history-museum/neg-y.jpg',
+      //     'https://threejs.org/manual/examples/resources/images/cubemaps/computer-history-museum/pos-z.jpg',
+      //     'https://threejs.org/manual/examples/resources/images/cubemaps/computer-history-museum/neg-z.jpg'
+      //   ])
+      //   scene.background = texture
+      // }
+      {
+        const loader = new THREE.TextureLoader()
+        const texture = loader.load(
+          'https://threejs.org/manual/examples/resources/images/equirectangularmaps/tears_of_steel_bridge_2k.jpg',
+          () => {
+            const rt = new THREE.WebGLCubeRenderTarget(texture.image.height)
+            rt.fromEquirectangularTexture(renderer, texture)
+            scene.background = rt.texture
+          }
+        )
+      }
+
+      function resizeRendererToDisplaySize(renderer) {
+        const canvas = renderer.domElement
+        const width = canvas.clientWidth
+        const height = canvas.clientHeight
+        const needResize = canvas.width !== width || canvas.height !== height
+        if (needResize) {
+          renderer.setSize(width, height, false)
+        }
+        return needResize
+      }
+
+      function render(time) {
+        time *= 0.001
+
+        if (resizeRendererToDisplaySize(renderer)) {
+          const canvas = renderer.domElement
+          camera.aspect = canvas.clientWidth / canvas.clientHeight
+          camera.updateProjectionMatrix()
+        }
+
+        // // 画布比例
+        // const canvasAspect = canvas.clientWidth / canvas.clientHeight
+        // // 图片比例
+        // const imageAspect = bgTexture.image ? bgTexture.image.width / bgTexture.image.height : 1
+        // const aspect = imageAspect / canvasAspect
+        // bgTexture.offset.x = aspect > 1 ? (1 - 1 / aspect) / 2 : 0
+        // bgTexture.repeat.x = aspect > 1 ? 1 / aspect : 1
+        // bgTexture.offset.y = aspect > 1 ? 0 : (1 - aspect) / 2
+        // bgTexture.repeat.y = aspect > 1 ? 1 : aspect
+
+        // cubes.forEach((cube, ndx) => {
+        //   const speed = 1 + ndx * 0.1
+        //   const rot = time * speed
+        //   cube.rotation.x = rot
+        //   cube.rotation.y = rot
+        // })
+
+        renderer.render(scene, camera)
+
+        requestAnimationFrame(render)
+      }
+
+      requestAnimationFrame(render)
+    </script>
+  </body>
+</html>

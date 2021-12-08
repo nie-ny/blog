@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>学习</title>
+  </head>
+  <body>
+    <canvas id="c2d" class="c2d" width="1000" height="500"></canvas>
+    <script type="module">
+      /**
+       * 绘制透明物体
+       * **/
+      import * as THREE from 'https://threejs.org/build/three.module.js'
+      import { OrbitControls } from 'https://threejs.org/examples/jsm/controls/OrbitControls.js'
+
+      const canvas = document.querySelector('#c2d')
+      // 渲染器
+      const renderer = new THREE.WebGLRenderer({ canvas })
+      // 该属性用来定义渲染器是否需要清除颜色缓存，默认为true
+      // renderer.autoClearColor = false
+
+      const fov = 75 // 视野范围
+      const aspect = 2 // 相机默认值 画布的宽高比
+      const near = 0.1 // 近平面
+      const far = 25 // 远平面
+      // 透视投影相机
+      const camera = new THREE.PerspectiveCamera(fov, aspect, near, far)
+      camera.position.z = 4
+
+      const controls = new OrbitControls(camera, canvas)
+      controls.target.set(0, 0, 0)
+      controls.update()
+
+      // 创建场景
+      const scene = new THREE.Scene()
+      scene.background = new THREE.Color('white')
+
+      // {
+      //   const color = 0xffffff
+      //   const intensity = 1
+      //   const light = new THREE.DirectionalLight(color, intensity)
+      //   light.position.set(-1, 2, 4)
+      //   scene.add(light)
+      // }
+
+      function addLight(...pos) {
+        const color = 0xffffff
+        const intensity = 1
+        const light = new THREE.DirectionalLight(color, intensity)
+        light.position.set(...pos)
+        scene.add(light)
+      }
+      addLight(-1, 2, 4)
+      addLight(1, -1, -2)
+
+      // const boxWidth = 1
+      // const boxHeight = 1
+      // const boxDepth = 1
+      // const geometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth)
+      // function makeInstance(geometry, color, x, y, z) {
+      //   ;[THREE.BackSide, THREE.FrontSide].forEach((side) => {
+      //     const material = new THREE.MeshPhongMaterial({
+      //       color,
+      //       opacity: 0.5,
+      //       transparent: true,
+      //       side
+      //     })
+
+      //     const cube = new THREE.Mesh(geometry, material)
+      //     scene.add(cube)
+
+      //     cube.position.set(x, y, z)
+      //   })
+      //   // return cube
+      // }
+      // function hsl(h, s, l) {
+      //   return new THREE.Color().setHSL(h, s, l)
+      // }
+      // {
+      //   const d = 0.8
+      //   makeInstance(geometry, hsl(0 / 8, 1, 0.5), -d, -d, -d)
+      //   makeInstance(geometry, hsl(1 / 8, 1, 0.5), d, -d, -d)
+      //   makeInstance(geometry, hsl(2 / 8, 1, 0.5), -d, d, -d)
+      //   makeInstance(geometry, hsl(3 / 8, 1, 0.5), d, d, -d)
+      //   makeInstance(geometry, hsl(4 / 8, 1, 0.5), -d, -d, d)
+      //   makeInstance(geometry, hsl(5 / 8, 1, 0.5), d, -d, d)
+      //   makeInstance(geometry, hsl(6 / 8, 1, 0.5), -d, d, d)
+      //   makeInstance(geometry, hsl(7 / 8, 1, 0.5), d, d, d)
+      // }
+      // const cubes = [makeInstance(geometry, 0x44aa88, 0)]
+
+      const planeWidth = 1
+      const planeHeight = 1
+      const geometry = new THREE.PlaneGeometry(planeWidth, planeHeight)
+
+      const loader = new THREE.TextureLoader()
+
+      function makeInstance(geometry, color, rotY, url) {
+        const texture = loader.load(url, render)
+        const material = new THREE.MeshPhongMaterial({
+          color,
+          map: texture,
+          opacity: 0.5,
+          transparent: true,
+          side: THREE.DoubleSide
+        })
+
+        const mesh = new THREE.Mesh(geometry, material)
+        scene.add(mesh)
+
+        mesh.rotation.y = rotY
+      }
+
+      makeInstance(geometry, 'pink', 0, 'https://threejs.org/manual/examples/resources/images/happyface.png')
+      makeInstance(
+        geometry,
+        'lightblue',
+        Math.PI * 0.5,
+        'https://threejs.org/manual/examples/resources/images/hmmmface.png'
+      )
+
+      function resizeRendererToDisplaySize(renderer) {
+        const canvas = renderer.domElement
+        const width = canvas.clientWidth
+        const height = canvas.clientHeight
+        const needResize = canvas.width !== width || canvas.height !== height
+        if (needResize) {
+          renderer.setSize(width, height, false)
+        }
+        return needResize
+      }
+
+      function render(time) {
+        time *= 0.001
+
+        if (resizeRendererToDisplaySize(renderer)) {
+          const canvas = renderer.domElement
+          camera.aspect = canvas.clientWidth / canvas.clientHeight
+          camera.updateProjectionMatrix()
+        }
+
+        renderer.render(scene, camera)
+
+        requestAnimationFrame(render)
+      }
+
+      requestAnimationFrame(render)
+    </script>
+  </body>
+</html>

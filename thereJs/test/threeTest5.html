@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>学习</title>
+  </head>
+  <body>
+    <canvas id="c2d" class="c2d" width="1000" height="500"></canvas>
+    <script type="module">
+      import * as THREE from 'https://threejsfundamentals.org/threejs/resources/threejs/r132/build/three.module.js'
+      import { OrbitControls } from 'https://threejsfundamentals.org/threejs/resources/threejs/r132/examples/jsm/controls/OrbitControls.js'
+      import { GUI } from 'https://threejsfundamentals.org/threejs/../3rdparty/dat.gui.module.js'
+
+      // 判断 画布大小是否和实际宽度一样 不一样修改为一样 -- 消除拉伸变形
+      function resizeRendererToDisplaySize(renderer) {
+        const canvas = renderer.domElement
+        const width = canvas.clientWidth
+        const height = canvas.clientHeight
+        const needResize = canvas.width !== width || canvas.height !== height
+        if (needResize) {
+          renderer.setSize(width, height, false)
+        }
+        return needResize
+      }
+
+      const canvas = document.querySelector('#c2d')
+      // 渲染器
+      const renderer = new THREE.WebGLRenderer({ canvas })
+      // renderer.setClearColor(0xaaaaaa) // 渲染背景颜色
+      // 开启阴影渲染
+      renderer.shadowMap.enabled = true
+
+      // 相机
+      const fov = 45
+      const aspect = 2 // canvas 的默认宽高 300:150
+      const near = 0.1
+      const far = 100
+      const camera = new THREE.PerspectiveCamera(fov, aspect, near, far)
+      camera.position.set(0, 30, 40)
+
+      // 控制相机
+      const controls = new OrbitControls(camera, canvas)
+      controls.target.set(0, 0, 0)
+      controls.update()
+
+      // 场景
+      const scene = new THREE.Scene()
+      scene.background = new THREE.Color('black')
+
+      {
+        const planeSize = 40
+
+        const loader = new THREE.TextureLoader()
+        const texture = loader.load('https://threejsfundamentals.org/threejs/resources/images/checker.png')
+        texture.wrapS = THREE.RepeatWrapping
+        texture.wrapT = THREE.RepeatWrapping
+        texture.magFilter = THREE.NearestFilter
+        const repeats = planeSize / 2
+        texture.repeat.set(repeats, repeats)
+
+        const planeGeo = new THREE.PlaneGeometry(planeSize, planeSize)
+        const planeMat = new THREE.MeshPhongMaterial({
+          map: texture,
+          side: THREE.DoubleSide
+        })
+        const mesh = new THREE.Mesh(planeGeo, planeMat)
+        // 被投射阴影
+        mesh.receiveShadow = true
+        mesh.rotation.x = Math.PI * -0.5
+        scene.add(mesh)
+      }
+      //
+      {
+        const cubeSize = 4
+        const cubeGeo = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize)
+        const cubeMat = new THREE.MeshPhongMaterial({ color: '#8AC' })
+        const mesh = new THREE.Mesh(cubeGeo, cubeMat)
+        mesh.castShadow = true
+        mesh.position.set(cubeSize + 1, cubeSize / 2, 0)
+        scene.add(mesh)
+      }
+
+      {
+        const cubeSize = 30
+        const cubeGeo = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize)
+        const cubeMat = new THREE.MeshPhongMaterial({
+          color: '#CCC',
+          side: THREE.BackSide
+        })
+        const mesh = new THREE.Mesh(cubeGeo, cubeMat)
+        mesh.receiveShadow = true
+        mesh.position.set(0, cubeSize / 2 - 0.1, 0)
+        scene.add(mesh)
+      }
+
+      // 环境光
+      // const color = 0xffffff
+      // const intensity = 1
+      // const light = new THREE.AmbientLight(color, intensity)
+      // scene.add(light)
+
+      const color = 0xffffff
+      const intensity = 1
+      const light = new THREE.DirectionalLight(color, intensity)
+      // 投射阴影
+      light.castShadow = true
+      // 光位置
+      light.position.set(0, 10, 10)
+      // 光方向
+      light.target.position.set(5, 0, 5)
+      scene.add(light)
+      scene.add(light.target)
+
+      // 绘制光轨迹
+      const helper = new THREE.DirectionalLightHelper(light)
+      scene.add(helper)
+
+      const onChange = () => {
+        light.target.updateMatrixWorld()
+        helper.update()
+      }
+
+      // GUI组件 控制 环境光颜色
+      class ColorGUIHelper {
+        constructor(object, prop) {
+          this.object = object
+          this.prop = prop
+        }
+        get value() {
+          return `#${this.object[this.prop].getHexString()}`
+        }
+        set value(hexString) {
+          this.object[this.prop].set(hexString)
+        }
+      }
+      const gui = new GUI()
+      gui.addColor(new ColorGUIHelper(light, 'color'), 'value').name('color')
+      gui.add(light, 'intensity', 0, 2, 0.01)
+      gui.add(light.target.position, 'x', -10, 10, 0.01).onChange(onChange)
+      gui.add(light.target.position, 'z', -10, 10, 0.01).onChange(onChange)
+      gui.add(light.target.position, 'y', 0, 10, 0.01).onChange(onChange)
+
+      function render(time) {
+        time *= 0.001
+
+        if (resizeRendererToDisplaySize(renderer)) {
+          const canvas = renderer.domElement
+          camera.aspect = canvas.clientWidth / canvas.clientHeight
+          camera.updateProjectionMatrix()
+        }
+
+        renderer.render(scene, camera)
+        requestAnimationFrame(render)
+      }
+
+      requestAnimationFrame(render)
+
+      //
+    </script>
+  </body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>学习</title>
+  </head>
+  <body>
+    <canvas id="c2d" class="c2d" width="1000" height="500"></canvas>
+    <script type="module">
+      import * as THREE from 'https://threejsfundamentals.org/threejs/resources/threejs/r132/build/three.module.js'
+
+      const canvas = document.querySelector('#c2d')
+      // 渲染器
+      const renderer = new THREE.WebGLRenderer({ canvas })
+
+      // 纹理渲染器
+      /**
+       * 纹理
+       * */
+      const rtWidth = 512
+      const rtHeight = 512
+      const renderTarget = new THREE.WebGLRenderTarget(rtWidth, rtHeight)
+
+      const rtFov = 75
+      const rtAspect = rtWidth / rtHeight
+      const rtNear = 0.1
+      const rtFar = 5
+      const rtCamera = new THREE.PerspectiveCamera(rtFov, rtAspect, rtNear, rtFar)
+      rtCamera.position.z = 2
+
+      const rtScene = new THREE.Scene()
+      rtScene.background = new THREE.Color('red')
+
+      {
+        const color = 0xffffff
+        const intensity = 1
+        const light = new THREE.DirectionalLight(color, intensity)
+        light.position.set(-1, 2, 4)
+        rtScene.add(light)
+      }
+
+      const fov = 75
+      const aspect = 2 // the canvas default
+      const near = 0.1
+      const far = 5
+      const camera = new THREE.PerspectiveCamera(fov, aspect, near, far)
+      camera.position.z = 2
+
+      const scene = new THREE.Scene()
+
+      //
+      const boxWidth = 1
+      const boxHeight = 1
+      const boxDepth = 1
+      const geometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth)
+
+      // 放入纹理渲染
+      function makeInstance(geometry, color, x) {
+        const material = new THREE.MeshPhongMaterial({ color })
+
+        const cube = new THREE.Mesh(geometry, material)
+        rtScene.add(cube)
+
+        cube.position.x = x
+
+        return cube
+      }
+
+      const rtCubes = [
+        makeInstance(geometry, 0x44aa88, 0),
+        makeInstance(geometry, 0x8844aa, -2),
+        makeInstance(geometry, 0xaa8844, 2)
+      ]
+
+      // 渲染器 重新调整
+      function resizeRendererToDisplaySize(renderer) {
+        const canvas = renderer.domElement
+        const width = canvas.clientWidth
+        const height = canvas.clientHeight
+        const needResize = canvas.width !== width || canvas.height !== height
+        if (needResize) {
+          renderer.setSize(width, height, false)
+        }
+        return needResize
+      }
+
+      {
+        const color = 0xffffff
+        const intensity = 1
+        const light = new THREE.DirectionalLight(color, intensity)
+        light.position.set(-1, 2, 4)
+        scene.add(light)
+      }
+
+      // 纹理加入 几何体
+      const material = new THREE.MeshPhongMaterial({
+        map: renderTarget.texture
+      })
+      const cube = new THREE.Mesh(geometry, material)
+      scene.add(cube)
+
+      //
+      function render(time) {
+        time *= 0.001
+
+        if (resizeRendererToDisplaySize(renderer)) {
+          // 画布大小修改后 调整 比例
+          const canvas = renderer.domElement
+          camera.aspect = canvas.clientWidth / canvas.clientHeight
+          camera.updateProjectionMatrix()
+        }
+
+        rtCubes.forEach((cube, ndx) => {
+          const speed = 1 + ndx * 0.1
+          const rot = time * speed
+          cube.rotation.x = rot
+          cube.rotation.y = rot
+        })
+
+        renderer.setRenderTarget(renderTarget)
+        renderer.render(rtScene, rtCamera)
+        renderer.setRenderTarget(null)
+
+        // cube.rotation.x = time
+        // cube.rotation.y = time * 1.1
+        // 加载渲染器
+        renderer.render(scene, camera)
+
+        // 开始动画
+        requestAnimationFrame(render)
+      }
+
+      // 开始渲染
+      requestAnimationFrame(render)
+    </script>
+  </body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>学习</title>
+  </head>
+  <body>
+    <canvas id="c2d" class="c2d" width="1000" height="500"></canvas>
+    <script type="module">
+      /**
+       * 自定义绘制 几何体
+       * */
+      import * as THREE from 'https://threejsfundamentals.org/threejs/resources/threejs/r132/build/three.module.js'
+      import { OrbitControls } from 'https://threejsfundamentals.org/threejs/resources/threejs/r132/examples/jsm/controls/OrbitControls.js'
+
+      const canvas = document.querySelector('#c2d')
+      // 渲染器
+      const renderer = new THREE.WebGLRenderer({ canvas })
+
+      const fov = 40 // 视野范围
+      const aspect = 2 // 相机默认值 画布的宽高比
+      const near = 0.1 // 近平面
+      const far = 1000 // 远平面
+      // 透视投影相机
+      const camera = new THREE.PerspectiveCamera(fov, aspect, near, far)
+
+      // 相机位置  正上方向下看
+      camera.position.set(0, 50, 0)
+      camera.up.set(0, 0, 1)
+      camera.lookAt(0, 0, 0)
+
+      // 控制相机
+      const controls = new OrbitControls(camera, canvas)
+      // controls.target.set(0, 0, 0)
+      controls.update()
+
+      // 创建场景
+      const scene = new THREE.Scene()
+
+      {
+        const color = 0xffffff
+        const intensity = 1
+        const light = new THREE.AmbientLight(color, intensity)
+        // light.position.set(-1, 2, 4)
+        scene.add(light)
+      }
+
+      const vertices = [
+        // front
+        { pos: [-1, -1, 1], norm: [0, 0, 1], uv: [0, 0] },
+        { pos: [1, -1, 1], norm: [0, 0, 1], uv: [1, 0] },
+        { pos: [-1, 1, 1], norm: [0, 0, 1], uv: [0, 1] },
+
+        { pos: [-1, 1, 1], norm: [0, 0, 1], uv: [0, 1] },
+        { pos: [1, -1, 1], norm: [0, 0, 1], uv: [1, 0] },
+        { pos: [1, 1, 1], norm: [0, 0, 1], uv: [1, 1] },
+        // right
+        { pos: [1, -1, 1], norm: [1, 0, 0], uv: [0, 0] },
+        { pos: [1, -1, -1], norm: [1, 0, 0], uv: [1, 0] },
+        { pos: [1, 1, 1], norm: [1, 0, 0], uv: [0, 1] },
+
+        { pos: [1, 1, 1], norm: [1, 0, 0], uv: [0, 1] },
+        { pos: [1, -1, -1], norm: [1, 0, 0], uv: [1, 0] },
+        { pos: [1, 1, -1], norm: [1, 0, 0], uv: [1, 1] },
+        // back
+        { pos: [1, -1, -1], norm: [0, 0, -1], uv: [0, 0] },
+        { pos: [-1, -1, -1], norm: [0, 0, -1], uv: [1, 0] },
+        { pos: [1, 1, -1], norm: [0, 0, -1], uv: [0, 1] },
+
+        { pos: [1, 1, -1], norm: [0, 0, -1], uv: [0, 1] },
+        { pos: [-1, -1, -1], norm: [0, 0, -1], uv: [1, 0] },
+        { pos: [-1, 1, -1], norm: [0, 0, -1], uv: [1, 1] },
+        // left
+        { pos: [-1, -1, -1], norm: [-1, 0, 0], uv: [0, 0] },
+        { pos: [-1, -1, 1], norm: [-1, 0, 0], uv: [1, 0] },
+        { pos: [-1, 1, -1], norm: [-1, 0, 0], uv: [0, 1] },
+
+        { pos: [-1, 1, -1], norm: [-1, 0, 0], uv: [0, 1] },
+        { pos: [-1, -1, 1], norm: [-1, 0, 0], uv: [1, 0] },
+        { pos: [-1, 1, 1], norm: [-1, 0, 0], uv: [1, 1] },
+        // top
+        { pos: [1, 1, -1], norm: [0, 1, 0], uv: [0, 0] },
+        { pos: [-1, 1, -1], norm: [0, 1, 0], uv: [1, 0] },
+        { pos: [1, 1, 1], norm: [0, 1, 0], uv: [0, 1] },
+
+        { pos: [1, 1, 1], norm: [0, 1, 0], uv: [0, 1] },
+        { pos: [-1, 1, -1], norm: [0, 1, 0], uv: [1, 0] },
+        { pos: [-1, 1, 1], norm: [0, 1, 0], uv: [1, 1] },
+        // bottom
+        { pos: [1, -1, 1], norm: [0, -1, 0], uv: [0, 0] },
+        { pos: [-1, -1, 1], norm: [0, -1, 0], uv: [1, 0] },
+        { pos: [1, -1, -1], norm: [0, -1, 0], uv: [0, 1] },
+
+        { pos: [1, -1, -1], norm: [0, -1, 0], uv: [0, 1] },
+        { pos: [-1, -1, 1], norm: [0, -1, 0], uv: [1, 0] },
+        { pos: [-1, -1, -1], norm: [0, -1, 0], uv: [1, 1] }
+      ]
+
+      const positions = []
+      const normals = []
+      const uvs = []
+      for (const vertex of vertices) {
+        positions.push(...vertex.pos)
+        normals.push(...vertex.norm)
+        uvs.push(...vertex.uv)
+      }
+
+      const geometry = new THREE.BufferGeometry()
+      const positionNumComponents = 3
+      const normalNumComponents = 3
+      const uvNumComponents = 2
+      geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), positionNumComponents))
+      geometry.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(normals), normalNumComponents))
+      geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(uvs), uvNumComponents))
+
+      const loader = new THREE.TextureLoader()
+      const texture = loader.load('https://threejsfundamentals.org/threejs/resources/images/star.png')
+
+      const material = new THREE.MeshPhongMaterial({ color: 0x8888ff, map: texture })
+      const cube = new THREE.Mesh(geometry, material)
+      scene.add(cube)
+      cube.position.x = 0
+
+      //
+      function render(time) {
+        time *= 0.001
+
+        const speed = 1
+        const rot = time * speed
+        cube.rotation.x = rot
+        cube.rotation.y = rot
+
+        // 加载渲染器
+        renderer.render(scene, camera)
+
+        // 开始动画
+        requestAnimationFrame(render)
+      }
+
+      // 渲染器 重新调整
+      function resizeRendererToDisplaySize(renderer) {
+        const canvas = renderer.domElement
+        const width = canvas.clientWidth
+        const height = canvas.clientHeight
+        const needResize = canvas.width !== width || canvas.height !== height
+        if (needResize) {
+          renderer.setSize(width, height, false)
+        }
+        return needResize
+      }
+
+      // 开始渲染
+      requestAnimationFrame(render)
+    </script>
+  </body>
+</html>

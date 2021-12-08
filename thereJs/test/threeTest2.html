@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>学习</title>
+  </head>
+  <body>
+    <canvas id="c2d" class="c2d" width="1000" height="500"></canvas>
+    <script type="module">
+      import * as THREE from 'https://threejsfundamentals.org/threejs/resources/threejs/r132/build/three.module.js'
+
+      // 判断 画布大小是否和实际宽度一样 不一样修改为一样 -- 消除拉伸变形
+      function resizeRendererToDisplaySize(renderer) {
+        const canvas = renderer.domElement
+        const width = canvas.clientWidth
+        const height = canvas.clientHeight
+        const needResize = canvas.width !== width || canvas.height !== height
+        if (needResize) {
+          renderer.setSize(width, height, false)
+        }
+        return needResize
+      }
+
+      const canvas = document.querySelector('#c2d')
+      // 渲染器
+      const renderer = new THREE.WebGLRenderer({ canvas })
+      renderer.setClearColor(0xaaaaaa) // 渲染背景颜色
+      // 开启阴影渲染
+      renderer.shadowMap.enabled = true
+
+      // 相机
+      const fov = 75
+      const aspect = 2 // the canvas default
+      const near = 0.1
+      const far = 5
+      const camera = new THREE.PerspectiveCamera(fov, aspect, near, far)
+      camera.position.z = 2
+
+      const scene = new THREE.Scene()
+
+      // 正方体图形
+      const boxWidth = 1
+      const boxHeight = 1
+      const boxDepth = 1
+      const geometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth)
+
+      // 加载纹理
+      const loader = new THREE.TextureLoader()
+      // 基础材质
+      // const material = new THREE.MeshBasicMaterial({
+      //   map: loader.load('https://threejsfundamentals.org/threejs/resources/images/wall.jpg')
+      // })
+      // const cube = new THREE.Mesh(geometry, material)
+
+      const materials = [
+        new THREE.MeshBasicMaterial({
+          map: loader.load('https://threejsfundamentals.org/threejs/resources/images/flower-1.jpg')
+        }),
+        new THREE.MeshBasicMaterial({
+          map: loader.load('https://threejsfundamentals.org/threejs/resources/images/flower-2.jpg')
+        }),
+        new THREE.MeshBasicMaterial({
+          map: loader.load('https://threejsfundamentals.org/threejs/resources/images/flower-3.jpg')
+        }),
+        new THREE.MeshBasicMaterial({
+          map: loader.load('https://threejsfundamentals.org/threejs/resources/images/flower-4.jpg')
+        }),
+        new THREE.MeshBasicMaterial({
+          map: loader.load('https://threejsfundamentals.org/threejs/resources/images/flower-5.jpg')
+        }),
+        new THREE.MeshBasicMaterial({
+          map: loader.load('https://threejsfundamentals.org/threejs/resources/images/flower-6.jpg')
+        })
+      ]
+      const cube = new THREE.Mesh(geometry, materials)
+      scene.add(cube)
+
+      function render(time) {
+        time *= 0.001
+
+        if (resizeRendererToDisplaySize(renderer)) {
+          const canvas = renderer.domElement
+          camera.aspect = canvas.clientWidth / canvas.clientHeight
+          camera.updateProjectionMatrix()
+        }
+
+        // cubes.forEach((cube, ndx) => {
+        const speed = 0.2 + 1 * 0.1
+        const rot = time * speed
+        cube.rotation.x = rot
+        cube.rotation.y = rot
+        // })
+
+        renderer.render(scene, camera)
+
+        requestAnimationFrame(render)
+      }
+
+      requestAnimationFrame(render)
+
+      //
+    </script>
+  </body>
+</html>

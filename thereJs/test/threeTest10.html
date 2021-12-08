@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>学习</title>
+  </head>
+  <body>
+    <canvas id="c2d" class="c2d" width="1000" height="500"></canvas>
+    <script type="module">
+      /**
+       * 加载 .OBJ 文件
+       * */
+      import * as THREE from 'https://threejs.org/build/three.module.js'
+      import { OrbitControls } from 'https://threejs.org/examples/jsm/controls/OrbitControls.js'
+      import { OBJLoader } from 'https://threejs.org/examples/jsm/loaders/OBJLoader.js'
+      import { MTLLoader } from 'https://threejs.org/examples/jsm/loaders/MTLLoader.js'
+
+      const canvas = document.querySelector('#c2d')
+      const renderer = new THREE.WebGLRenderer({ canvas })
+
+      const fov = 45
+      const aspect = 2 // the canvas default
+      const near = 0.1
+      const far = 100
+      const camera = new THREE.PerspectiveCamera(fov, aspect, near, far)
+      camera.position.set(0, 10, 20)
+
+      const controls = new OrbitControls(camera, canvas)
+      controls.target.set(0, 5, 0)
+      controls.update()
+
+      const scene = new THREE.Scene()
+      scene.background = new THREE.Color('black')
+
+      {
+        // 地面方格
+        const planeSize = 40
+
+        const loader = new THREE.TextureLoader()
+        const texture = loader.load('https://threejs.org/manual/examples/resources/images/checker.png')
+        texture.wrapS = THREE.RepeatWrapping
+        texture.wrapT = THREE.RepeatWrapping
+        texture.magFilter = THREE.NearestFilter
+        const repeats = planeSize / 2
+        texture.repeat.set(repeats, repeats)
+
+        const planeGeo = new THREE.PlaneGeometry(planeSize, planeSize)
+        const planeMat = new THREE.MeshPhongMaterial({
+          map: texture,
+          side: THREE.DoubleSide
+        })
+        const mesh = new THREE.Mesh(planeGeo, planeMat)
+        mesh.rotation.x = Math.PI * -0.5
+        scene.add(mesh)
+      }
+
+      {
+        const skyColor = 0xb1e1ff // light blue
+        const groundColor = 0xb97a20 // brownish orange
+        const intensity = 1
+        const light = new THREE.HemisphereLight(skyColor, groundColor, intensity)
+        scene.add(light)
+      }
+
+      {
+        const color = 0xffffff
+        const intensity = 1
+        const light = new THREE.DirectionalLight(color, intensity)
+        light.position.set(5, 10, 2)
+        scene.add(light)
+        scene.add(light.target)
+      }
+
+      // {
+      //   // 加载模型
+      //   const objLoader = new OBJLoader()
+      //   objLoader.load('https://threejs.org/manual/examples/resources/models/windmill/windmill.obj', (root) => {
+      //     console.log('🚀 ~ file: threeTest10.html ~ line 78 ~ objLoader.load ~ root', root)
+      //     scene.add(root)
+      //   })
+      // }
+
+      // {
+      //   const mtlLoader = new MTLLoader()
+      //   mtlLoader.load('https://threejs.org/manual/examples/resources/models/windmill/windmill.mtl', (mtl) => {
+      //     console.log('🚀 ~ file: threeTest10.html ~ line 93 ~ mtlLoader.load ~ mtl', mtl)
+      //     mtl.preload()
+      //     mtl.materials.Material.side = THREE.DoubleSide
+      //     const objLoader = new OBJLoader()
+      //     objLoader.setMaterials(mtl)
+      //     objLoader.load('https://threejs.org/manual/examples/resources/models/windmill/windmill.obj', (root) => {
+      //       scene.add(root)
+      //     })
+      //   })
+      // }
+
+      {
+        const objLoader = new OBJLoader()
+        objLoader.load('https://threejs.org/manual/examples/resources/models/windmill_2/windmill.obj', (root) => {
+          scene.add(root)
+          const box = new THREE.Box3().setFromObject(root)
+          const boxSize = box.getSize(new THREE.Vector3()).length()
+          const boxCenter = box.getCenter(new THREE.Vector3())
+          console.log(boxSize)
+          console.log(boxCenter)
+
+          // set the camera to frame the box
+          frameArea(boxSize * 1.2, boxSize, boxCenter, camera)
+
+          // update the Trackball controls to handle the new size
+          controls.maxDistance = boxSize * 10
+          controls.target.copy(boxCenter)
+          controls.update()
+        })
+      }
+
+      function frameArea(sizeToFitOnScreen, boxSize, boxCenter, camera) {
+        const halfSizeToFitOnScreen = sizeToFitOnScreen * 0.5
+        const halfFovY = THREE.MathUtils.degToRad(camera.fov * 0.5)
+        const distance = halfSizeToFitOnScreen / Math.tan(halfFovY)
+
+        // compute a unit vector that points in the direction the camera is now
+        // from the center of the box
+        const direction = new THREE.Vector3().subVectors(camera.position, boxCenter).normalize()
+
+        // move the camera to a position distance units way from the center
+        // in whatever direction the camera was from the center already
+        camera.position.copy(direction.multiplyScalar(distance).add(boxCenter))
+
+        // pick some near and far values for the frustum that
+        // will contain the box.
+        camera.near = boxSize / 100
+        camera.far = boxSize * 100
+
+        camera.updateProjectionMatrix()
+
+        // point the camera to look at the center of the box
+        camera.lookAt(boxCenter.x, boxCenter.y, boxCenter.z)
+      }
+
+      //
+
+      function resizeRendererToDisplaySize(renderer) {
+        const canvas = renderer.domElement
+        const width = canvas.clientWidth
+        const height = canvas.clientHeight
+        const needResize = canvas.width !== width || canvas.height !== height
+        if (needResize) {
+          renderer.setSize(width, height, false)
+        }
+        return needResize
+      }
+
+      function render() {
+        if (resizeRendererToDisplaySize(renderer)) {
+          const canvas = renderer.domElement
+          camera.aspect = canvas.clientWidth / canvas.clientHeight
+          camera.updateProjectionMatrix()
+        }
+
+        renderer.render(scene, camera)
+
+        requestAnimationFrame(render)
+      }
+
+      requestAnimationFrame(render)
+    </script>
+  </body>
+</html>
