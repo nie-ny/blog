@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>学习</title>
+  </head>
+  <body>
+    <canvas id="c2d" class="c2d" width="1000" height="500"></canvas>
+    <script type="module">
+      /*
+       * 鼠标拾取操作
+       **/
+      import * as THREE from 'https://threejsfundamentals.org/threejs/resources/threejs/r132/build/three.module.js'
+
+      const canvas = document.querySelector('#c2d')
+      // 渲染器
+      const renderer = new THREE.WebGLRenderer({ canvas })
+
+      const fov = 60
+      const aspect = 2 // 画布默认纵横比为2
+      const near = 0.1
+      const far = 200
+      const camera = new THREE.PerspectiveCamera(fov, aspect, near, far)
+      camera.position.z = 30
+
+      // 创建场景
+      const scene = new THREE.Scene()
+      scene.background = new THREE.Color('white')
+
+      // 创建场景二 用于GPU 拾取
+      const pickingScene = new THREE.Scene()
+      pickingScene.background = new THREE.Color(0)
+
+      const cameraPole = new THREE.Object3D()
+      scene.add(cameraPole)
+      cameraPole.add(camera)
+
+      {
+        const color = 0xffffff
+        const intensity = 1
+        const light = new THREE.DirectionalLight(color, intensity)
+        light.position.set(-1, 2, 4)
+        camera.add(light)
+      }
+
+      const boxWidth = 1
+      const boxHeight = 1
+      const boxDepth = 1
+      const geometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth)
+
+      function rand(min, max) {
+        if (max === undefined) {
+          max = min
+          min = 0
+        }
+        return min + (max - min) * Math.random()
+      }
+      function randomColor() {
+        return `hsl(${rand(360) | 0}, ${rand(50, 100) | 0}%, 50%)`
+      }
+
+      const loader = new THREE.TextureLoader()
+      const texture = loader.load('https://threejs.org/manual/examples/resources/images/frame.png')
+
+      // GPU 场中的对象
+      const idToObject = {}
+      const numObjects = 100
+      for (let i = 0; i < numObjects; ++i) {
+        const id = i + 1
+
+        const material = new THREE.MeshPhongMaterial({
+          color: randomColor(),
+          map: texture,
+          transparent: true,
+          side: THREE.DoubleSide,
+          alphaTest: 0.1 // 不渲染 透明度小于0.1的 颜色
+        })
+
+        const cube = new THREE.Mesh(geometry, material)
+        scene.add(cube)
+
+        idToObject[id] = cube
+
+        cube.position.set(rand(-20, 20), rand(-20, 20), rand(-20, 20))
+        cube.rotation.set(rand(Math.PI), rand(Math.PI), 0)
+        cube.scale.set(rand(3, 6), rand(3, 6), rand(3, 6))
+
+        // 使用 id 作为颜色 生成 原场景一样的方块 -- 放入GUP场景中
+        const pickingMaterial = new THREE.MeshPhongMaterial({
+          emissive: new THREE.Color(id),
+          color: new THREE.Color(0, 0, 0),
+          specular: new THREE.Color(0, 0, 0),
+          map: texture,
+          transparent: true,
+          side: THREE.DoubleSide,
+          alphaTest: 0.5,
+          blending: THREE.NoBlending
+        })
+        const pickingCube = new THREE.Mesh(geometry, pickingMaterial)
+        pickingScene.add(pickingCube)
+        pickingCube.position.copy(cube.position)
+        pickingCube.rotation.copy(cube.rotation)
+        pickingCube.scale.copy(cube.scale)
+      }
+
+      // 渲染器 重新调整
+      function resizeRendererToDisplaySize(renderer) {
+        const canvas = renderer.domElement
+        const width = canvas.clientWidth
+        const height = canvas.clientHeight
+        const needResize = canvas.width !== width || canvas.height !== height
+        if (needResize) {
+          renderer.setSize(width, height, false)
+        }
+        return needResize
+      }
+
+      /**
+       *
+       * */
+      class GPUPickHelper {
+        constructor() {
+          // 创建一个1px的渲染目标
+          this.pickingTexture = new THREE.WebGLRenderTarget(1, 1)
+          this.pixelBuffer = new Uint8Array(4)
+          this.pickedObject = null
+          this.pickedObjectSavedColor = 0
+        }
+        pick(cssPosition, scene, camera, time) {
+          const { pickingTexture, pixelBuffer } = this
+
+          // 如果已经存在拾取的对象，将其颜色恢复
+          if (this.pickedObject) {
+            this.pickedObject.material.emissive.setHex(this.pickedObjectSavedColor)
+            this.pickedObject = undefined
+          }
+
+          // 设置视野偏移来表现鼠标下的1px
+          const pixelRatio = renderer.getPixelRatio()
+          camera.setViewOffset(
+            renderer.getContext().drawingBufferWidth, // 全宽
+            renderer.getContext().drawingBufferHeight, // 全高
+            (cssPosition.x * pixelRatio) | 0, // rect x
+            (cssPosition.y * pixelRatio) | 0, // rect y
+            1, // rect width
+            1 // rect height
+          )
+          // 渲染场景
+          renderer.setRenderTarget(pickingTexture)
+          renderer.render(scene, camera)
+          renderer.setRenderTarget(null)
+          // 清理视野偏移，回归正常
+          camera.clearViewOffset()
+          // 读取像素
+          renderer.readRenderTargetPixels(
+            pickingTexture,
+            0, // x
+            0, // y
+            1, // width
+            1, // height
+            pixelBuffer
+          )
+
+          // 获取 颜色ID
+          const id = (pixelBuffer[0] << 16) | (pixelBuffer[1] << 8) | pixelBuffer[2]
+
+          const intersectedObject = idToObject[id]
+          if (intersectedObject) {
+            // pick the first object. It's the closest one
+            this.pickedObject = intersectedObject
+            // save its color
+            this.pickedObjectSavedColor = this.pickedObject.material.emissive.getHex()
+            // set its emissive color to flashing red/yellow
+            this.pickedObject.material.emissive.setHex((time * 8) % 2 > 1 ? 0xffff00 : 0xff0000)
+          }
+        }
+      }
+
+      // /**
+      //  * 计算鼠标 发出射线
+      //  * */
+      // class PickHelper {
+      //   constructor() {
+      //     this.raycaster = new THREE.Raycaster()
+      //     this.pickedObject = null
+      //     this.pickedObjectSavedColor = 0
+      //   }
+      //   /**
+      //    * normalizedPosition 鼠标的二维坐标，在归一化的设备坐标(NDC)中，也就是X 和 Y 分量应该介于 -1 和 1 之间。
+      //    * camera — 射线起点处的相机，即把射线起点设置在该相机位置处。
+      //    * */
+      //   pick(normalizedPosition, scene, camera, time) {
+      //     // 恢复上一个被拾取对象的颜色
+      //     if (this.pickedObject) {
+      //       this.pickedObject.material.emissive.setHex(this.pickedObjectSavedColor)
+      //       this.pickedObject = undefined
+      //     }
+
+      //     // 发出射线
+      //     this.raycaster.setFromCamera(normalizedPosition, camera)
+      //     // 获取与射线相交的对象
+      //     const intersectedObjects = this.raycaster.intersectObjects(scene.children)
+      //     if (intersectedObjects.length) {
+      //       // 找到第一个对象，它是离鼠标最近的对象
+      //       this.pickedObject = intersectedObjects[0].object
+      //       // 保存它的颜色
+      //       this.pickedObjectSavedColor = this.pickedObject.material.emissive.getHex()
+      //       // 设置它的发光为 黄色/红色闪烁
+      //       this.pickedObject.material.emissive.setHex((time * 8) % 2 > 1 ? 0xffff00 : 0xff0000)
+      //     }
+      //   }
+      // }
+
+      const pickPosition = { x: 0, y: 0 } // 鼠标位置
+      // const pickHelper = new PickHelper()
+      const pickHelper = new GPUPickHelper()
+      clearPickPosition() // 初始化屏幕外
+
+      function getCanvasRelativePosition(event) {
+        const rect = canvas.getBoundingClientRect()
+        return {
+          x: ((event.clientX - rect.left) * canvas.width) / rect.width,
+          y: ((event.clientY - rect.top) * canvas.height) / rect.height
+        }
+      }
+
+      /**
+       * 获取鼠标位置
+       * */
+      function setPickPosition(event) {
+        // 计算后 以画布 开始为 （0，0）点
+        const pos = getCanvasRelativePosition(event)
+
+        // 射线点位置
+        // pickPosition.x = (pos.x / canvas.width) * 2 - 1
+        // pickPosition.y = (pos.y / canvas.height) * -2 + 1 // note we flip Y
+
+        pickPosition.x = pos.x
+        pickPosition.y = pos.y
+      }
+
+      //
+      function clearPickPosition() {
+        // unlike the mouse which always has a position
+        // if the user stops touching the screen we want
+        // to stop picking. For now we just pick a value
+        // unlikely to pick something
+        pickPosition.x = -100000
+        pickPosition.y = -100000
+      }
+
+      window.addEventListener('mousemove', setPickPosition)
+      window.addEventListener('mouseout', clearPickPosition)
+      window.addEventListener('mouseleave', clearPickPosition)
+
+      //
+      function render(time) {
+        time *= 0.001
+
+        if (resizeRendererToDisplaySize(renderer)) {
+          // 画布大小修改后 调整 比例
+          const canvas = renderer.domElement
+          camera.aspect = canvas.clientWidth / canvas.clientHeight
+          camera.updateProjectionMatrix()
+        }
+
+        cameraPole.rotation.y = time * 0.1
+
+        // pickHelper.pick(pickPosition, scene, camera, time)
+        pickHelper.pick(pickPosition, pickingScene, camera, time)
+
+        // 加载渲染器
+        renderer.render(scene, camera)
+
+        // 开始动画
+        requestAnimationFrame(render)
+      }
+
+      // 开始渲染
+      requestAnimationFrame(render)
+    </script>
+  </body>
+</html>

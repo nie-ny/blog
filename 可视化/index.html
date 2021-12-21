@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <style type="text/css"></style>
+  <body>
+    <!-- <canvas id="canvas"></canvas> -->
+
+    <svg id="container-svg"></svg>
+  </body>
+  <script type="module">
+    const data = [
+      { name: 'questions', value: 17 },
+      { name: 'schools', value: 25 },
+      { name: 'philosophers', value: 35 }
+    ]
+
+    const chartWidth = 480 // 条形图的宽度
+    const chartHeight = 300 // 条形图的高度
+    const margin = 15 // 条形图的外边距
+
+    const containerWidth = chartWidth + margin * 2 // 容器的宽度
+    const containerHeight = chartHeight + margin * 2 // 容器的高度
+
+    const names = Array.from(data, (d) => d.name)
+    const values = Array.from(data, (d) => d.value)
+    const indices = Array.from(data, (_, i) => i)
+
+    // 计算每一个条左下顶点的横坐标
+    // 位置和在数组里面的 index 有关
+    const step = chartWidth / names.length
+    const barWidth = step * 0.8
+    const xs = Array.from(indices, (i) => i * step)
+
+    // 计算每一个条左下顶点的纵坐标
+    // 因为所有条底部都是对齐的，所以就是图表的高度
+    const y = chartHeight
+
+    // 获得每一个条的高度
+    // 条的高度应该和 value 线性相关的
+    const vmax = Math.max(...values)
+    const barHeights = Array.from(values, (v) => chartHeight * (v / vmax))
+
+    //
+
+    // // 获得 canvas 容器元素
+    // const canvas = document.getElementById('canvas')
+
+    // canvas.style.width = containerWidth + 'px'
+    // canvas.style.height = containerHeight + 'px'
+
+    // canvas.width = containerWidth * 2
+    // canvas.height = containerHeight * 2
+
+    // // 获得绘制的上下文
+    // // 之后的 API 都是通过调用 context
+    // const context = canvas.getContext('2d')
+
+    // // 增加边距
+    // context.translate(margin, margin)
+
+    // context.scale(2, 2) // 抵消将画布宽高设置为样式宽高两倍的影响
+
+    // for (const index of indices) {
+    //   //
+    //   const color = '#65789B'
+    //   // x 坐标位置
+    //   const x = xs[index]
+    //   // 高度
+    //   const barHeight = barHeights[index]
+
+    //   // 当前值
+    //   const value = values[index]
+
+    //   // 绘制图形
+    //   context.fillStyle = color
+    //   context.fillRect(x, y - barHeight, barWidth, barHeight)
+    // }
+
+    //
+
+    // 直接使用 document.createElement 不能创建 svg dom 特殊处理
+    function createSVGElement(type) {
+      return document.createElementNS('http://www.w3.org/2000/svg', type)
+    }
+
+    const svg = document.getElementById('container-svg')
+
+    // 设置 svg 的坐标原点和大小
+    svg.setAttribute('width', containerWidth)
+    svg.setAttribute('height', containerHeight)
+    svg.setAttribute('viewBox', [0, 0, containerWidth, containerHeight])
+
+    const g = createSVGElement('g')
+    g.setAttribute('transform', `translate(${margin}, ${margin})`)
+    svg.appendChild(g)
+
+    for (const index of indices) {
+      const color = '#65789B'
+      // x 坐标位置
+      const x = xs[index]
+      // 高度
+      const barHeight = barHeights[index]
+      // 当前值
+      const value = values[index]
+
+      //
+      const rect = createSVGElement('rect')
+      rect.setAttribute('x', x)
+      rect.setAttribute('y', y - barHeight)
+      rect.setAttribute('fill', color)
+      rect.setAttribute('width', barWidth)
+      rect.setAttribute('height', barHeight)
+      g.appendChild(rect)
+
+      // 绘制值
+      const text = createSVGElement('text')
+      text.textContent = value
+      text.setAttribute('x', x + barWidth / 2)
+      text.setAttribute('y', y - barHeight / 2)
+      text.setAttribute('text-anchor', 'middle')
+      text.setAttribute('font-size', 25)
+      g.appendChild(text)
+    }
+  </script>
+</html>

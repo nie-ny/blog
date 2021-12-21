@@ -58,12 +58,6 @@
           camera.updateProjectionMatrix()
         }
 
-        // 修改模型
-        objects.forEach((obj) => {
-          // 修改 y 角度
-          obj.rotation.y = time
-        })
-
         // 加载渲染器
         renderer.render(scene, camera)
 
