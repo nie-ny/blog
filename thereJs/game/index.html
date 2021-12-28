@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>学习</title>
+    <style type="text/css">
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+      }
+      #c {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      #loading {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        font-size: xx-large;
+        font-family: sans-serif;
+      }
+      #loading > div > div {
+        padding: 2px;
+      }
+      .progress {
+        width: 50vw;
+        border: 1px solid black;
+      }
+      #progressbar {
+        width: 0%;
+        transition: width ease-out 0.5s;
+        height: 1em;
+        background-color: #888;
+        background-image: linear-gradient(
+          -45deg,
+          rgba(255, 255, 255, 0.5) 25%,
+          transparent 25%,
+          transparent 50%,
+          rgba(255, 255, 255, 0.5) 50%,
+          rgba(255, 255, 255, 0.5) 75%,
+          transparent 75%,
+          transparent
+        );
+        background-size: 50px 50px;
+        animation: progressanim 2s linear infinite;
+      }
+
+      @keyframes progressanim {
+        0% {
+          background-position: 50px 50px;
+        }
+        100% {
+          background-position: 0 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="c2d" class="c2d" width="1000" height="500"></canvas>
+    <div id="loading">
+      <div>
+        <div>...loading...</div>
+        <div class="progress"><div id="progressbar"></div></div>
+      </div>
+    </div>
+    <script type="module">
+      import * as THREE from 'https://threejs.org/build/three.module.js'
+      import { OrbitControls } from 'https://threejs.org/examples/jsm/controls/OrbitControls.js'
+      import { GLTFLoader } from 'https://threejs.org/examples/jsm/loaders/GLTFLoader.js'
+      import * as SkeletonUtils from 'https://threejs.org/examples/jsm/utils/SkeletonUtils.js'
+
+      /**
+       * 优化
+       * @param {*} renderer
+       * @returns
+       */
+      function resizeRendererToDisplaySize(renderer) {
+        const canvas = renderer.domElement
+        const width = canvas.clientWidth
+        const height = canvas.clientHeight
+        const needResize = canvas.width !== width || canvas.height !== height
+        if (needResize) {
+          renderer.setSize(width, height, false)
+        }
+        return needResize
+      }
+
+      const canvas = document.querySelector('#c2d')
+      const renderer = new THREE.WebGLRenderer({ canvas })
+
+      const fov = 45
+      const aspect = 2 // the canvas default
+      const near = 0.1
+      const far = 1000
+      const camera = new THREE.PerspectiveCamera(fov, aspect, near, far)
+      camera.position.set(0, 40, 80)
+      camera.lookAt(0, 0, 0)
+
+      // const controls = new OrbitControls(camera, canvas)
+      // controls.enableKeys = false
+      // controls.target.set(0, 5, 0)
+      // controls.update()
+
+      const scene = new THREE.Scene()
+      scene.background = new THREE.Color('white')
+
+      function addLight(...pos) {
+        const color = 0xffffff
+        const intensity = 1
+        const light = new THREE.DirectionalLight(color, intensity)
+        light.position.set(...pos)
+        scene.add(light)
+        scene.add(light.target)
+      }
+      addLight(5, 5, 2)
+      addLight(-5, 5, 5)
+
+      // 连续加载 多个资源
+      const manager = new THREE.LoadingManager()
+      manager.onLoad = init
+
+      const progressbarElem = document.querySelector('#progressbar')
+      manager.onProgress = (url, itemsLoaded, itemsTotal) => {
+        progressbarElem.style.width = `${((itemsLoaded / itemsTotal) * 100) | 0}%`
+      }
+      const models = {
+        pig: { url: 'https://threejs.org/manual/examples/resources/models/animals/Pig.gltf' },
+        cow: { url: 'https://threejs.org/manual/examples/resources/models/animals/Cow.gltf' },
+        llama: { url: 'https://threejs.org/manual/examples/resources/models/animals/Llama.gltf' },
+        pug: { url: 'https://threejs.org/manual/examples/resources/models/animals/Pug.gltf' },
+        sheep: { url: 'https://threejs.org/manual/examples/resources/models/animals/Sheep.gltf' },
+        zebra: { url: 'https://threejs.org/manual/examples/resources/models/animals/Zebra.gltf' },
+        horse: { url: 'https://threejs.org/manual/examples/resources/models/animals/Horse.gltf' },
+        knight: { url: 'https://threejs.org/manual/examples/resources/models/knight/KnightCharacter.gltf' }
+      }
+      {
+        // 得到 gltf 对象放入 models中
+        const gltfLoader = new GLTFLoader(manager)
+        for (const model of Object.values(models)) {
+          gltfLoader.load(model.url, (gltf) => {
+            // 放入 素材 对象中
+            model.gltf = gltf
+          })
+        }
+      }
+
+      /**
+       * 把gltf对象中的动画 以动画名称为key的方式 复制 model.animations 中
+       * */
+      function prepModelsAndAnimations() {
+        Object.values(models).forEach((model) => {
+          const animsByName = {}
+          console.log('🚀 ~ file: index.html ~ line 162 ~ model.gltf.animations.forEach ~ clip.name', model.gltf)
+          model.gltf.animations.forEach((clip) => {
+            animsByName[clip.name] = clip
+            console.log('🚀 ~ file: index.html ~ line 162 ~ model.gltf.animations.forEach ~ clip.name', clip.name)
+
+            if (clip.name === 'Walk') {
+              clip.duration /= 2
+            }
+          })
+          model.animations = animsByName
+        })
+      }
+
+      /**
+       * 删除数组中的 指定对象
+       * */
+      function removeArrayElement(array, element) {
+        const ndx = array.indexOf(element)
+        if (ndx >= 0) {
+          array.splice(ndx, 1)
+        }
+      }
+
+      /**
+       * 安全数组 删除 和 新增 不影响forEach
+       * */
+      class SafeArray {
+        constructor() {
+          this.array = []
+          this.addQueue = []
+          this.removeQueue = new Set()
+        }
+        get isEmpty() {
+          return this.addQueue.length + this.array.length > 0
+        }
+        add(element) {
+          this.addQueue.push(element)
+        }
+        remove(element) {
+          this.removeQueue.add(element)
+        }
+        forEach(fn) {
+          this._addQueued()
+          this._removeQueued()
+          for (const element of this.array) {
+            if (this.removeQueue.has(element)) {
+              continue
+            }
+            fn(element)
+          }
+          this._removeQueued()
+        }
+        _addQueued() {
+          if (this.addQueue.length) {
+            this.array.splice(this.array.length, 0, ...this.addQueue)
+            this.addQueue = []
+          }
+        }
+        _removeQueued() {
+          if (this.removeQueue.size) {
+            this.array = this.array.filter((element) => !this.removeQueue.has(element))
+            this.removeQueue.clear()
+          }
+        }
+      }
+
+      /**
+       * 游戏中的 对象
+       * */
+      class GameObject {
+        constructor(parent, name) {
+          this.name = name
+          this.components = []
+          this.transform = new THREE.Object3D()
+          parent.add(this.transform)
+        }
+        addComponent(ComponentType, ...args) {
+          const component = new ComponentType(this, ...args)
+          this.components.push(component)
+          return component
+        }
+        removeComponent(component) {
+          removeArrayElement(this.components, component)
+        }
+        getComponent(ComponentType) {
+          return this.components.find((c) => c instanceof ComponentType)
+        }
+        update() {
+          for (const component of this.components) {
+            component.update()
+          }
+        }
+      }
+
+      /**
+       * 游戏对象 管理类
+       * */
+      class GameObjectManager {
+        constructor() {
+          this.gameObjects = new SafeArray()
+        }
+        createGameObject(parent, name) {
+          const gameObject = new GameObject(parent, name)
+          this.gameObjects.add(gameObject)
+          return gameObject
+        }
+        removeGameObject(gameObject) {
+          this.gameObjects.remove(gameObject)
+        }
+        update() {
+          this.gameObjects.forEach((gameObject) => gameObject.update())
+        }
+      }
+
+      // 全局对象
+      const kForward = new THREE.Vector3(0, 0, 1)
+      const globals = {
+        time: 0,
+        deltaTime: 0,
+        moveSpeed: 16
+      }
+      // 实例化
+      const gameObjectManager = new GameObjectManager()
+
+      /**
+       * 基类
+       * */
+      class Component {
+        constructor(gameObject) {
+          this.gameObject = gameObject
+        }
+        update() {}
+      }
+
+      /**
+       * 动画操作对象
+       * */
+      class SkinInstance extends Component {
+        constructor(gameObject, model) {
+          super(gameObject)
+          this.model = model
+          this.animRoot = SkeletonUtils.clone(this.model.gltf.scene)
+          this.mixer = new THREE.AnimationMixer(this.animRoot)
+          gameObject.transform.add(this.animRoot)
+          this.actions = {}
+        }
+        setAnimation(animName) {
+          const clip = this.model.animations[animName]
+          // 关闭所有动画
+          for (const action of Object.values(this.actions)) {
+            action.enabled = false
+          }
+          // 得到动画对象 开始动画
+          const action = this.mixer.clipAction(clip)
+          action.enabled = true
+          action.reset()
+          action.play()
+          this.actions[animName] = action
+        }
+        update() {
+          this.mixer.update(globals.deltaTime)
+        }
+      }
+
+      /**
+       * 动物
+       */
+      class Animal extends Component {
+        constructor(gameObject, model) {
+          super(gameObject)
+          const skinInstance = gameObject.addComponent(SkinInstance, model)
+          skinInstance.mixer.timeScale = globals.moveSpeed / 4
+          skinInstance.setAnimation('Idle')
+        }
+      }
+
+      /**
+       * 游戏人物对象
+       * */
+      class Player extends Component {
+        constructor(gameObject) {
+          super(gameObject)
+          const model = models.knight
+          this.skinInstance = gameObject.addComponent(SkinInstance, model)
+          // 执行动画 Run
+          this.skinInstance.setAnimation('Run')
+
+          this.turnSpeed = globals.moveSpeed / 4
+        }
+        update() {
+          // 移动 游戏人物
+          const { deltaTime, moveSpeed } = globals
+          const { transform } = this.gameObject
+
+          if (inputManager.keys.x.down) {
+            this.skinInstance.setAnimation('Run_swordAttack')
+          }
+          // 获取键盘事件 是否按下
+          const delta = (inputManager.keys.left.down ? 1 : 0) + (inputManager.keys.right.down ? -1 : 0)
+          transform.rotation.y += this.turnSpeed * delta * deltaTime
+          transform.translateOnAxis(kForward, moveSpeed * deltaTime)
+        }
+      }
+
+      /**
+       * 监听键盘事件
+       * */
+      class InputManager {
+        constructor() {
+          this.keys = {}
+          const keyMap = new Map()
+
+          const setKey = (keyName, pressed) => {
+            const keyState = this.keys[keyName]
+            keyState.justPressed = pressed && !keyState.down
+            keyState.down = pressed
+          }
+
+          const addKey = (keyCode, name) => {
+            this.keys[name] = { down: false, justPressed: false }
+            keyMap.set(keyCode, name)
+          }
+
+          const setKeyFromKeyCode = (keyCode, pressed) => {
+            const keyName = keyMap.get(keyCode)
+            if (!keyName) {
+              return
+            }
+            setKey(keyName, pressed)
+          }
+
+          addKey(38, 'up')
+          addKey(40, 'down')
+
+          addKey(37, 'left')
+          addKey(39, 'right')
+
+          addKey(88, 'x')
+
+          window.addEventListener('keydown', (e) => {
+            setKeyFromKeyCode(e.keyCode, true)
+          })
+          window.addEventListener('keyup', (e) => {
+            setKeyFromKeyCode(e.keyCode, false)
+          })
+        }
+        update() {
+          for (const keyState of Object.values(this.keys)) {
+            if (keyState.justPressed) {
+              keyState.justPressed = false
+            }
+          }
+        }
+      }
+      const inputManager = new InputManager()
+
+      function init() {
+        const loadingElem = document.querySelector('#loading')
+        loadingElem.style.display = 'none'
+
+        prepModelsAndAnimations()
+
+        const gameObject = gameObjectManager.createGameObject(scene, 'player')
+        gameObject.addComponent(Player)
+
+        const animalModelNames = ['pig', 'cow', 'llama', 'pug', 'sheep', 'zebra', 'horse']
+        animalModelNames.forEach((name, ndx) => {
+          const gameObject = gameObjectManager.createGameObject(scene, name)
+          gameObject.addComponent(Animal, models[name])
+          gameObject.transform.position.x = (ndx + 1) * 5
+        })
+      }
+
+      let then = 0
+      function render(now) {
+        if (resizeRendererToDisplaySize(renderer)) {
+          const canvas = renderer.domElement
+          camera.aspect = canvas.clientWidth / canvas.clientHeight
+          camera.updateProjectionMatrix()
+        }
+
+        globals.time = now * 0.001
+        globals.deltaTime = Math.min(globals.time - then, 1 / 20)
+        then = globals.time
+
+        gameObjectManager.update()
+
+        inputManager.update()
+
+        renderer.render(scene, camera)
+        requestAnimationFrame(render)
+      }
+
+      requestAnimationFrame(render)
+    </script>
+  </body>
+</html>

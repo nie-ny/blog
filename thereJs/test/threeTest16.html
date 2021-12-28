@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>学习</title>
+    <style type="text/css">
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+      }
+      #c {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      #loading {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        font-size: xx-large;
+        font-family: sans-serif;
+      }
+      #loading > div > div {
+        padding: 2px;
+      }
+      .progress {
+        width: 50vw;
+        border: 1px solid black;
+      }
+      #progressbar {
+        width: 0%;
+        transition: width ease-out 0.5s;
+        height: 1em;
+        background-color: #888;
+        background-image: linear-gradient(
+          -45deg,
+          rgba(255, 255, 255, 0.5) 25%,
+          transparent 25%,
+          transparent 50%,
+          rgba(255, 255, 255, 0.5) 50%,
+          rgba(255, 255, 255, 0.5) 75%,
+          transparent 75%,
+          transparent
+        );
+        background-size: 50px 50px;
+        animation: progressanim 2s linear infinite;
+      }
+
+      @keyframes progressanim {
+        0% {
+          background-position: 50px 50px;
+        }
+        100% {
+          background-position: 0 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="c2d" class="c2d" width="1000" height="500"></canvas>
+    <div id="loading">
+      <div>
+        <div>...loading...</div>
+        <div class="progress"><div id="progressbar"></div></div>
+      </div>
+    </div>
+
+    <script type="module">
+      import * as THREE from 'https://threejs.org/build/three.module.js'
+      import { OrbitControls } from 'https://threejs.org/examples/jsm/controls/OrbitControls.js'
+      import { GLTFLoader } from 'https://threejs.org/examples/jsm/loaders/GLTFLoader.js'
+      import * as SkeletonUtils from 'https://threejs.org/examples/jsm/utils/SkeletonUtils.js'
+
+      const canvas = document.querySelector('#c2d')
+      const renderer = new THREE.WebGLRenderer({ canvas })
+
+      const fov = 45
+      const aspect = 2 // the canvas default
+      const near = 0.1
+      const far = 100
+      const camera = new THREE.PerspectiveCamera(fov, aspect, near, far)
+      camera.position.set(0, 20, 40)
+
+      const controls = new OrbitControls(camera, canvas)
+      controls.target.set(0, 5, 0)
+      controls.update()
+
+      const scene = new THREE.Scene()
+      scene.background = new THREE.Color('white')
+
+      function addLight(...pos) {
+        const color = 0xffffff
+        const intensity = 1
+        const light = new THREE.DirectionalLight(color, intensity)
+        light.position.set(...pos)
+        scene.add(light)
+        scene.add(light.target)
+      }
+      addLight(5, 5, 2)
+      addLight(-5, 5, 5)
+
+      //
+
+      // 连续加载 文件
+      const manager = new THREE.LoadingManager()
+      manager.onLoad = init
+
+      const progressbarElem = document.querySelector('#progressbar')
+      // 加载进度
+      manager.onProgress = (url, itemsLoaded, itemsTotal) => {
+        progressbarElem.style.width = `${((itemsLoaded / itemsTotal) * 100) | 0}%`
+      }
+
+      const models = {
+        pig: { url: 'https://threejs.org/manual/examples/resources/models/animals/Pig.gltf' },
+        cow: { url: 'https://threejs.org/manual/examples/resources/models/animals/Cow.gltf' },
+        llama: { url: 'https://threejs.org/manual/examples/resources/models/animals/Llama.gltf' },
+        pug: { url: 'https://threejs.org/manual/examples/resources/models/animals/Pug.gltf' },
+        sheep: { url: 'https://threejs.org/manual/examples/resources/models/animals/Sheep.gltf' },
+        zebra: { url: 'https://threejs.org/manual/examples/resources/models/animals/Zebra.gltf' },
+        horse: { url: 'https://threejs.org/manual/examples/resources/models/animals/Horse.gltf' },
+        knight: { url: 'https://threejs.org/manual/examples/resources/models/knight/KnightCharacter.gltf' }
+      }
+      {
+        // 加载到模型对象 的models中
+        const gltfLoader = new GLTFLoader(manager)
+        for (const model of Object.values(models)) {
+          gltfLoader.load(model.url, (gltf) => {
+            model.gltf = gltf
+          })
+        }
+      }
+
+      /**
+       * 获取 模型的动画
+       * 加载到模型对象 的animations中
+       * */
+      function prepModelsAndAnimations() {
+        Object.values(models).forEach((model) => {
+          const animsByName = {}
+          model.gltf.animations.forEach((clip) => {
+            animsByName[clip.name] = clip
+          })
+          model.animations = animsByName
+        })
+      }
+
+      // 要操作的模型
+      // const mixers = []
+      const mixerInfos = []
+      function init() {
+        const loadingElem = document.querySelector('#loading')
+        loadingElem.style.display = 'none'
+
+        prepModelsAndAnimations()
+
+        Object.values(models).forEach((model, ndx) => {
+          // 克隆 模型的 scene对象 生成新对象
+          const clonedScene = SkeletonUtils.clone(model.gltf.scene)
+          // 把 新对象放入 一个场景中 然后放入画布中
+          const root = new THREE.Object3D()
+          root.add(clonedScene)
+          scene.add(root)
+          root.position.x = (ndx - 3) * 3
+
+          // 加载模型动画 play() 开始动画
+          const mixer = new THREE.AnimationMixer(clonedScene)
+          // const firstClip = Object.values(model.animations)[0]
+          // const action = mixer.clipAction(firstClip)
+          // action.play()
+          // mixers.push(mixer)
+          const actions = Object.values(model.animations).map((clip) => {
+            return mixer.clipAction(clip)
+          })
+          const mixerInfo = {
+            mixer,
+            actions,
+            actionNdx: -1
+          }
+          mixerInfos.push(mixerInfo)
+          playNextAction(mixerInfo)
+        })
+      }
+      function playNextAction(mixerInfo) {
+        const { actions, actionNdx } = mixerInfo
+
+        const nextActionNdx = (actionNdx + 1) % actions.length
+        mixerInfo.actionNdx = nextActionNdx
+        actions.forEach((action, ndx) => {
+          const enabled = ndx === nextActionNdx
+          action.enabled = enabled
+          if (enabled) {
+            action.play()
+          }
+        })
+      }
+
+      let then = 0
+      function render(now) {
+        now *= 0.001 // convert to seconds
+        const deltaTime = now - then
+        then = now
+
+        if (resizeRendererToDisplaySize(renderer)) {
+          const canvas = renderer.domElement
+          camera.aspect = canvas.clientWidth / canvas.clientHeight
+          camera.updateProjectionMatrix()
+        }
+
+        // for (const mixer of mixers) {
+        //   // 修改每个模型的动画
+        //   mixer.update(deltaTime)
+        // }
+        for (const { mixer } of mixerInfos) {
+          mixer.update(deltaTime)
+        }
+
+        renderer.render(scene, camera)
+
+        requestAnimationFrame(render)
+      }
+
+      window.addEventListener('keydown', (e) => {
+        const mixerInfo = mixerInfos[e.keyCode - 49]
+        // console.log('🚀 ~ file: threeTest16.html ~ line 232 ~ window.addEventListener ~ e.keyCode', e.keyCode)
+        if (!mixerInfo) {
+          return
+        }
+        playNextAction(mixerInfo)
+      })
+
+      function resizeRendererToDisplaySize(renderer) {
+        const canvas = renderer.domElement
+        const width = canvas.clientWidth
+        const height = canvas.clientHeight
+        const needResize = canvas.width !== width || canvas.height !== height
+        if (needResize) {
+          renderer.setSize(width, height, false)
+        }
+        return needResize
+      }
+
+      requestAnimationFrame(render)
+    </script>
+  </body>
+</html>
