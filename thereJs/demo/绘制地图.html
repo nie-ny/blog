@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>学习</title>
+    <style>
+      #tooltip {
+        position: absolute;
+        z-index: 2;
+        background: white;
+        padding: 10px;
+        border-radius: 2px;
+        visibility: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="c2d" class="c2d" width="1000" height="500"></canvas>
+
+    <div id="tooltip"></div>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script type="module">
+      import * as THREE from 'https://threejsfundamentals.org/threejs/resources/threejs/r132/build/three.module.js'
+      import { OrbitControls } from 'https://threejsfundamentals.org/threejs/resources/threejs/r132/examples/jsm/controls/OrbitControls.js'
+
+      // 以北京为中心 修改坐标
+      const projection = d3.geoMercator().center([116.412318, 39.909843]).translate([0, 0])
+
+      const canvas = document.querySelector('#c2d')
+      // 渲染器
+      const renderer = new THREE.WebGLRenderer({ canvas })
+
+      const fov = 75 // 视野范围
+      const aspect = 2 // 相机默认值 画布的宽高比
+      const near = 0.1 // 近平面
+      const far = 1000 // 远平面
+      // 透视投影相机
+      const camera = new THREE.PerspectiveCamera(fov, aspect, near, far)
+
+      // 相机位置
+      camera.position.set(0, 0, 170)
+      camera.up.set(0, 1, 0)
+
+      // window.addEventListener('keydown', onKeyDown, false)
+      // const distance = 1
+      // function onKeyDown() {
+      //   switch (event.keyCode) {
+      //     case 87:
+      //       camera.translateY(-distance)
+      //       break
+      //     case 83:
+      //       camera.translateY(distance)
+      //       break
+      //     case 65:
+      //       camera.translateX(-distance)
+      //       break
+      //     case 68:
+      //       camera.translateX(distance)
+      //   }
+      // }
+
+      // 控制相机
+      const controls = new OrbitControls(camera, canvas)
+      controls.update()
+
+      // 创建场景
+      const scene = new THREE.Scene()
+
+      // var axes = new THREE.AxisHelper(700)
+      // scene.add(axes)
+
+      const color = 0xffffff
+      const intensity = 3
+      // 创建光源
+      const light = new THREE.AmbientLight(color, intensity)
+      // 光源 加入场景
+      scene.add(light)
+      //
+
+      const loader = new THREE.FileLoader()
+      loader.load('https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json', (data) => {
+        const jsondata = JSON.parse(data)
+        // console.log('🚀 ~ file: 绘制地图.html ~ line 42 ~ loader.load ~ jsondata', jsondata)
+        generateGeometry(jsondata)
+      })
+
+      const map = new THREE.Object3D()
+      function generateGeometry(jsondata) {
+        // 全国信息
+        const features = jsondata.features
+
+        features.forEach((feature) => {
+          // 单个城市 经纬度
+          const province = new THREE.Object3D()
+          // 地址
+          province.properties = feature.properties.name
+
+          const coordinates = feature.geometry.coordinates
+
+          const color = ['重庆市', '上海市'].includes(feature.properties.name) ? 'blue' : 'yellow'
+
+          if (feature.geometry.type === 'MultiPolygon') {
+            // 多边形
+            coordinates.forEach((coordinate) => {
+              coordinate.forEach((rows) => {
+                //
+                const line = lineDraw(rows)
+                const mesh = drawExtrudeMesh(rows, color)
+                mesh.diTu = true
+
+                province.add(line)
+                province.add(mesh)
+              })
+            })
+          }
+
+          if (feature.geometry.type === 'Polygon') {
+            coordinates.forEach((coordinate) => {
+              const line = lineDraw(coordinate)
+              const mesh = drawExtrudeMesh(coordinate, color)
+              mesh.diTu = true
+
+              province.add(line)
+              province.add(mesh)
+            })
+          }
+
+          map.add(province)
+        })
+
+        scene.add(map)
+      }
+
+      /**
+       * 画线
+       * */
+      function lineDraw(polygon) {
+        const lineGeometry = new THREE.BufferGeometry()
+        const pointsArray = new Array()
+        polygon.forEach((row) => {
+          const [x, y] = projection(row)
+          pointsArray.push(new THREE.Vector3(x, -y, 9))
+        })
+        lineGeometry.setFromPoints(pointsArray)
+
+        const lineMaterial = new THREE.LineBasicMaterial({
+          color: 'yellow'
+        })
+        return new THREE.Line(lineGeometry, lineMaterial)
+      }
+
+      /**
+       * 图行
+       * */
+      function drawExtrudeMesh(polygon, color) {
+        const shape = new THREE.Shape()
+        polygon.forEach((row, i) => {
+          const [x, y] = projection(row)
+
+          if (i === 0) {
+            shape.moveTo(x, -y)
+          }
+
+          shape.lineTo(x, -y)
+        })
+
+        const geometry = new THREE.ExtrudeGeometry(shape, {
+          depth: 10,
+          bevelEnabled: false
+        })
+
+        const material = new THREE.MeshBasicMaterial({
+          color: color,
+          transparent: true,
+          opacity: 0.5
+        })
+
+        return new THREE.Mesh(geometry, material)
+      }
+      //
+
+      {
+        // 两地 连线
+
+        let beijingPosition = projection([106.557691, 29.559296])
+        let shanghaiPosition = projection([121.495721, 31.236797])
+        const [x0, y0, z0] = [...beijingPosition, -10]
+        const [x1, y1, z1] = [...shanghaiPosition, -10]
+
+        const lineGeometry = new THREE.BufferGeometry()
+
+        lineGeometry.name = '连线'
+
+        lineGeometry.setFromPoints(
+          new THREE.QuadraticBezierCurve3(
+            new THREE.Vector3(-x0, -y0, z0),
+            new THREE.Vector3(-(x0 + x1) / 2, -(y0 + y1) / 2, -20),
+            new THREE.Vector3(-x1, -y1, z1)
+          ).getPoints()
+        )
+
+        // const pointsArray = new Array()
+        // pointsArray.push(new THREE.Vector3(-beijingPosition[0], beijingPosition[1], 0))
+        // pointsArray.push(new THREE.Vector3(-shanghaiPosition[0], shanghaiPosition[1], 0))
+
+        // lineGeometry.setFromPoints(pointsArray)
+
+        const material = new THREE.LineBasicMaterial({ color: 'white' })
+
+        const line = new THREE.Line(lineGeometry, material)
+        line.rotation.y = Math.PI
+
+        scene.add(line)
+      }
+
+      window.addEventListener('click', onRay)
+
+      let pickPosition = { x: 0, y: 0 }
+      const tooltip = document.getElementById('tooltip')
+
+      // 计算后 以画布 开始为 （0，0）点
+      function getCanvasRelativePosition(event) {
+        const rect = canvas.getBoundingClientRect()
+
+        tooltip.style.left = event.clientX + 2 + 'px'
+        tooltip.style.top = event.clientY + 2 + 'px'
+
+        return {
+          x: ((event.clientX - rect.left) * canvas.width) / rect.width,
+          y: ((event.clientY - rect.top) * canvas.height) / rect.height
+        }
+      }
+
+      let lastPick = null
+      /**
+       * 获取鼠标位置
+       * */
+      function setPickPosition(event) {
+        // 计算后 以画布 开始为 （0，0）点
+        const pos = getCanvasRelativePosition(event)
+
+        // 数据归一化
+        pickPosition.x = (pos.x / canvas.width) * 2 - 1
+        pickPosition.y = (pos.y / canvas.height) * -2 + 1 // note we flip Y
+      }
+
+      function onRay(event) {
+        setPickPosition(event)
+
+        const raycaster = new THREE.Raycaster()
+        raycaster.setFromCamera(pickPosition, camera)
+
+        // 计算物体和射线的交点
+        const intersects = raycaster.intersectObjects(scene.children, true)
+
+        if (intersects.length > 0) {
+          if (intersects[0].object.diTu) {
+            if (lastPick) {
+              lastPick.object.material.color.set('yellow')
+            }
+
+            lastPick = intersects[0]
+            // 是地图属性
+            intersects[0].object.material.color.set(0xff0000)
+            // console.log('🚀 ~ file: 绘制地图.html ~ line 265 ~ onRay ~ intersects[0].object', intersects[0].object)
+
+            tooltip.textContent = intersects[0].object.parent.properties
+            tooltip.style.visibility = 'visible'
+          } else {
+            tooltip.style.visibility = 'hidden'
+          }
+          // console.log('🚀 ~ file: 绘制地图.html ~ line 216 ~ onRay ~ intersects', intersects)
+        } else {
+          tooltip.style.visibility = 'hidden'
+        }
+      }
+
+      //
+      function render(time) {
+        time *= 0.001
+
+        // onRay()
+
+        if (resizeRendererToDisplaySize(renderer)) {
+          // 画布大小修改后 调整 比例
+          const canvas = renderer.domElement
+          camera.aspect = canvas.clientWidth / canvas.clientHeight
+          camera.updateProjectionMatrix()
+        }
+
+        // 加载渲染器
+        renderer.render(scene, camera)
+
+        // 开始动画
+        requestAnimationFrame(render)
+      }
+
+      // 渲染器 重新调整
+      function resizeRendererToDisplaySize(renderer) {
+        const canvas = renderer.domElement
+        const width = canvas.clientWidth
+        const height = canvas.clientHeight
+        const needResize = canvas.width !== width || canvas.height !== height
+        if (needResize) {
+          renderer.setSize(width, height, false)
+        }
+        return needResize
+      }
+
+      // 开始渲染
+      requestAnimationFrame(render)
+    </script>
+  </body>
+</html>

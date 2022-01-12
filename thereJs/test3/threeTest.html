@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>学习</title>
+  </head>
+  <body>
+    <canvas id="c2d" class="c2d" width="1000" height="500"></canvas>
+    <script type="module">
+      /**
+       * 绘制一个房子
+       * */
+      import * as THREE from 'https://threejsfundamentals.org/threejs/resources/threejs/r132/build/three.module.js'
+      import { OrbitControls } from 'https://threejsfundamentals.org/threejs/resources/threejs/r132/examples/jsm/controls/OrbitControls.js'
+      import { FirstPersonControls } from 'https://threejsfundamentals.org/threejs/resources/threejs/r132/examples/jsm/controls/FirstPersonControls.js'
+
+      const canvas = document.querySelector('#c2d')
+      // 渲染器
+      const renderer = new THREE.WebGLRenderer({ canvas })
+      renderer.setClearColor(0xcce0ff)
+
+      const fov = 40 // 视野范围
+      const aspect = 2 // 相机默认值 画布的宽高比
+      const near = 1 // 近平面
+      const far = 10000 // 远平面
+      // 透视投影相机
+      const camera = new THREE.PerspectiveCamera(fov, aspect, near, far)
+
+      // 相机位置
+      camera.position.set(1000, 500, 1500)
+      // camera.up.set(1, 0, 0)
+      camera.lookAt(0, 0, 0)
+
+      // 控制相机
+      const controls = new OrbitControls(camera, canvas)
+      controls.update()
+
+      // const controlsss = new FirstPersonControls(camera)
+      // controlsss.lookSpeed = 0.05
+      // controlsss.movementSpeed = 100
+      // controlsss.lookVertical = false
+
+      // 创建场景
+      const scene = new THREE.Scene()
+
+      // 雾
+      scene.fog = new THREE.Fog(0xcce0ff, 2500, 10000)
+
+      // 辅助
+      var axes = new THREE.AxisHelper(700)
+      scene.add(axes)
+
+      // 灯光
+      const color = 0xffffff
+      const intensity = 1
+      const light = new THREE.AmbientLight(color, intensity)
+      // // 光位置
+      // light.position.set(0, 10, 10)
+      // // 光方向
+      // light.target.position.set(5, 0, 5)
+      scene.add(light)
+      // scene.add(light.target)
+
+      {
+        const loader = new THREE.TextureLoader()
+        const texture = loader.load('./1.jpg')
+        texture.wrapS = THREE.RepeatWrapping
+        texture.wrapT = THREE.RepeatWrapping
+        texture.magFilter = THREE.NearestFilter
+        texture.repeat.set(100, 100)
+
+        const planeGeo = new THREE.PlaneGeometry(10000, 10000)
+        const planeMat = new THREE.MeshPhongMaterial({
+          map: texture,
+          side: THREE.DoubleSide
+        })
+        const mesh = new THREE.Mesh(planeGeo, planeMat)
+        mesh.rotation.x = Math.PI * -0.5
+
+        scene.add(mesh)
+      }
+
+      {
+        // 地板
+        const loader = new THREE.TextureLoader()
+        const texture = loader.load('./2.jpg')
+        texture.wrapS = THREE.RepeatWrapping
+        texture.wrapT = THREE.RepeatWrapping
+        texture.magFilter = THREE.NearestFilter
+        texture.repeat.set(2, 2)
+        const planeGeo = new THREE.PlaneGeometry(300, 300)
+        const planeMat = new THREE.MeshPhongMaterial({
+          map: texture,
+          side: THREE.DoubleSide
+        })
+        const mesh = new THREE.Mesh(planeGeo, planeMat)
+        mesh.rotation.x = Math.PI * -0.5
+        mesh.position.y = 1
+        // mesh.position.z = 150
+        scene.add(mesh)
+      }
+
+      {
+        // 墙
+        const extrudeSettings = {
+          // Extrude配置，具体可以修改参数调试各种效果
+          amount: 8,
+          bevelSegments: 2,
+          steps: 2,
+          bevelSize: 1,
+          bevelThickness: 1
+        }
+
+        function wallAdd() {
+          const shape = new THREE.Shape() // 用Shape类绘制二维形状
+          shape.moveTo(-150, 0) // 绘制方法类似canvas中的绘制方法
+          shape.lineTo(150, 0)
+          shape.lineTo(150, 150)
+          shape.lineTo(0, 200)
+          shape.lineTo(-150, 150)
+
+          const extrudeGeometry = new THREE.ExtrudeGeometry(shape, extrudeSettings)
+
+          // const texture = new THREE.TextureLoader().load('./img/wall.jpg')
+          // texture.wrapS = texture.wrapT = THREE.RepeatWrapping
+          // texture.repeat.set(0.01, 0.005)
+
+          var material = new THREE.MeshBasicMaterial({ color: 0xe5d890 })
+
+          const sideWall = new THREE.Mesh(extrudeGeometry, material)
+          sideWall.position.y = 1
+          return sideWall
+        }
+        const sideWall = wallAdd()
+        const sideWall2 = wallAdd()
+        sideWall.position.z = -150
+        sideWall2.position.z = 150
+
+        scene.add(sideWall)
+        scene.add(sideWall2)
+
+        {
+          const shape = new THREE.Shape()
+          shape.moveTo(-150, 0)
+          shape.lineTo(150, 0)
+          shape.lineTo(150, 150)
+          shape.lineTo(-150, 150)
+
+          const extrudeGeometry = new THREE.ExtrudeGeometry(shape, extrudeSettings)
+
+          const material = new THREE.MeshBasicMaterial({ color: 0xe5d890 })
+          const backWall = new THREE.Mesh(extrudeGeometry, material)
+
+          backWall.position.x = -150
+          backWall.position.y = 1
+          backWall.rotation.y = Math.PI * 0.5
+
+          scene.add(backWall)
+        }
+
+        {
+          // 外墙
+          const shape = new THREE.Shape()
+          shape.moveTo(-150, 0)
+          shape.lineTo(150, 0)
+          shape.lineTo(150, 150)
+          shape.lineTo(-150, 150)
+
+          const shape_a = new THREE.Path()
+          shape_a.moveTo(30, 30)
+          shape_a.lineTo(80, 30)
+          shape_a.lineTo(80, 80)
+          shape_a.lineTo(30, 80)
+          shape_a.lineTo(30, 30)
+          shape.holes.push(shape_a)
+
+          const shape_b = new THREE.Path()
+          shape_b.moveTo(-20, 0)
+          shape_b.lineTo(-20, 100)
+          shape_b.lineTo(-80, 100)
+          shape_b.lineTo(-80, 0)
+          shape_b.lineTo(-20, 0)
+          shape.holes.push(shape_b)
+
+          const extrudeGeometry = new THREE.ExtrudeGeometry(shape, extrudeSettings)
+
+          const material = new THREE.MeshBasicMaterial({ color: 'grey' })
+          const backWall = new THREE.Mesh(extrudeGeometry, material)
+
+          backWall.position.x = 143
+          backWall.position.y = 1
+          backWall.rotation.y = Math.PI * 0.5
+
+          scene.add(backWall)
+        }
+        // 房顶
+        {
+          function roof() {
+            const roofGeometry = new THREE.BoxGeometry(200, 320, 10)
+
+            const loader = new THREE.TextureLoader()
+            const roofTexture = loader.load('./3.jpg')
+            roofTexture.wrapS = roofTexture.wrapT = THREE.RepeatWrapping
+            roofTexture.repeat.set(2, 2)
+            const textureMaterial = new THREE.MeshBasicMaterial({ map: roofTexture })
+
+            const colorMaterial = new THREE.MeshBasicMaterial({ color: 'grey' })
+
+            const materials = [
+              colorMaterial,
+              colorMaterial,
+              colorMaterial,
+              colorMaterial,
+              colorMaterial,
+              textureMaterial
+            ]
+
+            const roof = new THREE.Mesh(roofGeometry, materials)
+
+            // roof.position.z = 155
+
+            return roof
+          }
+
+          const roof1 = roof()
+
+          roof1.rotation.x = Math.PI / 2
+          roof1.rotation.y = (-Math.PI / 4) * 0.4
+          roof1.position.y = 170
+          roof1.position.x = 90
+
+          const roof2 = roof()
+          roof2.rotation.x = Math.PI / 2
+          roof2.rotation.y = (Math.PI / 4) * 0.4
+          roof2.position.y = 170
+          roof2.position.x = -90
+
+          scene.add(roof1)
+          scene.add(roof2)
+        }
+      }
+      {
+        const extrudeSettings = {
+          // Extrude配置，具体可以修改参数调试各种效果
+          amount: 8,
+          bevelSegments: 2,
+          steps: 2,
+          bevelSize: 1,
+          bevelThickness: 1
+        }
+
+        {
+          // 门框
+          const shape = new THREE.Shape()
+          shape.moveTo(-20, 0)
+          shape.lineTo(-20, 100)
+          shape.lineTo(-80, 100)
+          shape.lineTo(-80, 0)
+          shape.lineTo(-20, 0)
+
+          const shape_c = new THREE.Path()
+          shape_c.moveTo(-25, 5)
+          shape_c.lineTo(-25, 95)
+          shape_c.lineTo(-75, 95)
+          shape_c.lineTo(-75, 5)
+          shape_c.lineTo(-25, 5)
+
+          shape.holes.push(shape_c)
+          const extrudeGeometry = new THREE.ExtrudeGeometry(shape, extrudeSettings)
+          const material = new THREE.MeshBasicMaterial({ color: 'silver' })
+          const frame = new THREE.Mesh(extrudeGeometry, material)
+
+          // 门
+          const doorGeometry = new THREE.BoxGeometry(50, 90, 4) //门的形状
+          const doorTexture = new THREE.TextureLoader().load('./4.jpg')
+          const doorMaterial = new THREE.MeshLambertMaterial({ map: doorTexture }) //门的材质
+          const door = new THREE.Mesh(doorGeometry, doorMaterial)
+
+          door.position.set(-50, 50, 5) // 门相对于group的位移和旋转，开关门动画会用到。
+
+          // 是否开门
+          let doorStatus = false
+
+          const group = new THREE.Group() //创建Group
+          group.add(frame) // 往Group加入门框
+          group.add(door) // 往Group加入门板
+
+          group.position.x = 143
+          group.position.y = 1
+          group.rotation.y = Math.PI / 2
+
+          // scene.add(door)
+          scene.add(group)
+
+          //
+
+          window.addEventListener('click', onMouseDown) // 给window绑定点击事件
+          function onMouseDown(event) {
+            let pickPosition = { x: 0, y: 0 }
+            setPickPosition(event)
+            // 计算后 以画布 开始为 （0，0）点
+            function getCanvasRelativePosition(event) {
+              const rect = canvas.getBoundingClientRect()
+              return {
+                x: ((event.clientX - rect.left) * canvas.width) / rect.width,
+                y: ((event.clientY - rect.top) * canvas.height) / rect.height
+              }
+            }
+            /**
+             * 获取鼠标位置
+             * */
+            function setPickPosition(event) {
+              // 计算后 以画布 开始为 （0，0）点
+              const pos = getCanvasRelativePosition(event)
+
+              // 数据归一化
+              pickPosition.x = (pos.x / canvas.width) * 2 - 1
+              pickPosition.y = (pos.y / canvas.height) * -2 + 1 // note we flip Y
+            }
+
+            // let vector = new THREE.Vector3(pickPosition.x, pickPosition.y, 0.5)
+
+            // vector = vector.unproject(camera)
+            // console.log('🚀 ~ file: threeTest.html ~ line 294 ~ onMouseDown ~ vector', vector)
+
+            // 通过摄像机和鼠标位置更新射线
+            const raycaster = new THREE.Raycaster()
+            raycaster.setFromCamera(pickPosition, camera)
+
+            // 计算物体和射线的交点
+            const intersects = raycaster.intersectObjects([door])
+
+            if (intersects.length > 0) {
+              const param = { positionX: -50, positionZ: 5, rotationY: 0 }
+              if (doorStatus) {
+                doorStatus = false
+                param.rotationY = 0
+              } else {
+                param.positionX = -25
+                param.positionZ = -25
+                param.rotationY = -Math.PI / 2
+                doorStatus = true
+              }
+
+              door.position.x = param.positionX
+              door.position.z = param.positionZ
+              door.rotation.y = param.rotationY
+            }
+          }
+        }
+      }
+
+      // const clock = new THREE.Clock()
+      // 渲染
+      function render(time) {
+        time *= 0.001
+        // const delta = clock.getDelta()
+        // controlsss.update(delta)
+
+        if (resizeRendererToDisplaySize(renderer)) {
+          // 画布大小修改后 调整 比例
+          const canvas = renderer.domElement
+          camera.aspect = canvas.clientWidth / canvas.clientHeight
+          camera.updateProjectionMatrix()
+        }
+
+        // 加载渲染器
+        renderer.render(scene, camera)
+
+        // 开始动画
+        requestAnimationFrame(render)
+      }
+
+      // 渲染器 重新调整
+      function resizeRendererToDisplaySize(renderer) {
+        const canvas = renderer.domElement
+        const width = canvas.clientWidth
+        const height = canvas.clientHeight
+        const needResize = canvas.width !== width || canvas.height !== height
+        if (needResize) {
+          renderer.setSize(width, height, false)
+        }
+        return needResize
+      }
+
+      // 开始渲染
+      requestAnimationFrame(render)
+    </script>
+  </body>
+</html>
