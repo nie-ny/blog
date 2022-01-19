@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <style type="text/css">
+    .map {
+      height: 500px;
+      width: 100%;
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.6.1/css/ol.css" />
+  <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.6.1/build/ol.js"></script>
+  <body>
+    <div id="map" class="map"></div>
+  </body>
+  <script>
+    var map = new ol.Map({
+      target: 'map'
+    })
+
+    // 地图设置中心
+    var center = ol.proj.transform([0, 0], 'EPSG:4326', 'EPSG:3857')
+    // 视图
+    var view = new ol.View({
+      center: ol.proj.fromLonLat([0, 0]),
+      zoom: 7
+    })
+
+    map.setView(view)
+
+    // 计算图片映射到地图上的范围，保持比例的情况下。 放大100倍 除以2 让图片中心点和地图中心点重合
+    var extent = [center[0] - (1080 * 1000) / 2, center[1] - (756 * 1000) / 2, center[0] + (1080 * 1000) / 2, center[1] + (756 * 1000) / 2]
+    // 加载图片图层
+    map.addLayer(
+      new ol.layer.Image({
+        source: new ol.source.ImageStatic({
+          url: '2.jpg',
+          imageExtent: extent //映射到地图的范围
+        })
+      })
+    )
+
+    // 创建矢量图层 绘制标注
+    var vLayer = new ol.layer.Vector({
+      source: new ol.source.Vector()
+    })
+
+    //创建一个活动图标需要的Feature，并设置位置
+    var feature = new ol.Feature({
+      geometry: new ol.geom.Point([center[0] + 540 * 1000, center[1] - 378 * 1000])
+    })
+    //设置Feature的样式，使用小旗帜图标
+    feature.setStyle(
+      new ol.style.Style({
+        image: new ol.style.Icon({
+          src: 'https://img2.baidu.com/it/u=3347068028,2336626960&fm=26&fmt=auto&gp=0.jpg',
+          anchor: [0, 1],
+          scale: 0.2
+        })
+      })
+    )
+
+    vLayer.getSource().addFeature(feature)
+    map.addLayer(vLayer)
+  </script>
+</html>
