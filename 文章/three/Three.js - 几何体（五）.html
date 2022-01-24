@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>学习</title>
+  </head>
+  <body>
+    <canvas id="c2d" class="c2d" width="1000" height="500"></canvas>
+    <script type="module">
+      // 官网地址
+      import * as THREE from 'https://threejsfundamentals.org/threejs/resources/threejs/r132/build/three.module.js'
+      const canvas = document.querySelector('#c2d')
+      // 渲染器
+      const renderer = new THREE.WebGLRenderer({ canvas })
+
+      const fov = 40 // 视野范围
+      const aspect = 2 // 相机默认值 画布的宽高比
+      const near = 0.1 // 近平面
+      const far = 1000 // 远平面
+      // 透视投影相机
+      const camera = new THREE.PerspectiveCamera(fov, aspect, near, far)
+
+      // 相机位置  正上方向下看
+      camera.position.set(0, 50, 0)
+      camera.up.set(0, 0, 1)
+      camera.lookAt(0, 0, 0)
+
+      // 创建场景
+      const scene = new THREE.Scene()
+      scene.background = new THREE.Color(0xaaaaaa)
+
+      {
+        const color = 0xffffff
+        const intensity = 1
+        const light = new THREE.DirectionalLight(color, intensity)
+        light.position.set(-1, 2, 4)
+        scene.add(light)
+      }
+      {
+        const color = 0xffffff
+        const intensity = 1
+        const light = new THREE.DirectionalLight(color, intensity)
+        light.position.set(1, -2, -4)
+        scene.add(light)
+      }
+
+      // 材质 emissive 不被光影响的颜色
+      // MeshPhongMaterial 一种用于具有镜面高光的光泽表面的材质。
+      // side: THREE.DoubleSide 绘制组成形状的三角形的两个面
+      const material = new THREE.MeshPhongMaterial({ color: 0x44aa88, side: THREE.DoubleSide })
+
+      // const width = 8 // 宽度
+      // const height = 8 // 高度
+      // const depth = 8 // 深度
+      // const widthSegments = 1 // ui: 宽度的分段数
+      // const heightSegments = 2 // ui: 高度的分段数
+      // const depthSegments = 3 // ui: 深度的分段数
+      // const geometry = new THREE.BoxGeometry(width, height, depth, widthSegments, heightSegments, depthSegments)
+
+      // const radius = 8 // 球体半径
+      // const widthSegments = 32 // 水平分段数
+      // const heightSegments = 16 // 垂直分段数
+      // const geometry = new THREE.SphereGeometry(radius, widthSegments, heightSegments)
+
+      // const width = 8 // 宽度
+      // const height = 8 // 高度
+      // const widthSegments = 2 //  宽度的分段数
+      // const heightSegments = 2 // 高度的分段数
+      // const geometry = new THREE.PlaneGeometry(width, height, widthSegments, heightSegments)
+
+      const vertices = [
+        // front
+        { pos: [-1, -1, 1], norm: [0, 0, 1] },
+        { pos: [1, -1, 1], norm: [0, 0, 1] },
+        { pos: [-1, 1, 1], norm: [0, 0, 1] },
+
+        { pos: [-1, 1, 1], norm: [0, 0, 1] },
+        { pos: [1, -1, 1], norm: [0, 0, 1] },
+        { pos: [1, 1, 1], norm: [0, 0, 1] },
+        // right
+        { pos: [1, -1, 1], norm: [1, 0, 0] },
+        { pos: [1, -1, -1], norm: [1, 0, 0] },
+        { pos: [1, 1, 1], norm: [1, 0, 0] },
+
+        { pos: [1, 1, 1], norm: [1, 0, 0] },
+        { pos: [1, -1, -1], norm: [1, 0, 0] },
+        { pos: [1, 1, -1], norm: [1, 0, 0] },
+        // back
+        { pos: [1, -1, -1], norm: [0, 0, -1] },
+        { pos: [-1, -1, -1], norm: [0, 0, -1] },
+        { pos: [1, 1, -1], norm: [0, 0, -1] },
+
+        { pos: [1, 1, -1], norm: [0, 0, -1] },
+        { pos: [-1, -1, -1], norm: [0, 0, -1] },
+        { pos: [-1, 1, -1], norm: [0, 0, -1] },
+        // left
+        { pos: [-1, -1, -1], norm: [-1, 0, 0] },
+        { pos: [-1, -1, 1], norm: [-1, 0, 0] },
+        { pos: [-1, 1, -1], norm: [-1, 0, 0] },
+
+        { pos: [-1, 1, -1], norm: [-1, 0, 0] },
+        { pos: [-1, -1, 1], norm: [-1, 0, 0] },
+        { pos: [-1, 1, 1], norm: [-1, 0, 0] },
+        // top
+        { pos: [1, 1, -1], norm: [0, 1, 0] },
+        { pos: [-1, 1, -1], norm: [0, 1, 0] },
+        { pos: [1, 1, 1], norm: [0, 1, 0] },
+
+        { pos: [1, 1, 1], norm: [0, 1, 0] },
+        { pos: [-1, 1, -1], norm: [0, 1, 0] },
+        { pos: [-1, 1, 1], norm: [0, 1, 0] },
+        // bottom
+        { pos: [1, -1, 1], norm: [0, -1, 0] },
+        { pos: [-1, -1, 1], norm: [0, -1, 0] },
+        { pos: [1, -1, -1], norm: [0, -1, 0] },
+
+        { pos: [1, -1, -1], norm: [0, -1, 0] },
+        { pos: [-1, -1, 1], norm: [0, -1, 0] },
+        { pos: [-1, -1, -1], norm: [0, -1, 0] }
+      ]
+      const positions = []
+      const normals = []
+      const uvs = []
+      for (const vertex of vertices) {
+        positions.push(...vertex.pos)
+        normals.push(...vertex.norm)
+      }
+
+      const geometry = new THREE.BufferGeometry()
+      const positionNumComponents = 3 // 3个一组 为一个顶点
+      const normalNumComponents = 3 // 3个一组 为一个顶点
+      geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), positionNumComponents))
+      geometry.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(normals), normalNumComponents))
+
+      // 网格
+      const mesh = new THREE.Mesh(geometry, material)
+      mesh.position.x = 10
+      scene.add(mesh)
+
+      //
+      function render(time) {
+        time *= 0.001
+
+        mesh.rotation.y = time
+        mesh.rotation.x = time
+
+        // 加载渲染器
+        renderer.render(scene, camera)
+
+        // 开始动画
+        requestAnimationFrame(render)
+      }
+
+      // 开始渲染
+      requestAnimationFrame(render)
+    </script>
+  </body>
+</html>
