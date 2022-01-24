@@ -39,13 +39,34 @@
       }
 
       // 立体几何
-      const boxWidth = 4
-      const boxHeight = 4
-      const boxDepth = 4
+      const boxWidth = 6
+      const boxHeight = 6
+      const boxDepth = 6
       const geometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth)
 
+      const loader = new THREE.TextureLoader()
+
+      const texture = loader.load(
+        'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fpic.16pic.com%2F00%2F07%2F46%2F16pic_746871_b.jpg'
+      )
+
+      texture.wrapS = THREE.RepeatWrapping
+      texture.wrapT = THREE.RepeatWrapping
+
+      // 水平
+      texture.repeat.x = 4
+      // 垂直
+      texture.repeat.y = 4
+
+      // 水平
+      texture.offset.x = 0.5
+      // 垂直
+      texture.offset.y = 0.5
       // 基础材质
-      const material = new THREE.MeshLambertMaterial({ color: 0x44aa88, emissive: 0x44aa88 })
+      const material = new THREE.MeshBasicMaterial({
+        map: texture
+      })
+
       // 网格
       const mesh = new THREE.Mesh(geometry, material)
       mesh.position.x = 5
