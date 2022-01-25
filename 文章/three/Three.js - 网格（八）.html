@@ -45,47 +45,39 @@
       const geometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth)
 
       const loader = new THREE.TextureLoader()
-
       const texture = loader.load(
         'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fpic.16pic.com%2F00%2F07%2F46%2F16pic_746871_b.jpg'
       )
-
-      texture.wrapS = THREE.RepeatWrapping
-      texture.wrapT = THREE.RepeatWrapping
-
-      // 水平
-      texture.repeat.x = 4
-      // 垂直
-      texture.repeat.y = 4
-
-      // 水平
-      texture.offset.x = 0.5
-      // 垂直
-      texture.offset.y = 0.5
-
-      // 水平
-      texture.center.x = 0.5
-      // 垂直
-      texture.center.y = 0.5
-      // 旋转弧度
-      texture.rotation = THREE.MathUtils.degToRad(45)
 
       // 基础材质
       const material = new THREE.MeshBasicMaterial({
         map: texture
       })
-
       // 网格
       const mesh = new THREE.Mesh(geometry, material)
+      // 相对坐标 x 移动5
       mesh.position.x = 5
-      scene.add(mesh)
+
+      const mesh2 = new THREE.Mesh(geometry, material)
+      // 相对坐标 z 移动-10
+      mesh2.position.z = -10
+
+      const group = new THREE.Group()
+      group.add(mesh)
+      group.add(mesh2)
+
+      // 全局坐标x 移动10
+      group.position.x = 10
+
+      scene.add(group)
 
       //
       function render(time) {
         time *= 0.001
 
-        mesh.rotation.y = time
-        mesh.rotation.x = time
+        // 旋转 组
+        group.rotation.y = time
+        group.rotation.x = time
 
         // 加载渲染器
         renderer.render(scene, camera)
