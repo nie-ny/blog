@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>学习</title>
+  </head>
+  <body>
+    <canvas id="c2d" class="c2d" width="1000" height="500"></canvas>
+    <script type="module">
+      // 官网地址
+      import * as THREE from 'https://threejsfundamentals.org/threejs/resources/threejs/r132/build/three.module.js'
+      import { OrbitControls } from 'https://threejsfundamentals.org/threejs/resources/threejs/r132/examples/jsm/controls/OrbitControls.js'
+
+      const canvas = document.querySelector('#c2d')
+      // 渲染器
+      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true })
+
+      const fov = 40 // 视野范围
+      const aspect = 2 // 相机默认值 画布的宽高比
+      const near = 0.1 // 近平面
+      const far = 1000 // 远平面
+      // 透视投影相机
+      const camera = new THREE.PerspectiveCamera(fov, aspect, near, far)
+
+      // 相机位置
+      camera.position.set(0, 0, 50)
+      camera.up.set(0, 0, 1)
+      camera.lookAt(0, 0, 0)
+      // 控制相机
+      const controls = new OrbitControls(camera, canvas)
+      controls.update()
+
+      // 纹理加载器
+      const loader = new THREE.TextureLoader()
+      // 创建场景
+      const scene = new THREE.Scene()
+      const bgTexture = loader.load('../img/4.jpg')
+      scene.background = bgTexture
+
+      {
+        const color = 0xffffff
+        const intensity = 1
+        // 创建光源
+        const light = new THREE.PointLight(color, intensity)
+        // 光源 加入场景
+        scene.add(light)
+      }
+
+      // 物体网格对象
+      const objects = []
+      {
+        // 一球多用
+        const radius = 1
+        const widthSegments = 36
+        const heightSegments = 36
+        const sphereGeometry = new THREE.SphereGeometry(radius, widthSegments, heightSegments)
+
+        // 太阳
+        const sunTexture = loader.load('../img/1.jpg')
+        const sunMaterial = new THREE.MeshBasicMaterial({ map: sunTexture })
+        const sunMesh = new THREE.Mesh(sphereGeometry, sunMaterial)
+        // 放大5倍
+        sunMesh.scale.set(5, 5, 5)
+        scene.add(sunMesh)
+        // 放入控制对象
+        objects.push(sunMesh)
+      }
+
+      function render(time) {
+        time *= 0.001
+
+        // 网格对象 旋转
+        objects.forEach((obj) => {
+          obj.rotation.y = time
+        })
+
+        // 加载渲染器
+        renderer.render(scene, camera)
+
+        // 开始动画
+        requestAnimationFrame(render)
+      }
+
+      // 开始渲染
+      requestAnimationFrame(render)
+    </script>
+  </body>
+</html>
