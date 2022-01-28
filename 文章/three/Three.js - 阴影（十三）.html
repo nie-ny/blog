@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>学习</title>
+  </head>
+  <body>
+    <canvas id="c2d" class="c2d" width="1000" height="500"></canvas>
+    <script type="module">
+      import * as THREE from 'https://threejs.org/build/three.module.js'
+      import { OrbitControls } from 'https://threejsfundamentals.org/threejs/resources/threejs/r132/examples/jsm/controls/OrbitControls.js'
+
+      const canvas = document.querySelector('#c2d')
+      // 渲染器
+      const renderer = new THREE.WebGLRenderer({ canvas })
+      // 开启阴影渲染
+      renderer.shadowMap.enabled = true
+
+      const fov = 40 // 视野范围
+      const aspect = 2 // 相机默认值 画布的宽高比
+      const near = 0.1 // 近平面
+      const far = 1000 // 远平面
+      // 透视投影相机
+      const camera = new THREE.PerspectiveCamera(fov, aspect, near, far)
+      camera.position.set(0, 50, 50)
+      camera.lookAt(0, 0, 0)
+      // 控制相机
+      const controls = new OrbitControls(camera, canvas)
+      controls.update()
+
+      // 场景
+      const scene = new THREE.Scene()
+
+      {
+        // 灯光
+        const color = 0xffffff
+        const intensity = 2
+        const light = new THREE.DirectionalLight(color, intensity)
+        light.castShadow = true // 投射阴影
+        light.position.set(10, 10, 10)
+        light.target.position.set(-4, 0, -4)
+        scene.add(light)
+        scene.add(light.target)
+
+        const helper = new THREE.DirectionalLightHelper(light)
+        scene.add(helper)
+
+        const cameraHelper = new THREE.CameraHelper(light.shadow.camera)
+        scene.add(cameraHelper)
+
+        const d = 50
+        light.shadow.camera.left = -d
+        light.shadow.camera.right = d
+        light.shadow.camera.top = d
+        light.shadow.camera.bottom = -d
+        light.shadow.camera.near = 1
+        light.shadow.camera.far = 60
+      }
+
+      {
+        // 平面几何
+        const groundGeometry = new THREE.PlaneGeometry(50, 50)
+        const groundMaterial = new THREE.MeshPhongMaterial({ color: 0xcc8866, side: THREE.DoubleSide })
+        const groundMesh = new THREE.Mesh(groundGeometry, groundMaterial)
+        groundMesh.rotation.x = Math.PI * -0.5
+        groundMesh.receiveShadow = true // 接受阴影
+        scene.add(groundMesh)
+      }
+      {
+        // 几何体
+        const cubeSize = 4
+        const cubeGeo = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize)
+        const cubeMat = new THREE.MeshPhongMaterial({ color: '#8AC' })
+        const mesh = new THREE.Mesh(cubeGeo, cubeMat)
+        mesh.castShadow = true // 投射阴影
+        mesh.receiveShadow = true // 接受阴影
+        mesh.position.set(cubeSize + 1, cubeSize / 2, 0)
+        scene.add(mesh)
+      }
+
+      // 渲染
+      function render() {
+        renderer.render(scene, camera)
+        requestAnimationFrame(render)
+      }
+
+      requestAnimationFrame(render)
+    </script>
+  </body>
+</html>
