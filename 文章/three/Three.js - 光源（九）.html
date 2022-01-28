@@ -14,6 +14,8 @@
       // 渲染器
       const renderer = new THREE.WebGLRenderer({ canvas })
 
+      renderer.physicallyCorrectLights = true
+
       const fov = 40 // 视野范围
       const aspect = 2 // 相机默认值 画布的宽高比
       const near = 0.1 // 近平面
@@ -29,7 +31,7 @@
 
       // 场景
       const scene = new THREE.Scene()
-      scene.background = new THREE.Color('white')
+      scene.background = new THREE.Color('black')
 
       {
         // 地面 平铺
@@ -69,8 +71,17 @@
       {
         const color = 0xffffff
         const intensity = 1
-        const light = new THREE.AmbientLight(color, intensity)
+        const light = new THREE.PointLight(color, intensity)
+        light.position.set(0, 5, 10)
+
+        light.power = 800
+        light.decay = 2
+
         scene.add(light)
+
+        // 光源辅助线
+        const helper = new THREE.PointLightHelper(light)
+        scene.add(helper)
       }
 
       // 渲染

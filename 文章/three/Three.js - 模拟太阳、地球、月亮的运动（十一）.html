@@ -50,7 +50,7 @@
       const objects = []
       {
         // 一球多用
-        const radius = 1
+        const radius = 2
         const widthSegments = 36
         const heightSegments = 36
         const sphereGeometry = new THREE.SphereGeometry(radius, widthSegments, heightSegments)
@@ -60,10 +60,47 @@
         const sunMaterial = new THREE.MeshBasicMaterial({ map: sunTexture })
         const sunMesh = new THREE.Mesh(sphereGeometry, sunMaterial)
         // 放大5倍
-        sunMesh.scale.set(5, 5, 5)
-        scene.add(sunMesh)
+        sunMesh.scale.set(3, 3, 3)
+        // scene.add(sunMesh)
         // 放入控制对象
         objects.push(sunMesh)
+
+        // 地球
+        const earthTexture = loader.load('../img/3.jpg')
+        const earthMaterial = new THREE.MeshPhongMaterial({
+          map: earthTexture
+        })
+        const earthMesh = new THREE.Mesh(sphereGeometry, earthMaterial)
+        // earthMesh.position.x = 20
+        // scene.add(earthMesh)
+        // 放入控制对象
+        objects.push(earthMesh)
+
+        // 太阳系 物体对象
+        const solarSystem = new THREE.Object3D()
+        scene.add(solarSystem)
+        objects.push(solarSystem)
+
+        solarSystem.add(sunMesh)
+        // solarSystem.add(earthMesh)
+
+        // 地月系 物体对象
+        const landOrbit = new THREE.Object3D()
+        landOrbit.position.x = 20
+        solarSystem.add(landOrbit)
+        objects.push(landOrbit)
+
+        // 月球
+        const moonTexture = loader.load('../img/2.jpg')
+        const moonMaterial = new THREE.MeshPhongMaterial({ map: moonTexture })
+        const moonMesh = new THREE.Mesh(sphereGeometry, moonMaterial)
+        moonMesh.scale.set(0.5, 0.5, 0.5)
+        moonMesh.position.x = 5
+        objects.push(moonMesh)
+
+        // 加入地月系
+        landOrbit.add(earthMesh)
+        landOrbit.add(moonMesh)
       }
 
       function render(time) {
