@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>学习</title>
+  </head>
+  <body>
+    <canvas id="c2d" class="c2d" width="1000" height="500"></canvas>
+    <script type="module">
+      import * as THREE from 'https://threejs.org/build/three.module.js'
+      import { OrbitControls } from 'https://threejsfundamentals.org/threejs/resources/threejs/r132/examples/jsm/controls/OrbitControls.js'
+
+      const canvas = document.querySelector('#c2d')
+      // 渲染器
+      const renderer = new THREE.WebGLRenderer({ canvas })
+
+      const fov = 40 // 视野范围
+      const aspect = 2 // 相机默认值 画布的宽高比
+      const near = 0.1 // 近平面
+      const far = 1000 // 远平面
+      // 透视投影相机
+      const camera = new THREE.PerspectiveCamera(fov, aspect, near, far)
+      camera.position.set(10, 20, 20)
+      camera.lookAt(0, 0, 0)
+      // 控制相机
+      const controls = new OrbitControls(camera, canvas)
+      controls.update()
+
+      // 场景
+      const scene = new THREE.Scene()
+      {
+        // 光源
+        const color = 0xffffff
+        const intensity = 1
+        const light = new THREE.DirectionalLight(color, intensity)
+        light.position.set(-1, 2, 4)
+        scene.add(light)
+      }
+
+      // 立体
+      const boxWidth = 6
+      const boxHeight = 6
+      const boxDepth = 6
+      const boxGeometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth)
+      // 材质
+      const material = new THREE.MeshPhongMaterial({ color: 0x00ff00 })
+      const mesh = new THREE.Mesh(boxGeometry, material)
+      scene.add(mesh)
+
+      // 渲染
+      function render(time) {
+        time *= 0.001
+
+        mesh.rotation.y = time
+        mesh.rotation.x = time
+
+        renderer.render(scene, camera)
+        requestAnimationFrame(render)
+      }
+      requestAnimationFrame(render)
+    </script>
+  </body>
+</html>
