@@ -29,30 +29,6 @@
       // 场景
       const scene = new THREE.Scene()
 
-      {
-        const near = 8
-        const far = 12
-        scene.fog = new THREE.Fog('lightblue', near, far)
-        scene.background = new THREE.Color('lightblue')
-      }
-
-      {
-        const intensity = 1
-        const light = new THREE.DirectionalLight(0xffffff, intensity)
-        light.position.set(-1, 2, 4)
-        scene.add(light)
-      }
-
-      const boxWidth = 2
-      const boxHeight = 2
-      const boxDepth = 2
-      const geometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth)
-
-      const material = new THREE.MeshPhongMaterial({ color: 0x44aa88 })
-
-      const cube = new THREE.Mesh(geometry, material)
-      scene.add(cube)
-
       // 渲染
       function render(time) {
         time *= 0.001
