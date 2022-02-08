@@ -17,7 +17,7 @@
       const fov = 75 // 视野范围
       const aspect = 2 // 相机默认值 画布的宽高比
       const near = 0.1 // 近平面
-      const far = 10 // 远平面
+      const far = 20 // 远平面
       // 透视投影相机
       const camera = new THREE.PerspectiveCamera(fov, aspect, near, far)
       camera.position.set(0, 0, 10)
@@ -28,6 +28,34 @@
 
       // 场景
       const scene = new THREE.Scene()
+
+      // {
+      //   const near = 1
+      //   const far = 11
+      //   const color = 'lightblue'
+      //   scene.fog = new THREE.Fog(color, near, far)
+      //   scene.background = new THREE.Color(color)
+      // }
+      {
+        const color = 'lightblue'
+        const density = 0.1
+        scene.fog = new THREE.FogExp2(color, density)
+        scene.background = new THREE.Color(color)
+      }
+
+      {
+        const color = 0xffffff
+        const intensity = 1
+        const light = new THREE.DirectionalLight(color, intensity)
+        light.position.set(-1, 2, 4)
+        scene.add(light)
+      }
+      const box = 3
+      const geometry = new THREE.BoxGeometry(box, box, box)
+      const material = new THREE.MeshPhongMaterial({ color: 0x8844aa })
+
+      const cube = new THREE.Mesh(geometry, material)
+      scene.add(cube)
 
       // 渲染
       function render(time) {
