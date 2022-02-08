@@ -7,8 +7,10 @@
   <body>
     <canvas id="c2d" class="c2d" width="1000" height="500"></canvas>
     <script type="module">
-      import * as THREE from 'https://threejs.org/build/three.module.js'
-      import { OrbitControls } from 'https://threejsfundamentals.org/threejs/resources/threejs/r132/examples/jsm/controls/OrbitControls.js'
+      import * as THREE from './file/three.js-dev/build/three.module.js'
+      import { OrbitControls } from './file/three.js-dev/examples/jsm/controls/OrbitControls.js'
+      import { OBJLoader } from './file/three.js-dev/examples/jsm/loaders/OBJLoader.js'
+      import { MTLLoader } from './file/three.js-dev/examples/jsm/loaders/MTLLoader.js'
 
       const canvas = document.querySelector('#c2d')
       // 渲染器
@@ -28,14 +30,47 @@
 
       // 场景
       const scene = new THREE.Scene()
-      scene.background = new THREE.Color('white')
+      scene.background = new THREE.Color('black')
 
       {
-        // 光源
+        // 半球光
+        const skyColor = 0xb1e1ff // 蓝色
+        const groundColor = 0xffffff // 白色
+        const intensity = 1
+        const light = new THREE.HemisphereLight(skyColor, groundColor, intensity)
+        scene.add(light)
+      }
+
+      {
+        // 方向光
         const color = 0xffffff
         const intensity = 1
         const light = new THREE.DirectionalLight(color, intensity)
+        light.position.set(0, 10, 0)
+        light.target.position.set(-5, 0, 0)
         scene.add(light)
+        scene.add(light.target)
+      }
+
+      {
+        const mtlLoader = new MTLLoader()
+        mtlLoader.load('./file/windmill/windmill.mtl', (mtl) => {
+          mtl.preload()
+
+          for (const material of Object.values(mtl.materials)) {
+            console.log('material', material)
+            // 设置材质双面
+            material.side = THREE.DoubleSide
+          }
+
+          const objLoader = new OBJLoader()
+          objLoader.setMaterials(mtl)
+
+          // 加载模型
+          objLoader.load('./file//windmill/windmill.obj', (root) => {
+            scene.add(root)
+          })
+        })
       }
 
       // 渲染
