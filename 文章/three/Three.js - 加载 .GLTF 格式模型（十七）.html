@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>学习</title>
+  </head>
+  <body>
+    <canvas id="c2d" class="c2d" width="1000" height="500"></canvas>
+    <script type="module">
+      import * as THREE from './file/three.js-dev/build/three.module.js'
+      import { OrbitControls } from './file/three.js-dev/examples/jsm/controls/OrbitControls.js'
+      import { GLTFLoader } from './file/three.js-dev/examples/jsm/loaders/GLTFLoader.js'
+
+      const canvas = document.querySelector('#c2d')
+      // 渲染器
+      const renderer = new THREE.WebGLRenderer({ canvas })
+
+      const fov = 40 // 视野范围
+      const aspect = 2 // 相机默认值 画布的宽高比
+      const near = 0.1 // 近平面
+      const far = 1000 // 远平面
+      // 透视投影相机
+      const camera = new THREE.PerspectiveCamera(fov, aspect, near, far)
+      camera.position.set(1, 1, 1)
+      camera.lookAt(0, 0, 0)
+      // 控制相机
+      const controls = new OrbitControls(camera, canvas)
+      controls.update()
+
+      // 场景
+      const scene = new THREE.Scene()
+      scene.background = new THREE.Color('black')
+
+      {
+        // 半球光
+        const skyColor = 0xb1e1ff // 蓝色
+        const groundColor = 0xffffff // 白色
+        const intensity = 1
+        const light = new THREE.HemisphereLight(skyColor, groundColor, intensity)
+        scene.add(light)
+      }
+
+      {
+        // 方向光
+        const color = 0xffffff
+        const intensity = 1
+        const light = new THREE.DirectionalLight(color, intensity)
+        light.position.set(0, 10, 0)
+        light.target.position.set(-5, 0, 0)
+        scene.add(light)
+        scene.add(light.target)
+      }
+
+      {
+        const gltfLoader = new GLTFLoader()
+        gltfLoader.load('./file/bingdundun.glb', (gltf) => {
+          const root = gltf.scene
+          console.log('root', root)
+
+          // 遍历所有子对象
+          root.traverse((child) => {
+            if (child.isMesh) {
+              // 内部
+              if (child.name === 'oldtiger001') {
+                // 金属度
+                child.material.metalness = 0.5
+                // 粗糙度
+                child.material.roughness = 0.8
+              }
+              // 半透明外壳
+              if (child.name === 'oldtiger002') {
+                // 启用透明
+                child.material.transparent = true
+                // 透明度
+                child.material.opacity = 0.5
+                // 透明反射效果
+                child.material.refractionRatio = 1
+                child.material.metalness = 0.2
+                child.material.roughness = 0
+              }
+            }
+          })
+
+          scene.add(root)
+        })
+      }
+
+      // 渲染
+      function render() {
+        renderer.render(scene, camera)
+        requestAnimationFrame(render)
+      }
+
+      requestAnimationFrame(render)
+    </script>
+  </body>
+</html>
