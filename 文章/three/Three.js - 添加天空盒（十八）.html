@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>学习</title>
+  </head>
+  <body>
+    <canvas id="c2d" class="c2d" width="1000" height="500"></canvas>
+    <script type="module">
+      import * as THREE from './file/three.js-dev/build/three.module.js'
+      import { OrbitControls } from './file/three.js-dev/examples/jsm/controls/OrbitControls.js'
+
+      const canvas = document.querySelector('#c2d')
+      // 渲染器
+      const renderer = new THREE.WebGLRenderer({ canvas })
+
+      const fov = 40 // 视野范围
+      const aspect = 2 // 相机默认值 画布的宽高比
+      const near = 0.1 // 近平面
+      const far = 10000 // 远平面
+      // 透视投影相机
+      const camera = new THREE.PerspectiveCamera(fov, aspect, near, far)
+      camera.position.set(10, 3, 0)
+      camera.lookAt(0, 0, 0)
+      // 控制相机
+      const controls = new OrbitControls(camera, canvas)
+      controls.update()
+
+      // 场景
+      const scene = new THREE.Scene()
+
+      // {
+      //   var directions = [
+      //     './file/18/pos-x.jpg',
+      //     './file/18/neg-x.jpg',
+      //     './file/18/pos-y.jpg',
+      //     './file/18/neg-y.jpg',
+      //     './file/18/pos-z.jpg',
+      //     './file/18/neg-z.jpg'
+      //   ] // 获取对象
+
+      //   const loader = new THREE.TextureLoader()
+      //   // 创建盒子，并设置盒子的大小为( 5000, 5000, 5000 )
+      //   const skyGeometry = new THREE.BoxGeometry(5000, 5000, 5000)
+      //   // 设置盒子材质
+      //   const materialArray = []
+      //   for (let i = 0; i < 6; i++)
+      //     materialArray.push(
+      //       new THREE.MeshBasicMaterial({
+      //         map: loader.load(directions[i]), // 将图片纹理贴上
+      //         side: THREE.BackSide // 镜像翻转
+      //       })
+      //     )
+      //   // 创建一个完整的天空盒，填入几何模型和材质的参数
+      //   const skyBox = new THREE.Mesh(skyGeometry, materialArray)
+      //   scene.add(skyBox) // 在场景中加入天空盒
+      // }
+
+      // {
+      //   const loader = new THREE.CubeTextureLoader()
+      //   const texture = loader.load([
+      //     './file/18/pos-x.jpg',
+      //     './file/18//neg-x.jpg',
+      //     './file/18//pos-y.jpg',
+      //     './file/18//neg-y.jpg',
+      //     './file/18//pos-z.jpg',
+      //     './file/18//neg-z.jpg'
+      //   ])
+      //   scene.background = texture
+      // }
+
+      {
+        const loader = new THREE.TextureLoader()
+        const texture = loader.load('./file/18/2.webp', () => {
+          const rt = new THREE.WebGLCubeRenderTarget(texture.image.height)
+          rt.fromEquirectangularTexture(renderer, texture)
+          scene.background = rt.texture
+        })
+      }
+
+      // 渲染
+      function render() {
+        renderer.render(scene, camera)
+        requestAnimationFrame(render)
+      }
+      requestAnimationFrame(render)
+    </script>
+  </body>
+</html>
