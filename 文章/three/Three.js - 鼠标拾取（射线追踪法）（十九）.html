@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>学习</title>
+  </head>
+  <body>
+    <canvas id="c2d" class="c2d" width="1000" height="500"></canvas>
+    <script type="module">
+      import * as THREE from './file/three.js-dev/build/three.module.js'
+      import { OrbitControls } from './file/three.js-dev/examples/jsm/controls/OrbitControls.js'
+
+      const canvas = document.querySelector('#c2d')
+      // 渲染器
+      const renderer = new THREE.WebGLRenderer({ canvas })
+
+      const fov = 40 // 视野范围
+      const aspect = 2 // 相机默认值 画布的宽高比
+      const near = 0.1 // 近平面
+      const far = 10000 // 远平面
+      // 透视投影相机
+      const camera = new THREE.PerspectiveCamera(fov, aspect, near, far)
+      camera.position.set(0, 6, 5)
+      camera.lookAt(0, 0, 0)
+      // 控制相机
+      const controls = new OrbitControls(camera, canvas)
+      controls.update()
+
+      // 场景
+      const scene = new THREE.Scene()
+      {
+        // 灯光
+        const color = 0xffffff
+        const intensity = 1
+        const light = new THREE.DirectionalLight(color, intensity)
+        light.position.set(-1, 10, 4)
+        scene.add(light)
+      }
+
+      {
+        // 立方体
+        const boxWidth = 1
+        const boxHeight = 1
+        const boxDepth = 1
+        const geometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth)
+
+        const material = new THREE.MeshPhongMaterial({
+          color: 0x6688aa
+        })
+        const cube = new THREE.Mesh(geometry, material)
+        cube.position.x = -1
+        scene.add(cube)
+
+        const material2 = new THREE.MeshPhongMaterial({
+          color: 0x6688aa
+        })
+        const cube2 = new THREE.Mesh(geometry, material2)
+        cube2.position.x = 1
+        scene.add(cube2)
+      }
+
+      // 计算 以画布 开始为（0，0）点 的鼠标坐标
+      function getCanvasRelativePosition(event) {
+        const rect = canvas.getBoundingClientRect()
+        return {
+          x: ((event.clientX - rect.left) * canvas.width) / rect.width,
+          y: ((event.clientY - rect.top) * canvas.height) / rect.height
+        }
+      }
+
+      /**
+       * 获取鼠标在three.js 中归一化坐标
+       * */
+      function setPickPosition(event) {
+        let pickPosition = { x: 0, y: 0 }
+
+        // 计算后 以画布 开始为 （0，0）点
+        const pos = getCanvasRelativePosition(event)
+
+        // 数据归一化
+        pickPosition.x = (pos.x / canvas.width) * 2 - 1
+        pickPosition.y = (pos.y / canvas.height) * -2 + 1
+
+        return pickPosition
+      }
+
+      // 监听鼠标
+      window.addEventListener('mousemove', onRay)
+      // 全局对象
+      let lastPick = null
+      function onRay(event) {
+        let pickPosition = setPickPosition(event)
+
+        const raycaster = new THREE.Raycaster()
+        raycaster.setFromCamera(pickPosition, camera)
+        // 计算物体和射线的交点
+        const intersects = raycaster.intersectObjects(scene.children, true)
+
+        // 数组大于0 表示有相交对象
+        if (intersects.length > 0) {
+          if (lastPick) {
+            lastPick.object.material.color.set('yellow')
+          }
+          lastPick = intersects[0]
+        } else {
+          if (lastPick) {
+            // 复原
+            lastPick.object.material.color.set(0x6688aa)
+            lastPick = null
+          }
+        }
+      }
+
+      // 渲染
+      function render() {
+        renderer.render(scene, camera)
+        requestAnimationFrame(render)
+      }
+      requestAnimationFrame(render)
+    </script>
+  </body>
+</html>

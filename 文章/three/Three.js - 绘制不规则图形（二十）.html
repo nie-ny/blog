@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>学习</title>
+  </head>
+  <body>
+    <canvas id="c2d" class="c2d" width="1000" height="500"></canvas>
+    <script type="module">
+      import * as THREE from './file/three.js-dev/build/three.module.js'
+      import { OrbitControls } from './file/three.js-dev/examples/jsm/controls/OrbitControls.js'
+
+      const canvas = document.querySelector('#c2d')
+      // 渲染器
+      const renderer = new THREE.WebGLRenderer({ canvas })
+
+      const fov = 40 // 视野范围
+      const aspect = 2 // 相机默认值 画布的宽高比
+      const near = 0.1 // 近平面
+      const far = 10000 // 远平面
+      // 透视投影相机
+      const camera = new THREE.PerspectiveCamera(fov, aspect, near, far)
+      camera.position.set(0, 10, 10)
+      camera.lookAt(0, 0, 0)
+      // 控制相机
+      const controls = new OrbitControls(camera, canvas)
+      controls.update()
+
+      // 场景
+      const scene = new THREE.Scene()
+
+      // 创建心形 路径
+      const heartShape = new THREE.Shape()
+      heartShape.moveTo(0, 1.5)
+      heartShape.bezierCurveTo(2, 3.5, 4, 1.5, 2, -0.5)
+      heartShape.lineTo(0, -2.5)
+      heartShape.lineTo(-2, -0.5)
+      heartShape.bezierCurveTo(-4, 1.5, -2, 3.5, 0, 1.5)
+
+      const shape_c = new THREE.Path()
+      shape_c.moveTo(-1, 1)
+      shape_c.lineTo(-1, -1)
+      shape_c.lineTo(1, -1)
+      shape_c.lineTo(1, 1)
+      shape_c.lineTo(-1, 1)
+      heartShape.holes.push(shape_c)
+
+      // 心形平面
+      // const geometry = new THREE.ShapeGeometry(heartShape)
+      // const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, side: THREE.DoubleSide })
+      // const mesh = new THREE.Mesh(geometry, material)
+      // scene.add(mesh)
+
+      {
+        // 灯光
+        const color = 0xffffff
+        const intensity = 1
+        const light = new THREE.DirectionalLight(color, intensity)
+        light.position.set(-1, 10, 4)
+        scene.add(light)
+      }
+      {
+        // 灯光
+        const color = 0xffffff
+        const intensity = 1
+        const light = new THREE.DirectionalLight(color, intensity)
+        light.position.set(-1, -10, -4)
+        scene.add(light)
+      }
+
+      const extrudeSettings = {
+        steps: 2,
+        depth: 3,
+        bevelEnabled: true,
+        bevelThickness: 1
+        // bevelSize: 1,
+        // bevelOffset: 0,
+        // bevelSegments: 1
+      }
+
+      // 拉伸3D 图形
+      const geometry = new THREE.ExtrudeGeometry(heartShape, extrudeSettings)
+      const material = new THREE.MeshPhongMaterial({ color: 0x00ff00, side: THREE.DoubleSide })
+      const mesh = new THREE.Mesh(geometry, material)
+      scene.add(mesh)
+
+      // 渲染
+      function render() {
+        renderer.render(scene, camera)
+        requestAnimationFrame(render)
+      }
+      requestAnimationFrame(render)
+    </script>
+  </body>
+</html>
