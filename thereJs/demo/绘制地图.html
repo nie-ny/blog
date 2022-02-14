@@ -187,10 +187,9 @@
         const [x0, y0, z0] = [...beijingPosition, -10]
         const [x1, y1, z1] = [...shanghaiPosition, -10]
 
+        // 用来代表所有几何体的一种方式 -自定义几何数据
         const lineGeometry = new THREE.BufferGeometry()
-
         lineGeometry.name = '连线'
-
         lineGeometry.setFromPoints(
           new THREE.QuadraticBezierCurve3(
             new THREE.Vector3(-x0, -y0, z0),

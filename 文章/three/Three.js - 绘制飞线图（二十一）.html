@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>学习</title>
+  </head>
+  <body>
+    <canvas id="c2d" class="c2d" width="1000" height="500"></canvas>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script type="module">
+      import * as THREE from './file/three.js-dev/build/three.module.js'
+      import { OrbitControls } from './file/three.js-dev/examples/jsm/controls/OrbitControls.js'
+
+      // 以北京为中心 修改坐标
+      const projection = d3.geoMercator().center([116.412318, 39.909843]).translate([0, 0])
+
+      const canvas = document.querySelector('#c2d')
+      // 渲染器
+      const renderer = new THREE.WebGLRenderer({ canvas })
+
+      const fov = 40 // 视野范围
+      const aspect = 2 // 相机默认值 画布的宽高比
+      const near = 0.1 // 近平面
+      const far = 10000 // 远平面
+      // 透视投影相机
+      const camera = new THREE.PerspectiveCamera(fov, aspect, near, far)
+      camera.position.set(0, 0, 300)
+      camera.lookAt(0, 0, 0)
+      // 控制相机
+      const controls = new OrbitControls(camera, canvas)
+      controls.update()
+
+      // 场景
+      const scene = new THREE.Scene()
+      // 坐标轴 辅助
+      var axes = new THREE.AxisHelper(700)
+      scene.add(axes)
+
+      {
+        const color = 0xffffff
+        const intensity = 1
+        // 环境光
+        const light = new THREE.AmbientLight(color, intensity)
+        // 加入场景
+        scene.add(light)
+      }
+
+      const loader = new THREE.FileLoader()
+      loader.load('./file/100000_full.json', (data) => {
+        const jsondata = JSON.parse(data)
+        operationData(jsondata)
+      })
+
+      /**
+       * 立体几何图形
+       * @param polygon 多边形 点数组
+       * @param color 材质颜色
+       * */
+      function drawExtrudeMesh(polygon, color) {
+        const shape = new THREE.Shape()
+        // polygon.forEach((row, i) => {
+        //   const [x, y] = [row[0], row[1]]
+        //   if (i === 0) {
+        //     shape.moveTo(x, y)
+        //   }
+        //   shape.lineTo(x, y)
+        // })
+        polygon.forEach((row, i) => {
+          const [x, y] = projection(row)
+          if (i === 0) {
+            shape.moveTo(x, -y)
+          }
+          shape.lineTo(x, -y)
+        })
+
+        // 拉伸
+        const geometry = new THREE.ExtrudeGeometry(shape, {
+          depth: 10,
+          bevelEnabled: false
+        })
+        const material = new THREE.MeshBasicMaterial({
+          color: color,
+          transparent: true,
+          opacity: 0.5
+        })
+        return new THREE.Mesh(geometry, material)
+      }
+
+      /**
+       * 边框 图形绘制
+       * @param polygon 多边形 点数组
+       * @param color 材质颜色
+       * */
+      function lineDraw(polygon, color) {
+        const lineGeometry = new THREE.BufferGeometry()
+        const pointsArray = new Array()
+        polygon.forEach((row) => {
+          const [x, y] = projection(row)
+          // 创建三维点
+          pointsArray.push(new THREE.Vector3(x, -y, 9))
+        })
+        // 放入多个点
+        lineGeometry.setFromPoints(pointsArray)
+
+        const lineMaterial = new THREE.LineBasicMaterial({
+          color: color
+        })
+        return new THREE.Line(lineGeometry, lineMaterial)
+      }
+
+      const map = new THREE.Object3D()
+      // 解析数据
+      function operationData(jsondata) {
+        // 全国信息
+        const features = jsondata.features
+
+        features.forEach((feature) => {
+          // 单个省份 对象
+          const province = new THREE.Object3D()
+          // 地址
+          province.properties = feature.properties.name
+          const coordinates = feature.geometry.coordinates
+          const color = 'yellow'
+          // const color = ['重庆市', '上海市'].includes(feature.properties.name) ? 'blue' : 'yellow'
+
+          if (feature.geometry.type === 'MultiPolygon') {
+            // 多个，多边形
+            coordinates.forEach((coordinate) => {
+              // coordinate 多边形数据
+              coordinate.forEach((rows) => {
+                const mesh = drawExtrudeMesh(rows, color)
+                const line = lineDraw(rows, color)
+                province.add(line)
+                province.add(mesh)
+              })
+            })
+          }
+
+          if (feature.geometry.type === 'Polygon') {
+            // 多边形
+            coordinates.forEach((coordinate) => {
+              const mesh = drawExtrudeMesh(coordinate, color)
+              const line = lineDraw(coordinate, color)
+              province.add(line)
+              province.add(mesh)
+            })
+          }
+          map.add(province)
+        })
+        scene.add(map)
+      }
+
+      /**
+       * 两点链接飞线
+       * */
+      function lineConnect(posStart, posEnd) {
+        // 地图时立体的 z轴位置 在地图表面
+        const [x0, y0, z0] = [...posStart, 10.1]
+        const [x1, y1, z1] = [...posEnd, 10.1]
+
+        // 使用QuadraticBezierCurve3() 创建 三维二次贝塞尔曲线
+        // .getPoints() 曲线点位置
+        const curve = new THREE.QuadraticBezierCurve3(
+          new THREE.Vector3(x0, -y0, z0),
+          new THREE.Vector3((x0 + x1) / 2, -(y0 + y1) / 2, 20),
+          new THREE.Vector3(x1, -y1, z1)
+        )
+
+        // plane(x0, y0, z0, curve)
+
+        const aGeo = new THREE.SphereGeometry(0.3, 0.3, 0.3)
+        const aMater = new THREE.MeshPhongMaterial({ color: 0xff0000, side: THREE.DoubleSide })
+        const aMesh = new THREE.Mesh(aGeo, aMater)
+        let tankPosition = new THREE.Vector3()
+        curve.getPointAt(0.2 % 1, tankPosition)
+        aMesh.position.set(tankPosition.x, tankPosition.y, tankPosition.z)
+        scene.add(aMesh)
+
+        // 圆
+        const geometry1 = new THREE.CircleGeometry(0.5, 200)
+        const material1 = new THREE.MeshBasicMaterial({ color: 0xff0000, side: THREE.DoubleSide })
+        const circle = new THREE.Mesh(geometry1, material1)
+        circle.position.set(x0, -y0, z0 + 0.1)
+        scene.add(circle)
+
+        const loader = new THREE.TextureLoader()
+
+        {
+          var plane2 = new THREE.PlaneGeometry(2, 2)
+          var material2 = new THREE.MeshBasicMaterial({
+            map: loader.load('./file/1111.webp'),
+            transparent: true, // 使用背景透明的png贴图，注意开启透明计算
+            side: THREE.DoubleSide, // 双面可见
+            depthWrite: false // 禁止写入深度缓冲区数据
+          })
+          var mesh2 = new THREE.Mesh(plane2, material2)
+          mesh2.position.set(x0, -y0, z0)
+
+          scene.add(mesh2)
+        }
+
+        const lineGeometry = new THREE.BufferGeometry()
+        lineGeometry.name = '连线'
+
+        lineGeometry.setFromPoints(curve.getPoints(50))
+
+        const material = new THREE.LineBasicMaterial({ color: 'white' })
+        const line = new THREE.Line(lineGeometry, material)
+        // line.rotation.y = Math.PI
+
+        return line
+      }
+
+      const line = lineConnect(projection([106.557691, 29.559296]), projection([121.495721, 31.236797]))
+      scene.add(line)
+
+      // 渲染
+      function render() {
+        renderer.render(scene, camera)
+        requestAnimationFrame(render)
+      }
+      requestAnimationFrame(render)
+    </script>
+  </body>
+</html>
