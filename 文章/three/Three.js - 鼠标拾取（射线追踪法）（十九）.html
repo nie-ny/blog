@@ -67,20 +67,16 @@
           y: ((event.clientY - rect.top) * canvas.height) / rect.height
         }
       }
-
       /**
        * 获取鼠标在three.js 中归一化坐标
        * */
       function setPickPosition(event) {
         let pickPosition = { x: 0, y: 0 }
-
         // 计算后 以画布 开始为 （0，0）点
         const pos = getCanvasRelativePosition(event)
-
         // 数据归一化
         pickPosition.x = (pos.x / canvas.width) * 2 - 1
         pickPosition.y = (pos.y / canvas.height) * -2 + 1
-
         return pickPosition
       }
 
