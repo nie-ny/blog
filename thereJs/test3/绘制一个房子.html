@@ -54,12 +54,11 @@
       const color = 0xffffff
       const intensity = 1
       const light = new THREE.AmbientLight(color, intensity)
-      // // 光位置
-      // light.position.set(0, 10, 10)
-      // // 光方向
-      // light.target.position.set(5, 0, 5)
+      // 光位置
+      light.position.set(0, 10, 10)
+      light.target.position.set(5, 0, 5)
       scene.add(light)
-      // scene.add(light.target)
+      scene.add(light.target)
 
       {
         const loader = new THREE.TextureLoader()
@@ -159,7 +158,7 @@
         }
 
         {
-          // 外墙
+          // 前墙
           const shape = new THREE.Shape()
           shape.moveTo(-150, 0)
           shape.lineTo(150, 0)
@@ -193,19 +192,17 @@
 
           scene.add(backWall)
         }
-        // 房顶
+
         {
+          // 房顶
           function roof() {
             const roofGeometry = new THREE.BoxGeometry(200, 320, 10)
-
             const loader = new THREE.TextureLoader()
             const roofTexture = loader.load('./3.jpg')
             roofTexture.wrapS = roofTexture.wrapT = THREE.RepeatWrapping
             roofTexture.repeat.set(2, 2)
             const textureMaterial = new THREE.MeshBasicMaterial({ map: roofTexture })
-
             const colorMaterial = new THREE.MeshBasicMaterial({ color: 'grey' })
-
             const materials = [
               colorMaterial,
               colorMaterial,
@@ -214,11 +211,7 @@
               colorMaterial,
               textureMaterial
             ]
-
             const roof = new THREE.Mesh(roofGeometry, materials)
-
-            // roof.position.z = 155
-
             return roof
           }
 
@@ -239,16 +232,15 @@
           scene.add(roof2)
         }
       }
+      const extrudeSettings = {
+        // Extrude配置，具体可以修改参数调试各种效果
+        amount: 8,
+        bevelSegments: 2,
+        steps: 2,
+        bevelSize: 1,
+        bevelThickness: 1
+      }
       {
-        const extrudeSettings = {
-          // Extrude配置，具体可以修改参数调试各种效果
-          amount: 8,
-          bevelSegments: 2,
-          steps: 2,
-          bevelSize: 1,
-          bevelThickness: 1
-        }
-
         {
           // 门框
           const shape = new THREE.Shape()
@@ -281,7 +273,7 @@
           // 是否开门
           let doorStatus = false
 
-          const group = new THREE.Group() //创建Group
+          const group = new THREE.Group() // 创建Group
           group.add(frame) // 往Group加入门框
           // group.add(door) // 往Group加入门板
 
