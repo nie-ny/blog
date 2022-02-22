@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>学习</title>
+  </head>
+  <body>
+    <canvas id="c2d" class="c2d" width="1000" height="500"></canvas>
+    <script type="module">
+      import * as THREE from './file/three.js-dev/build/three.module.js'
+      import { OrbitControls } from './file/three.js-dev/examples/jsm/controls/OrbitControls.js'
+
+      const canvas = document.querySelector('#c2d')
+      // 渲染器
+      const renderer = new THREE.WebGLRenderer({ canvas })
+
+      const fov = 40 // 视野范围
+      const aspect = 2 // 相机默认值 画布的宽高比
+      const near = 0.1 // 近平面
+      const far = 10000 // 远平面
+      // 透视投影相机
+      const camera = new THREE.PerspectiveCamera(fov, aspect, near, far)
+      camera.position.set(0, 10, 0)
+      camera.lookAt(0, 0, 0)
+      // 控制相机
+      const controls = new OrbitControls(camera, canvas)
+      controls.update()
+
+      // 场景
+      const scene = new THREE.Scene()
+
+      // 顶点着色器代码
+      const vertexShader = `
+      void main() {
+        // 设置点的大小为50像素
+        gl_PointSize = 100.0;
+        // 设置点的位置
+        gl_Position = vec4(position, 1.0);
+      }
+      `
+      // 片元着色器代码
+      const fragmentShader = `
+      void main() {
+        // 光栅化片元的颜色
+        gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+      }
+      `
+
+      // 初始化几何体对象
+      const geometry = new THREE.BufferGeometry()
+      // 设置顶点数据
+      const pos = new Float32Array([0, 0, 0])
+      // 设置 几何体顶点信息
+      geometry.setAttribute('position', new THREE.BufferAttribute(pos, 3))
+
+      const mate = new THREE.ShaderMaterial({
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader
+      })
+      const mesh = new THREE.Points(geometry, mate)
+      scene.add(mesh)
+
+      // 渲染
+      function render() {
+        renderer.render(scene, camera)
+        requestAnimationFrame(render)
+      }
+      requestAnimationFrame(render)
+    </script>
+  </body>
+</html>
