@@ -34,9 +34,9 @@
       let positions = null
       let opacitys = null
       const geometry = new THREE.BufferGeometry()
-
       // 以北京为中心 修改坐标
       const projection = d3.geoMercator().center([116.412318, 39.909843]).translate([0, 0])
+
       const loader = new THREE.FileLoader()
       loader.load('./file/100000.json', (data) => {
         const jsondata = JSON.parse(data)
@@ -57,16 +57,16 @@
         })
 
         positions = new Float32Array(lines.flat(1))
-
-        opacitys = new Float32Array(positions.length).map(() => 0)
-
+        // 设置顶点
         geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+        // 设置 粒子透明度为 0
+        opacitys = new Float32Array(positions.length).map(() => 0)
         geometry.setAttribute('aOpacity', new THREE.BufferAttribute(opacitys, 1))
 
         scene.add(province)
       })
 
-      let index = 0
+      let indexBol = true
       /**
        * 边框 图形绘制
        * @param polygon 多边形 点数组
@@ -80,11 +80,11 @@
           // 创建三维点
           pointsArray.push(new THREE.Vector3(x, -y, 0))
 
-          if (index === 0) {
+          if (indexBol) {
             lines.push([x, -y, 0])
           }
         })
-        index++
+        indexBol = false
         // 放入多个点
         lineGeometry.setFromPoints(pointsArray)
 
@@ -94,49 +94,49 @@
         return new THREE.Line(lineGeometry, lineMaterial)
       }
 
+      // 控制 颜色和粒子大小
       const params = {
         pointSize: 2.0,
         pointColor: '#4ec0e9'
       }
 
       const vertexShader = `
-            attribute float aOpacity;
-            uniform float uSize;
-            varying float vOpacity;
+        attribute float aOpacity;
+        uniform float uSize;
+        varying float vOpacity;
 
-            void main(){
-                gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0);
-                gl_PointSize = uSize;
+        void main(){
+            gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0);
+            gl_PointSize = uSize;
 
-                vOpacity=aOpacity;
-            }
-            `
+            vOpacity=aOpacity;
+        }
+        `
 
       const fragmentShader = `
-            varying float vOpacity;
-            uniform vec3 uColor;
+        varying float vOpacity;
+        uniform vec3 uColor;
 
-            float invert(float n){
-                return 1.-n;
-            }
+        float invert(float n){
+            return 1.-n;
+        }
 
-            void main(){
-              if(vOpacity <=0.2){
-                  discard;
-              }
-              vec2 uv=vec2(gl_PointCoord.x,invert(gl_PointCoord.y));
-              vec2 cUv=2.*uv-1.;
-              vec4 color=vec4(1./length(cUv));
-              color*=vOpacity;
-              color.rgb*=uColor;
-              gl_FragColor=color;
-            }
-            `
-
+        void main(){
+          if(vOpacity <=0.2){
+              discard;
+          }
+          vec2 uv=vec2(gl_PointCoord.x,invert(gl_PointCoord.y));
+          vec2 cUv=2.*uv-1.;
+          vec4 color=vec4(1./length(cUv));
+          color*=vOpacity;
+          color.rgb*=uColor;
+          gl_FragColor=color;
+        }
+        `
       const material = new THREE.ShaderMaterial({
         vertexShader: vertexShader,
         fragmentShader: fragmentShader,
-        transparent: true,
+        transparent: true, // 设置透明
         uniforms: {
           uSize: {
             value: params.pointSize
@@ -150,16 +150,17 @@
       scene.add(points)
 
       let currentPos = 0
+      let pointSpeed = 20 // 速度
       // 渲染
       function render() {
         if (points && geometry.attributes.position) {
-          currentPos += 20
-          for (let i = 0; i < 20; i++) {
+          currentPos += pointSpeed
+          for (let i = 0; i < pointSpeed; i++) {
             opacitys[(currentPos - i) % lines.length] = 0
           }
 
           for (let i = 0; i < 200; i++) {
-            opacitys[(currentPos + i) % lines.length] = i / 15 > 2 ? 2 : i / 15
+            opacitys[(currentPos + i) % lines.length] = i / 50 > 2 ? 2 : i / 50
           }
           geometry.attributes.aOpacity.needsUpdate = true
         }
