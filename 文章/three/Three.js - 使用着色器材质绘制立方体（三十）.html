@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>学习</title>
+  </head>
+  <body>
+    <canvas id="c2d" class="c2d" width="1000" height="500"></canvas>
+    <script type="module">
+      import * as THREE from './file/three.js-dev/build/three.module.js'
+      import { OrbitControls } from './file/three.js-dev/examples/jsm/controls/OrbitControls.js'
+
+      const canvas = document.querySelector('#c2d')
+      // 渲染器
+      const renderer = new THREE.WebGLRenderer({ canvas })
+
+      const fov = 40 // 视野范围
+      const aspect = 2 // 相机默认值 画布的宽高比
+      const near = 0.1 // 近平面
+      const far = 10000 // 远平面
+
+      // 透视投影相机
+      const camera = new THREE.PerspectiveCamera(fov, aspect, near, far)
+      camera.position.set(0, 0, 3)
+      camera.lookAt(0, 0, 0)
+      // 控制相机
+      const controls = new OrbitControls(camera, canvas)
+      controls.update()
+
+      // 场景
+      const scene = new THREE.Scene()
+
+      // 顶点着色器
+      const vertexShader = `
+      varying vec2 vUv;
+      varying vec3 vPosition;
+
+      void main(){
+          gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0);
+          
+          vUv=uv;
+          vPosition=position;
+      }
+      `
+      // 片元着色器
+      const fragmentShader = `
+      uniform float uTime;
+      varying vec2 vUv;
+
+      vec3 background(vec2 uv){
+          float dist=length(uv-vec2(.5));
+          vec3 bg=mix(vec3(.3),vec3(.0),dist);
+          return bg;
+      }
+
+      mat4 rotationMatrix(vec3 axis,float angle){
+          axis=normalize(axis);
+          float s=sin(angle);
+          float c=cos(angle);
+          float oc=1.-c;
+          
+          return mat4(oc*axis.x*axis.x+c,oc*axis.x*axis.y-axis.z*s,oc*axis.z*axis.x+axis.y*s,0.,
+              oc*axis.x*axis.y+axis.z*s,oc*axis.y*axis.y+c,oc*axis.y*axis.z-axis.x*s,0.,
+              oc*axis.z*axis.x-axis.y*s,oc*axis.y*axis.z+axis.x*s,oc*axis.z*axis.z+c,0.,
+          0.,0.,0.,1.);
+      }
+      vec3 rotate(vec3 v,vec3 axis,float angle){
+          mat4 m=rotationMatrix(axis,angle);
+          return(m*vec4(v,1.)).xyz;
+      }
+
+      float sdBox(vec3 p,vec3 b){
+          vec3 q=abs(p)-b;
+          return length(max(q,0.))+min(max(q.x,max(q.y,q.z)),0.);
+      }
+      float rayMarch(vec3 ro,vec3 rd,float end,int maxIter){
+          float d0 = 0.;
+          for(int i=0;i<maxIter;i++){
+              vec3 pos=ro+d0*rd;
+              vec3 p1=rotate(pos,vec3(1.),uTime);
+              float ds=sdBox(p1,vec3(.3));
+              d0+=ds;
+              if(ds >= end || ds < 0.01){
+                  break;
+              }
+          }
+          return d0;
+      }
+
+      vec2 centerUv(vec2 uv){
+          uv=2.*uv-1.;
+          float aspect=1.;
+          uv.x*=aspect;
+          return uv;
+      }
+
+
+      void main(){
+          vec3 bg=background(vUv);
+          vec3 color=bg;
+
+          // 光线位置 位置
+          vec3 eye = vec3(0.,0.,2.5);
+          // 方向
+          vec2 cUv=centerUv(vUv);
+          vec3 ray=normalize(vec3(cUv,-eye.z));
+          // vec3 ray = normalize(vec3(vUv,-eye.z));
+          // 最大距离
+          float end = 5.;
+          // 最大步数
+          int maxIter=256;
+          float depth = rayMarch(eye,ray,end,maxIter);
+          if(depth < end){
+            vec3 pos = eye + depth * ray;
+            color = pos;
+          }
+
+          gl_FragColor=vec4(color,1.);
+      }
+      `
+
+      const geometry = new THREE.BoxGeometry(1, 1, 1)
+      console.log(geometry)
+      const shaderMaterial = new THREE.ShaderMaterial({
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader,
+        side: THREE.DoubleSide,
+        uniforms: {
+          uTime: {
+            value: 0
+          }
+        }
+      })
+
+      const mesh = new THREE.Mesh(geometry, shaderMaterial)
+      scene.add(mesh)
+
+      // 渲染
+      const clock = new THREE.Clock()
+      function render() {
+        shaderMaterial.uniforms.uTime.value = clock.getElapsedTime()
+
+        renderer.render(scene, camera)
+        requestAnimationFrame(render)
+      }
+      requestAnimationFrame(render)
+    </script>
+  </body>
+</html>
