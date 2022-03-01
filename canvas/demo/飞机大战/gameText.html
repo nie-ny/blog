@@ -17,6 +17,8 @@
       <canvas width="650" height="500" id="canvas"></canvas>
     </div>
     <script type="text/javascript">
+      //  =================== 飞机大战DEMO
+
       // 兼容性处理
       window.requestAnimFrame = (function () {
         return (
@@ -111,7 +113,17 @@
           var backImg = backImgs[key]
           var imPos = backImg.imagePos
           // 绘制图形
-          cxt.drawImage(sprite_image, imPos.x, imPos.y, imPos.imgX, imPos.imgY, backImg.x, backImg.y, imPos.canX, imPos.canY)
+          cxt.drawImage(
+            sprite_image,
+            imPos.x,
+            imPos.y,
+            imPos.imgX,
+            imPos.imgY,
+            backImg.x,
+            backImg.y,
+            imPos.canX,
+            imPos.canY
+          )
         }
       }
 
