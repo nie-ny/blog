@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>学习</title>
+  </head>
+  <style type="text/css">
+    * {
+    }
+  </style>
+  <!-- 按需引入模块 UMD包 -->
+  <!-- 选择器模块 -->
+  <script src="https://cdn.jsdelivr.net/npm/d3-selection@3"></script>
+
+  <!-- 比例尺模块 和 依赖 -->
+  <script src="https://cdn.jsdelivr.net/npm/d3-array@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-color@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-format@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-interpolate@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-time@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-time-format@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-scale@4"></script>
+
+  <!-- 坐标轴 -->
+  <script src="https://cdn.jsdelivr.net/npm/d3-axis@3"></script>
+
+  <!-- 形状 -->
+  <script src="https://cdn.jsdelivr.net/npm/d3-path@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-shape@3"></script>
+
+  <!-- 动画 -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/d3-color@3"></script> -->
+  <script src="https://cdn.jsdelivr.net/npm/d3-dispatch@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-ease@3"></script>
+  <!-- <script src="https://cdn.jsdelivr.net/npm/d3-interpolate@3"></script> -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/d3-selection@3"></script> -->
+  <script src="https://cdn.jsdelivr.net/npm/d3-timer@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-transition@3"></script>
+  <body>
+    <div class="d3Chart"></div>
+  </body>
+  <script type="text/javascript">
+    /*
+     * 折线图
+     **/
+    var bColor = ['#4385F4', '#34A853', '#FBBC05', '#E94335', '#01ACC2', '#AAACC2']
+    var dataArr = [
+      {
+        label: '1月',
+        value: 10.5
+      },
+      {
+        label: '2月',
+        value: 70.5
+      },
+      {
+        label: '3月',
+        value: 60.5
+      },
+      {
+        label: '4月',
+        value: 10.5
+      },
+      {
+        label: '5月',
+        value: 20.5
+      },
+      {
+        label: '6月',
+        value: 30.5
+      }
+    ]
+
+    var width = 700
+    var height = 700
+    var margin = 60
+
+    // interpolate() 返回两个数之间的任意插值
+    // attrTween() 设置 过度动画
+    /**
+     * 弧形动画
+     * */
+    function arcTween(outerRadius, delay) {
+      // 设置缓动函数,为鼠标事件使用
+      return function () {
+        d3.select(this)
+          .transition()
+          .delay(delay)
+          .attrTween('d', function (d) {
+            let fn = d3.interpolate(d.outerRadius, outerRadius)
+            return function (t) {
+              d.outerRadius = fn(t)
+              return arc(d)
+            }
+          })
+      }
+    }
+
+    var svg = d3
+      .select('.d3Chart')
+      .append('svg')
+      .attr('width', width)
+      .attr('height', height)
+      .style('background-color', '#1a3055')
+
+    // 图
+    var chart = svg.append('g').attr('transform', `translate(${margin}, ${margin})`)
+    // 半径
+    var radius = (Math.min(width, height) * 0.5) / 2
+
+    // .arc() 是shape中的 弧形生成器
+    // innerRadius() 设置内半径
+    // outerRadius() 设置外半径
+    // cornerRadius() 设置拐角圆滑
+    // .outerRadius(radius)
+    let arc = d3.arc().innerRadius(50).cornerRadius(5)
+
+    //  饼图（pie）生成器 是shape中的  计算图所需要的角度信息
+    // .sort() 数值比较函数 排序用
+    // .sortValues() 数值比较函数 排序用
+    // .startAngle()  起始角度设置
+    // .endAngle()  终止角度设置
+    // .padAngle()  饼图扇形之间的间隔设置
+    let drawData = d3
+      .pie()
+      .value(function (d) {
+        return d.value
+      })
+      .sort(null)
+      .sortValues(null)
+      .startAngle(0)
+      .endAngle(Math.PI * 2)
+      .padAngle(0.02)(dataArr)
+
+    // 序数比例尺
+    // range(start，stop) 返回 start 到 stop 的间隔数组
+    let colorScale = d3.scaleOrdinal().domain(d3.range(0, dataArr.length)).range(bColor)
+
+    // .enter() 添加 数据 缺少的DOM 后面跟.append()
+    // .attrTween() 手动设置动画
+    chart
+      .append('g')
+      .attr('transform', 'translate( ' + (radius * 2 - margin) + ', ' + (radius * 2 - margin) + ' )')
+      .attr('stroke', 'steelblue')
+      .attr('stroke-width', 1)
+      .selectAll('path')
+      .data(drawData)
+      .enter()
+      .append('path')
+      .attr('fill', function (d) {
+        return colorScale(d.index)
+      })
+      .attr('d', function (d, i) {
+        // 单独 设置 外半径 长度 用于动画
+        d.outerRadius = radius
+        // 根据 pie 数据 计算路径
+        return arc(d)
+      })
+      .on('mouseover', arcTween(radius + 20, 0))
+      .on('mouseout', arcTween(radius, 16))
+      .transition()
+      .duration(1000)
+      .attrTween('d', function (d) {
+        // 初始加载时的过渡效果
+        let fn = d3.interpolate(
+          {
+            endAngle: d.startAngle
+          },
+          d
+        )
+        return function (t) {
+          return arc(fn(t))
+        }
+      })
+
+    // 求和
+    let sum = d3.sum(dataArr, (d) => d.value)
+
+    chart
+      .append('g')
+      .attr('transform', 'translate( ' + (radius * 2 - margin) + ', ' + (radius * 2 - margin) + ' )')
+      .selectAll('text')
+      .data(drawData)
+      .enter()
+      .append('text')
+      .attr('transform', function (d) {
+        // arc.centroid(d) 将文字平移到弧的中心
+        return 'translate(' + arc.centroid(d) + ') '
+      })
+      // 文字开始点在文字中间
+      .attr('text-anchor', 'middle')
+      // 文字垂直居中
+      .attr('dominant-baseline', 'central')
+      .attr('font-size', '10px')
+      // 格式化文字显示格式
+      .text(function (d) {
+        return ((d.data.value / sum) * 100).toFixed(2) + '%'
+      })
+
+    // 饼图与文字相连的曲线起点
+    let pointStart = d3.arc().innerRadius(radius).outerRadius(radius)
+    // 终点
+    let pointEnd = d3
+      .arc()
+      .innerRadius(radius + 50)
+      .outerRadius(radius + 50)
+    let pointEnd2 = d3
+      .arc()
+      .innerRadius(radius + 60)
+      .outerRadius(radius + 60)
+
+    chart
+      .append('g')
+      .attr('transform', 'translate( ' + (radius * 2 - margin) + ', ' + (radius * 2 - margin) + ' )')
+      .selectAll()
+      .data(drawData)
+      .enter()
+      .append('text')
+      .text(function (d) {
+        return d.data.label
+      })
+      .attr('x', function (d) {
+        return pointEnd2.centroid(d)[0]
+      })
+      .attr('y', function (d) {
+        return pointEnd2.centroid(d)[1]
+      })
+      .style('font-size', 13)
+      .attr('text-anchor', function (d) {
+        return 'middle'
+      })
+      .attr('dominant-baseline', function (d) {
+        return 'middle'
+      })
+
+    var linePath = d3
+      .line()
+      .x(function (d) {
+        return d[0]
+      })
+      .y(function (d, i) {
+        return d[1]
+      })
+    chart
+      .append('g')
+      .attr('transform', 'translate( ' + (radius * 2 - margin) + ', ' + (radius * 2 - margin) + ' )')
+      .selectAll()
+      .data(drawData)
+      .enter()
+      .append('path')
+      .attr('d', (d) => linePath([pointStart.centroid(d), pointEnd.centroid(d)]))
+      .style('stroke', '#999')
+      .style('stroke-width', 1)
+      .attr('fill', 'none')
+
+    d3.selectAll('.d3Chart text').style('fill', '#fff')
+  </script>
+</html>
