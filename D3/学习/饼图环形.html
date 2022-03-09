@@ -74,6 +74,27 @@
     var height = 700
     var margin = 60
 
+    // interpolate() 返回两个数之间的任意插值
+    // attrTween() 设置 过度动画
+    /**
+     * 弧形动画
+     * */
+    function arcTween(outerRadius, delay) {
+      // 设置缓动函数,为鼠标事件使用
+      return function () {
+        d3.select(this)
+          .transition()
+          .delay(delay)
+          .attrTween('d', function (d) {
+            let fn = d3.interpolate(d.outerRadius, outerRadius)
+            return function (t) {
+              d.outerRadius = fn(t)
+              return arc(d)
+            }
+          })
+      }
+    }
+
     var svg = d3
       .select('.d3Chart')
       .append('svg')
@@ -85,6 +106,13 @@
     var chart = svg.append('g').attr('transform', `translate(${margin}, ${margin})`)
     // 半径
     var radius = (Math.min(width, height) * 0.5) / 2
+
+    // .arc() 是shape中的 弧形生成器
+    // innerRadius() 设置内半径
+    // outerRadius() 设置外半径
+    // cornerRadius() 设置拐角圆滑
+    // .outerRadius(radius)
+    let arc = d3.arc().innerRadius(50).cornerRadius(5)
 
     //  饼图（pie）生成器 是shape中的  计算图所需要的角度信息
     // .sort() 数值比较函数 排序用
@@ -101,36 +129,34 @@
       .sortValues(null)
       .startAngle(0)
       .endAngle(Math.PI * 2)
-    // .padAngle(0.02)(dataArr)
+      .padAngle(0.02)(dataArr)
 
     // 序数比例尺
     // range(start，stop) 返回 start 到 stop 的间隔数组
     let colorScale = d3.scaleOrdinal().domain(d3.range(0, dataArr.length)).range(bColor)
 
-    // .arc() 是shape中的 弧形生成器
-    // innerRadius() 设置内半径
-    // outerRadius() 设置外半径
-    // cornerRadius() 设置拐角圆滑
-    let arc = d3.arc().innerRadius(0).outerRadius(100)
-
-    const arcs = chart
+    // .enter() 添加 数据 缺少的DOM 后面跟.append()
+    // .attrTween() 手动设置动画
+    chart
       .append('g')
       .attr('transform', 'translate( ' + (radius * 2 - margin) + ', ' + (radius * 2 - margin) + ' )')
       .attr('stroke', 'steelblue')
       .attr('stroke-width', 1)
-
-    arcs
-      .selectAll()
-      .data(drawData(dataArr))
+      .selectAll('path')
+      .data(drawData)
       .enter()
       .append('path')
       .attr('fill', function (d) {
         return colorScale(d.index)
       })
       .attr('d', function (d, i) {
+        // 单独 设置 外半径 长度 用于动画
+        d.outerRadius = radius
         // 根据 pie 数据 计算路径
         return arc(d)
       })
+      .on('mouseover', arcTween(radius + 20, 0))
+      .on('mouseout', arcTween(radius, 16))
       .transition()
       .duration(1000)
       .attrTween('d', function (d) {
@@ -146,85 +172,86 @@
         }
       })
 
-    //
-    const arc2 = d3
-      .arc()
-      .outerRadius(100 * 3.5)
-      .innerRadius(0)
+    // 求和
+    let sum = d3.sum(dataArr, (d) => d.value)
 
-    /*
-     * 计算文本水平偏移
-     **/
-    const textOffsetM = 10
-    const scaleTextDx = d3
-      .scaleLinear()
-      .domain([0, Math.PI / 2])
-      .range([textOffsetM, textOffsetM * 3])
-
-    function computeTextDx(d) {
-      // 计算文本水平偏移
-      const middleAngle = (d.endAngle + d.startAngle) / 2
-      let dx = ''
-      if (middleAngle < Math.PI) {
-        dx = scaleTextDx(Math.abs(middleAngle - Math.PI / 2))
-      } else {
-        dx = -scaleTextDx(Math.abs(middleAngle - (Math.PI * 3) / 2))
-      }
-      return dx
-    }
-
-    arcs
-      .selectAll()
-      .data(drawData(dataArr))
+    chart
+      .append('g')
+      .attr('transform', 'translate( ' + (radius * 2 - margin) + ', ' + (radius * 2 - margin) + ' )')
+      .selectAll('text')
+      .data(drawData)
       .enter()
       .append('text')
-      .attr('text-anchor', (d) => {
-        return (d.endAngle + d.startAngle) / 2 > Math.PI ? 'end' : 'start'
+      .attr('transform', function (d) {
+        // arc.centroid(d) 将文字平移到弧的中心
+        return 'translate(' + arc.centroid(d) + ') '
       })
-      .attr('dy', '0.35em')
-      .attr('dx', computeTextDx)
-      // .transition()
-      // .duration(10)
-      // .delay(10)
-      .attr('transform', (d) => {
-        return 'translate(' + arc2.centroid(d) + ')'
+      // 文字开始点在文字中间
+      .attr('text-anchor', 'middle')
+      // 文字垂直居中
+      .attr('dominant-baseline', 'central')
+      .attr('font-size', '10px')
+      // 格式化文字显示格式
+      .text(function (d) {
+        return ((d.data.value / sum) * 100).toFixed(2) + '%'
       })
-      .text((d) => d.data.label + ': ' + d.data.value)
 
-    const arc3 = d3
+    // 饼图与文字相连的曲线起点
+    let pointStart = d3.arc().innerRadius(radius).outerRadius(radius)
+    // 终点
+    let pointEnd = d3
       .arc()
-      .outerRadius(100 * 2)
-      .innerRadius(0)
+      .innerRadius(radius + 50)
+      .outerRadius(radius + 50)
+    let pointEnd2 = d3
+      .arc()
+      .innerRadius(radius + 60)
+      .outerRadius(radius + 60)
 
-    function getLinePoints() {
-      // 生成连线的点
-      return drawData(dataArr).map((d) => {
-        const line = []
-        const tempPoint = arc2.centroid(d)
-        const tempDx = computeTextDx(d)
-        const dx = tempDx > 0 ? tempDx - textOffsetM : tempDx + textOffsetM
-        line.push(arc3.centroid(d))
-        line.push(tempPoint)
-        line.push([tempPoint[0] + dx, tempPoint[1]])
-        return line
-      })
-    }
-
-    const generateLine = d3
-      .line()
-      .x((d) => d[0])
-      .y((d) => d[1])
-
-    const points = getLinePoints()
-
-    arcs
+    chart
+      .append('g')
+      .attr('transform', 'translate( ' + (radius * 2 - margin) + ', ' + (radius * 2 - margin) + ' )')
       .selectAll()
-      .data(points)
+      .data(drawData)
       .enter()
-      .insert('path', ':first-child')
-      .classed('line', true)
+      .append('text')
+      .text(function (d) {
+        return d.data.label
+      })
+      .attr('x', function (d) {
+        return pointEnd2.centroid(d)[0]
+      })
+      .attr('y', function (d) {
+        return pointEnd2.centroid(d)[1]
+      })
+      .style('font-size', 13)
+      .attr('text-anchor', function (d) {
+        return 'middle'
+      })
+      .attr('dominant-baseline', function (d) {
+        return 'middle'
+      })
+
+    var linePath = d3
+      .line()
+      .x(function (d) {
+        return d[0]
+      })
+      .y(function (d, i) {
+        return d[1]
+      })
+    chart
+      .append('g')
+      .attr('transform', 'translate( ' + (radius * 2 - margin) + ', ' + (radius * 2 - margin) + ' )')
+      .selectAll()
+      .data(drawData)
+      .enter()
+      .append('path')
+      .attr('d', (d) => linePath([pointStart.centroid(d), pointEnd.centroid(d)]))
+      .style('stroke', '#999')
+      .style('stroke-width', 1)
       .attr('fill', 'none')
-      .attr('stroke', 'steelblue')
-      .attr('d', generateLine)
+
+    d3.selectAll('.d3Chart text').style('fill', '#fff')
   </script>
 </html>
