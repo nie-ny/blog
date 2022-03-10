@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>学习</title>
+  </head>
+  <style type="text/css">
+    * {
+    }
+  </style>
+  <!-- 按需引入模块 UMD包 -->
+  <!-- 选择器模块 -->
+  <script src="https://cdn.jsdelivr.net/npm/d3-selection@3"></script>
+
+  <!-- 比例尺模块 和 依赖 -->
+  <script src="https://cdn.jsdelivr.net/npm/d3-array@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-color@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-format@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-interpolate@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-time@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-time-format@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-scale@4"></script>
+
+  <!-- 坐标轴 -->
+  <script src="https://cdn.jsdelivr.net/npm/d3-axis@3"></script>
+  <body>
+    <div class="d3Chart"></div>
+  </body>
+  <script type="text/javascript">
+    var bColor = ['#4385F4', '#34A853', '#FBBC05', '#E94335', '#01ACC2', '#AAACC2']
+    var dataArr = [
+      {
+        label: '1月',
+        value: 10.5
+      },
+      {
+        label: '2月',
+        value: 70.5
+      },
+      {
+        label: '3月',
+        value: 60.5
+      },
+      {
+        label: '4月',
+        value: 10.5
+      },
+      {
+        label: '5月',
+        value: 20.5
+      },
+      {
+        label: '6月',
+        value: 30.5
+      }
+    ]
+
+    var width = 450
+    var height = 450
+    var margin = 20
+
+    var svg = d3
+      .select('.d3Chart')
+      .append('svg')
+      .attr('width', width)
+      .attr('height', height)
+      .style('background-color', '#1a3055')
+
+    // 图
+    var chart = svg.append('g').attr('transform', `translate(${margin * 2}, ${margin})`)
+
+    // 分段比例尺
+    var xScale = d3
+      .scaleBand()
+      .range([0, 400])
+      .domain(dataArr.map((s) => s.label))
+      .padding(0.4)
+
+    // 坐标轴
+    const xAxis = d3.axisBottom(xScale).tickSize(-400)
+    chart.append('g').attr('transform', `translate(0, ${400})`).call(xAxis)
+
+    // 线性比例尺
+    var yScale = d3.scaleLinear().range([400, 0]).domain([0, 100])
+    const yAxis = d3
+      .axisLeft()
+      .scale(yScale)
+      .tickSize(-400)
+      .tickFormat((d) => {
+        return d + '%'
+      })
+    chart.append('g').attr('transform', 'translate(0, 0)').call(yAxis)
+
+    d3.selectAll('.d3Chart text').style('fill', '#fff')
+    d3.selectAll('.d3Chart line').style('stroke', '#fff')
+    d3.selectAll('.d3Chart path').style('stroke', '#fff')
+  </script>
+</html>
