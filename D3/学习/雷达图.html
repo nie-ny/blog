@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>学习</title>
+  </head>
+  <style type="text/css">
+    * {
+    }
+  </style>
+  <!-- 按需引入模块 UMD包 -->
+  <!-- 选择器模块 -->
+  <script src="https://cdn.jsdelivr.net/npm/d3-selection@3"></script>
+
+  <!-- 比例尺模块 和 依赖 -->
+  <script src="https://cdn.jsdelivr.net/npm/d3-array@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-color@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-format@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-interpolate@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-time@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-time-format@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-scale@4"></script>
+
+  <!-- 坐标轴 -->
+  <script src="https://cdn.jsdelivr.net/npm/d3-axis@3"></script>
+
+  <!-- 形状 -->
+  <script src="https://cdn.jsdelivr.net/npm/d3-path@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-shape@3"></script>
+
+  <!-- 动画 -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/d3-color@3"></script> -->
+  <script src="https://cdn.jsdelivr.net/npm/d3-dispatch@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-ease@3"></script>
+  <!-- <script src="https://cdn.jsdelivr.net/npm/d3-interpolate@3"></script> -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/d3-selection@3"></script> -->
+  <script src="https://cdn.jsdelivr.net/npm/d3-timer@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-transition@3"></script>
+  <body>
+    <div class="d3Chart"></div>
+  </body>
+  <script type="text/javascript">
+    var bColor = ['#4385F4', '#34A853', '#FBBC05', '#E94335', '#01ACC2', '#AAACC2']
+    var dataArr = [
+      {
+        label: '1月',
+        value: [15.5, 10]
+      },
+      {
+        label: '2月',
+        value: [10.5, 60]
+      },
+      {
+        label: '3月',
+        value: [40.5, 100]
+      },
+      {
+        label: '4月',
+        value: [50.5, 40]
+      },
+      {
+        label: '5月',
+        value: [20.5, 10]
+      },
+      {
+        label: '6月',
+        value: [90.5, 20]
+      }
+    ]
+
+    var width = 450
+    var height = 450
+    var margin = 20
+
+    var svg = d3
+      .select('.d3Chart')
+      .append('svg')
+      .attr('width', width)
+      .attr('height', height)
+      .style('background-color', '#1a3055')
+
+    // 图
+    var chart = svg.append('g').attr('transform', `translate(${margin * 2}, ${margin})`)
+
+    // 线性比例尺
+    var xScale = d3.scaleLinear().range([0, 110]).domain([0, 100])
+
+    /**
+     * @param vertexNum 顶点数
+     * @param radius 图半径
+     * @param tickNum 层级数
+     * */
+    function getPolygonPoints(vertexNum, radius, tickNum) {
+      const points = []
+      let polygon = []
+      if (vertexNum < 3) return points
+      // 计算 顶点间的 弧度
+      const anglePiece = (Math.PI * 2) / vertexNum
+      // 每个层级高度
+      const radiusReduce = radius / tickNum
+
+      for (let r = radius; r > 0; r -= radiusReduce) {
+        polygon = []
+        // 获取 每个层顶点位置
+        for (let i = 0; i < vertexNum; i++) {
+          polygon.push(Math.sin(i * anglePiece) * r + ',' + Math.cos(i * anglePiece) * r)
+        }
+
+        points.push(polygon.join(' '))
+      }
+
+      return points
+    }
+
+    //
+    const points = getPolygonPoints(dataArr.length, 110, 5)
+
+    const axes = chart
+      .append('g')
+      .attr('class', 'axes')
+      .attr('transform', 'translate(' + (width - margin * 4) / 2 + ',' + (height - margin * 2) / 2 + ')')
+
+    axes
+      .selectAll()
+      .data(points)
+      .enter()
+      .append('polygon')
+      .attr('class', 'axis')
+      .attr('points', (d) => d)
+      .attr('fill', (d, i) => (i % 2 === 0 ? 'white' : '#ddd'))
+      .attr('stroke', 'gray')
+
+    // 得到最外层多边形的顶点
+    function getOuterPoints(radius) {
+      const points = radius.split(' ').map((d) => d.split(','))
+      return points
+    }
+
+    //
+    const outerPoints = getOuterPoints(points[0])
+
+    const line = d3.line()
+    axes
+      .selectAll()
+      .data(outerPoints)
+      .enter()
+      .append('path')
+      .attr('class', 'line')
+      .attr('d', (d) => {
+        return line([
+          [0, 0],
+          [d[0], d[1]]
+        ])
+      })
+      .attr('stroke', 'gray')
+
+    //
+
+    function computeTextAnchor(num, i) {
+      if (num < 3) return
+
+      const angle = (i * 360) / num
+
+      if (angle === 0 || Math.abs(angle - 180) < 0.01) {
+        return 'middle'
+      } else if (angle > 180) {
+        return 'end'
+      } else {
+        return 'start'
+      }
+    }
+
+    axes
+      .selectAll()
+      .data(dataArr)
+      .enter()
+      .append('text')
+      .attr('x', (d, i) => Math.sin((i * Math.PI * 2) / dataArr.length) * (110 + 20))
+      .attr('y', (d, i) => Math.cos((i * Math.PI * 2) / dataArr.length) * (110 + 20))
+      .attr('text-anchor', (d, i) => computeTextAnchor(dataArr.length, i))
+      .attr('dy', 6.5) // 由于text-anchor属性在垂向上对齐文字底部，故需要使其对齐文字中部
+      .text((d) => d.label)
+
+    d3.selectAll('.d3Chart text').style('fill', '#fff')
+
+    // 转换数据格式 方便渲染
+    let newData = []
+    dataArr[0].value.forEach((item) => {
+      newData.push([])
+    })
+
+    newData.forEach((row, j) => {
+      dataArr.forEach((item, i) => {
+        row.push(item.value[j])
+      })
+    })
+
+    const polygons = chart
+      .append('g')
+      .attr('transform', 'translate(' + (width - margin * 4) / 2 + ',' + (height - margin * 2) / 2 + ')')
+
+    polygons
+      .selectAll()
+      .data(newData)
+      .enter()
+      .append('polygon')
+      .attr('fill', 'none')
+      .attr('stroke', (d, i) => bColor[i])
+      .attr('stroke-width', '2')
+      .attr('points', (d, i) => {
+        const miniPolygon = []
+        d.forEach(() => {
+          miniPolygon.push('0,0')
+        })
+        return miniPolygon.join(' ')
+      })
+      .transition()
+      .duration(1000)
+      .attr('points', generatePolygons)
+
+    // 计算多边形的顶点并生成顶点圆圈
+    function generatePolygons(d, index) {
+      const points = []
+      const anglePiece = (Math.PI * 2) / d.length
+
+      d.forEach((item, i) => {
+        const x = Math.sin(i * anglePiece) * xScale(item)
+        const y = Math.cos(i * anglePiece) * xScale(item)
+
+        //添加交点圆圈
+        polygons
+          .append('circle')
+          .attr('fill', 'white')
+          .attr('stroke', bColor[index])
+          .attr('cx', 0)
+          .attr('cy', 0)
+          .attr('r', 3)
+          .transition()
+          .duration(1000)
+          .attr('cx', x)
+          .attr('cy', y)
+
+        points.push(x + ',' + y)
+      })
+
+      return points.join(' ')
+    }
+  </script>
+</html>

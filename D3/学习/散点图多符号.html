@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>学习</title>
+  </head>
+  <style type="text/css">
+    * {
+    }
+  </style>
+  <!-- 按需引入模块 UMD包 -->
+  <!-- 选择器模块 -->
+  <script src="https://cdn.jsdelivr.net/npm/d3-selection@3"></script>
+
+  <!-- 比例尺模块 和 依赖 -->
+  <script src="https://cdn.jsdelivr.net/npm/d3-array@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-color@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-format@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-interpolate@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-time@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-time-format@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-scale@4"></script>
+
+  <!-- 坐标轴 -->
+  <script src="https://cdn.jsdelivr.net/npm/d3-axis@3"></script>
+
+  <!-- 动画 -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/d3-color@3"></script> -->
+  <script src="https://cdn.jsdelivr.net/npm/d3-dispatch@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-ease@3"></script>
+  <!-- <script src="https://cdn.jsdelivr.net/npm/d3-interpolate@3"></script> -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/d3-selection@3"></script> -->
+  <script src="https://cdn.jsdelivr.net/npm/d3-timer@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-transition@3"></script>
+
+  <!-- 形状 -->
+  <script src="https://cdn.jsdelivr.net/npm/d3-path@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-shape@3"></script>
+  <body>
+    <div class="d3Chart"></div>
+  </body>
+  <script type="text/javascript">
+    var bColor = ['#4385F4', '#34A853', '#FBBC05', '#E94335', '#01ACC2', '#AAACC2']
+    var dataArr = [
+      [
+        {
+          x: 70.5,
+          y: 0.5,
+          shape: 0
+        },
+        {
+          x: 30.5,
+          y: 30.5,
+          shape: 0
+        },
+        {
+          x: 50.5,
+          y: 20.5,
+          shape: 0
+        },
+        {
+          x: 60.5,
+          y: 10.5,
+          shape: 0
+        },
+        {
+          x: 20.5,
+          y: 70.5,
+          shape: 0
+        },
+        {
+          x: 70.5,
+          y: 70.5,
+          shape: 0
+        },
+        {
+          x: 60.5,
+          y: 90.5,
+          shape: 0
+        },
+        {
+          x: 70.5,
+          y: 10.5,
+          shape: 0
+        },
+        {
+          x: 10.5,
+          y: 30.5,
+          shape: 0
+        },
+        {
+          x: 30.5,
+          y: 20.5,
+          shape: 0
+        }
+      ],
+      [
+        {
+          x: 71.5,
+          y: 2.5,
+          shape: 1
+        },
+        {
+          x: 30.5,
+          y: 60.5,
+          shape: 1
+        },
+        {
+          x: 50.5,
+          y: 70.5,
+          shape: 1
+        },
+        {
+          x: 60.5,
+          y: 50.5,
+          shape: 1
+        },
+        {
+          x: 10.5,
+          y: 70.5,
+          shape: 1
+        },
+        {
+          x: 60.5,
+          y: 60.5,
+          shape: 1
+        },
+        {
+          x: 90.5,
+          y: 90.5,
+          shape: 1
+        },
+        {
+          x: 70.5,
+          y: 10.5,
+          shape: 1
+        },
+        {
+          x: 20.5,
+          y: 30.5,
+          shape: 1
+        },
+        {
+          x: 80.5,
+          y: 10.5,
+          shape: 1
+        }
+      ]
+    ]
+
+    var width = 450
+    var height = 450
+    var margin = 20
+
+    var svg = d3
+      .select('.d3Chart')
+      .append('svg')
+      .attr('width', width)
+      .attr('height', height)
+      .style('background-color', '#1a3055')
+
+    // 图
+    var chart = svg.append('g').attr('transform', `translate(${margin * 2}, ${margin})`)
+
+    // 线性比例尺
+    var xScale = d3.scaleLinear().range([0, 400]).domain([0, 100])
+    // 坐标轴
+    const xAxis = d3.axisBottom(xScale).tickSize(-400)
+    chart.append('g').attr('transform', `translate(0, ${400})`).call(xAxis)
+
+    // 线性比例尺
+    var yScale = d3.scaleLinear().range([400, 0]).domain([0, 100])
+    // 坐标轴
+    const yAxis = d3
+      .axisLeft()
+      .scale(yScale)
+      .tickSize(-400)
+      .tickFormat((d) => {
+        return d + '%'
+      })
+    chart.append('g').attr('transform', 'translate(0, 0)').call(yAxis)
+
+    d3.selectAll('.d3Chart text').style('fill', '#fff')
+    d3.selectAll('.d3Chart line').style('stroke', '#fff')
+    d3.selectAll('.d3Chart path').style('stroke', '#fff')
+
+    const groups = chart.append('g').selectAll().data(dataArr)
+
+    const points = groups
+      .enter()
+      .append('g')
+      .attr('fill', (d, i) => bColor[i])
+      .selectAll()
+      .data((d) => d)
+
+    // d3.symbol() 使用默认的设置构造一个新的符号生成器。
+    points
+      .enter()
+      .append('path')
+      .attr('transform', (d) => 'translate(' + xScale(d.x) + ',' + yScale(d.y) + ')')
+      .attr(
+        'd',
+        d3
+          .symbol()
+          .type(function (d) {
+            return d3.symbols[d.shape]
+          })
+          .size(1)
+      )
+      .transition()
+      .duration(300)
+      .attr(
+        'd',
+        d3
+          .symbol()
+          .type(function (d) {
+            return d3.symbols[d.shape]
+          })
+          .size(100)
+      )
+  </script>
+</html>
