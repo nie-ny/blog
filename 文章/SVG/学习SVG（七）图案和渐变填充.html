@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <style type="text/css"></style>
+  <body>
+    <svg width="400" height="400">
+      <!-- <defs>
+        <pattern id="pa" x="0" y="0" patternUnits="objectBoundingBox" width="20%" height="20%">
+          <path d="M 0 0 h 20 v 20 h -20 z" style="stroke: black; fill: none"></path>
+        </pattern>
+      </defs>
+      <rect width="100" height="100" stroke="#aaa" fill="url(#pa)" />
+      <rect x="110" width="200" height="200" stroke="#aaa" fill="url(#pa)" /> -->
+
+      <!-- <pattern id="pa" x="0" y="0" patternUnits="userSpaceOnUse" width="40" height="40">
+        <path d="M 0 0 h 40 v 40 h -40 z" style="stroke: black; fill: none"></path>
+        <path d="M 20 22 A 5 10 -45 1 0 20 34" fill="#aaa" />
+        <path d="M 20 22 A 5 10 45 1 1 20 34" fill="#aaa" />
+      </pattern>
+
+      <rect fill="url(#pa)" stroke="black" x="0" y="0" width="200" height="200" /> -->
+
+      <!-- <defs>
+        <pattern
+          id="pa"
+          x="0"
+          y="0"
+          width=".2"
+          height=".2"
+          patternUnits="objectBoundingBox"
+          patternContentUnits="objectBoundingBox"
+        >
+          <path d="M 0 0 h 0.2 v 0.2 h -0.2z" style="stroke: black; stroke-width: 0.01; fill: none"></path>
+        </pattern>
+      </defs>
+
+      <rect width="100" height="100" stroke="#aaa" fill="url(#pa)" />
+      <rect x="110" width="200" height="200" stroke="#aaa" fill="url(#pa)" /> -->
+
+      <!-- <defs>
+        <linearGradient id="linear" x1="100%" y2="100%">
+          <stop offset="0%" style="stop-color: #ffcc00"></stop>
+          <stop offset="100%" style="stop-color: #0099cc"></stop>
+        </linearGradient>
+      </defs>
+      <rect x="10" y="10" width="200" height="100" fill="url(#linear)"></rect> -->
+
+      <defs>
+        <radialGradient id="rad" cx="0%" cy="0%" r="60%">
+          <stop offset="0%" style="stop-color: #f96" />
+          <stop offset="50%" style="stop-color: #9c9" />
+          <stop offset="100%" style="stop-color: #906" />
+        </radialGradient>
+        <radialGradient id="pad" xlink:href="#rad" spreadMethod="pad" />
+        <radialGradient id="repeat" xlink:href="#rad" spreadMethod="repeat" />
+        <radialGradient id="reflect" xlink:href="#rad" spreadMethod="reflect" />
+      </defs>
+      <rect x="10" y="10" width="100" height="100" fill="url(#pad)" />
+      <rect x="10" y="120" width="100" height="100" fill="url(#repeat)" />
+      <rect x="10" y="230" width="100" height="100" fill="url(#reflect)" />
+    </svg>
+  </body>
+</html>
