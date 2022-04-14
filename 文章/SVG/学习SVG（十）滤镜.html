@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <style type="text/css"></style>
+  <body>
+    <svg width="800" height="400">
+      <!-- <defs>
+        <filter id="ga" x="0" y="0">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="2"></feGaussianBlur>
+        </filter>
+      </defs>
+      <rect x="10" y="10" width="100" height="100" fill="#ccc" filter="url(#ga)"></rect> -->
+
+      <!-- <defs>
+        <filter id="ga" x="0" y="0">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="5" result="blur"></feGaussianBlur>
+          <feOffset in="blur" dx="10" dy="10" result="offsetBlur"></feOffset>
+          <feMerge>
+            <feMergeNode in="offsetBlur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
+      <rect x="10" y="10" width="100" height="100" fill="black" filter="url(#ga)"></rect> -->
+
+      <!-- <defs>
+        <filter id="matrix">
+          <feColorMatrix
+            type="matrix"
+            values="
+            0 0 0 0   0
+            0 0 0 0.9 0
+            0 0 0 0.9 0
+            0 0 0 1   0
+          "
+          ></feColorMatrix>
+        </filter>
+      </defs>
+      <text x="10" y="100" font-size="40" style="filter: url(#matrix)">你好 SVG</text> -->
+
+      <defs>
+        <filter id="ga" x="0" y="0" width="200" height="250">
+          <feImage width="200" height="250" xlink:href="1.jpg" result="img1" />
+          <feImage width="200" height="250" xlink:href="2.jpg" result="img2" />
+          <feBlend mode="lighten" in="img1" in2="img2" />
+        </filter>
+        <filter id="ga2" x="0" y="0" width="200" height="250">
+          <feImage width="200" height="250" xlink:href="1.jpg" result="img1" />
+          <feImage width="200" height="250" xlink:href="2.jpg" result="img2" />
+          <feBlend mode="darken" in="img1" in2="img2" />
+        </filter>
+      </defs>
+      <rect x="10" y="10" width="200" height="250" fill="black" filter="url(#ga)"></rect>
+
+      <rect x="250" y="10" width="200" height="250" fill="black" filter="url(#ga2)"></rect>
+    </svg>
+  </body>
+</html>
