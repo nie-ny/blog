@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <style type="text/css">
+    /* text {
+      font-size: 64px;
+      font-weight: bold;
+      fill: none;
+      stroke-width: 2px;
+      stroke-dasharray: 100 300;
+      animation: stroke 6s infinite linear;
+    }
+
+    .textA {
+      stroke: #3498db;
+      text-shadow: 0 0 5px #3498db;
+    }
+    .textB {
+      stroke: #f39c12;
+      text-shadow: 0 0 5px #f39c12;
+      animation-delay: -2s;
+    }
+    .textC {
+      stroke: #9b59b6;
+      text-shadow: 0 0 5px #9b59b6;
+      animation-delay: -4s;
+    }
+
+    @keyframes stroke {
+      100% {
+        stroke-dashoffset: -400;
+      }
+    } */
+
+    .svg-box:hover .will-show {
+      stroke-dashoffset: 0;
+    }
+    path {
+      transition: stroke-dashoffset 0.5s linear 0s;
+    }
+  </style>
+  <body>
+    <svg width="400" height="400" xmlns="http://www.w3.org/2000/svg">
+      <!-- <line
+        fill="none"
+        stroke="#000000"
+        stroke-width="5"
+        stroke-dasharray="100"
+        stroke-dashoffset="100"
+        x1="0"
+        y1="90"
+        x2="100"
+        y2="90"
+      >
+        <animate
+          attributeName="stroke-dashoffset"
+          attributeType="XML"
+          from="100"
+          to="0"
+          dur="2s"
+          fill="freeze"
+        ></animate>
+      </line> -->
+
+      <!-- <text class="textA" text-anchor="middle" x="50%" y="50%">文字描边</text>
+      <text class="textB" text-anchor="middle" x="50%" y="50%">文字描边</text>
+      <text class="textC" text-anchor="middle" x="50%" y="50%">文字描边</text> -->
+
+      <g class="svg-box" fill="none" fill-rule="evenodd">
+        <path
+          stroke="#C8C9CC"
+          stroke-width="7"
+          d="M20.657 107c-.422 0-.834-.014-1.225-.04-1.63-.116-2.62-.5-3.029-1.176-.552-.917.025-2.22.635-3.601.329-.682.595-1.392.795-2.122l.117-.507c.522-2.25 1.61-6.933.8-10.059a45.674 45.674 0 01-8.63-13.586A42.2 42.2 0 0111.165 41.7a46.975 46.975 0 0111.357-14.937 53.67 53.67 0 0116.846-10.07 59.469 59.469 0 0141.26 0 53.685 53.685 0 0116.849 10.07A46.99 46.99 0 01108.834 41.7a42.246 42.246 0 010 36.581 46.964 46.964 0 01-11.357 14.937 53.645 53.645 0 01-16.848 10.071 59.465 59.465 0 01-41.212.018h-.215a30.31 30.31 0 00-7.62 1.597l-.074.02-.798.233A37.015 37.015 0 0120.656 107z"
+        ></path>
+        <path
+          class="will-show"
+          stroke="#4C9AF2"
+          stroke-width="7"
+          stroke-dasharray="330"
+          stroke-dashoffset="330"
+          d="M20.657 107c-.422 0-.834-.014-1.225-.04-1.63-.116-2.62-.5-3.029-1.176-.552-.917.025-2.22.635-3.601.329-.682.595-1.392.795-2.122l.117-.507c.522-2.25 1.61-6.933.8-10.059a45.674 45.674 0 01-8.63-13.586A42.2 42.2 0 0111.165 41.7a46.975 46.975 0 0111.357-14.937 53.67 53.67 0 0116.846-10.07 59.469 59.469 0 0141.26 0 53.685 53.685 0 0116.849 10.07A46.99 46.99 0 01108.834 41.7a42.246 42.246 0 010 36.581 46.964 46.964 0 01-11.357 14.937 53.645 53.645 0 01-16.848 10.071 59.465 59.465 0 01-41.212.018h-.215a30.31 30.31 0 00-7.62 1.597l-.074.02-.798.233A37.015 37.015 0 0120.656 107z"
+        ></path>
+      </g>
+    </svg>
+  </body>
+</html>

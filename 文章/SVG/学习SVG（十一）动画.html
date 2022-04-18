@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <style type="text/css">
+    /* #cir {
+      fill: gold;
+    }
+    #cir:hover {
+      fill: greenyellow;
+    } */
+
+    .fast-line {
+      animation: rotateName 2s linear infinite;
+    }
+    .slow-line {
+      animation: rotateName 15s linear infinite;
+    }
+    @keyframes rotateName {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+  </style>
+  <body>
+    <!-- <svg width="200" height="200"> -->
+    <!-- <circle cx="100" cy="100" r="100" fill="green" stroke="none">
+        <set attributeName="cx" to="160" begin="2s" />
+      </circle> -->
+
+    <!-- <rect x="10" y="10" width="200" height="200" stroke="green" fill="none">
+        <animate attributeName="width" attributeType="XML" from="200" to="20" dur="5s" repeatCount="2"></animate>
+      </rect> -->
+
+    <!-- <rect x="-10" y="-10" width="40" height="40" fill="ff9">
+        <animateTransform
+          attributeType="XML"
+          attributeName="transform"
+          type="scale"
+          from="1"
+          to="4"
+          dur="3s"
+          fill="freeze"
+        ></animateTransform>
+      </rect> -->
+
+    <!-- <circle cx="10" cy="10" r="15" fill="green" stroke="none">
+        <animateMotion path="M50,135C100,25 150,225 200,125" dur="6s" fill="freeze"></animateMotion>
+      </circle> -->
+
+    <!-- <circle id="cir" cx="100" cy="100" r="100" fill="green" stroke="none"></circle> -->
+    <!-- </svg> -->
+
+    <svg height="100" width="100" viewBox="-52 -52 104 104">
+      <circle fill="none" stroke="#DE3E35" stroke-width="6" stroke-miterlimit="10" cx="0" cy="0" r="48" />
+      <line
+        class="fast-line"
+        fill="none"
+        stroke-linecap="round"
+        stroke="#DE3E35"
+        stroke-width="6"
+        stroke-miterlimit="10"
+        x1="0"
+        y1="0"
+        x2="35"
+        y2="0"
+      ></line>
+      <line
+        class="slow-line"
+        fill="none"
+        stroke-linecap="round"
+        stroke="#DE3E35"
+        stroke-width="6"
+        stroke-miterlimit="10"
+        x1="0"
+        y1="0"
+        x2="0"
+        y2="24"
+      ></line>
+    </svg>
+  </body>
+</html>

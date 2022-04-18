@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <style type="text/css"></style>
+  <body>
+    <svg width="500" height="500">
+      <g fill="none" fill-rule="evenodd" stroke="#9fbde8">
+        <g transform="translate(20 20)" stroke-width="2">
+          <circle id="circle1" cx="5" cy="50" r="5"></circle>
+          <circle id="circle2" cx="27" cy="5" r="5"></circle>
+          <circle id="circle3" cx="49" cy="50" r="5"></circle>
+        </g>
+      </g>
+
+      <!-- <path
+        id="star"
+        d="M185,1.12977573 L128.163889,116.292316 L1.07448057,134.759488 L93.0372403,224.401023 L71.3277776,350.976903 L185,291.215879 L298.672222,350.976903 L276.96276,224.401023 L368.925519,134.759488 L241.836111,116.292316 L185,1.12977573 Z"
+        fill="#4af"
+      ></path>
+
+      <path
+        id="end"
+        d="M160,0 L258.885438,32 L320,110.557281 L320,210.424346 L258.885438,289.442719 C217.122754,309.81424 184.160941,320 160,320 C135.839059,320 102.877246,309.81424 61.1145618,289.442719 L0,210.424346 L0,110.557281 L61.1145618,32 L160,0 Z"
+        fill="transparent"
+      ></path> -->
+    </svg>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.10.3/gsap.min.js"></script>
+    <!-- <script src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/16327/MorphSVGPlugin3.min.js"></script> -->
+
+    <script type="text/javascript">
+      const tem = [
+        { cy: 50, cx: 5 },
+        { cy: 5, cx: 27 },
+        { cy: 50, cx: 49 },
+        { cy: 50, cx: 5 }
+      ]
+      tem.forEach((item, index) => {
+        gsap.to('#circle1', 0.2, {
+          cy: item.cy,
+          cx: item.cx,
+          repeat: -1,
+          delay: 0.2 * index,
+          repeatDelay: 0.6
+        })
+      })
+
+      const tem2 = [
+        { cy: 5, cx: 27 },
+        { cy: 50, cx: 49 },
+        { cy: 50, cx: 5 },
+        { cy: 5, cx: 27 }
+      ]
+      tem2.forEach((item, index) => {
+        gsap.to('#circle2', 0.2, {
+          cy: item.cy,
+          cx: item.cx,
+          repeat: -1,
+          delay: 0.2 * index,
+          repeatDelay: 0.6
+        })
+      })
+
+      const tem3 = [
+        { cy: 50, cx: 49 },
+        { cy: 50, cx: 5 },
+        { cy: 5, cx: 27 },
+        { cy: 50, cx: 49 }
+      ]
+      tem3.forEach((item, index) => {
+        gsap.to('#circle3', 0.2, {
+          cy: item.cy,
+          cx: item.cx,
+          repeat: -1,
+          delay: 0.2 * index,
+          repeatDelay: 0.6
+        })
+      })
+
+      // // 创建事件轴动画
+      // let tl = gsap.timeline({
+      //   repeat: -1, // 重复次数
+      //   yoyo: true, // 重复的动画将往返进行
+      //   repeatDelay: 0.3, // 第二次动画等待时间
+      //   defaults: {
+      //     duration: 3 // 设置时间轴的持续时间
+      //   }
+      // })
+
+      // // 添加动画  形状变化
+      // // 这里使用了 Plugin(插件) 控制SVG path元素的d变化
+      // tl.to('#star', { morphSVG: '#end' })
+    </script>
+  </body>
+</html>
