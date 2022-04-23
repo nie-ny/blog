@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <style type="text/css">
+    button {
+      outline: none;
+      border: 0px solid;
+      background: transparent;
+    }
+    .play-button {
+      fill: #4af;
+      opacity: 0.85;
+    }
+    .play-button:hover {
+      cursor: pointer;
+      opacity: 1;
+    }
+  </style>
+  <body>
+    <!-- 开始 暂停 -->
+    <!-- <svg width="100" height="100">
+      <circle cx="50" cy="50" r="50" fill="#000000" />
+      <path fill="#ffffff">
+        <animate
+          attributeName="d"
+          from="M32,21 54,32 54,68 33,80 Z"
+          to="M25,21 44,21 44,80 25,80 Z"
+          dur="1s"
+          repeatCount="indefinite"
+        />
+      </path>
+      <path fill="#ffffff">
+        <animate
+          attributeName="d"
+          from="M53.6,32 85,50 85,50 53.6,68 Z"
+          to="M56,21 75,21 75,80 56,80 Z"
+          dur="1s"
+          repeatCount="indefinite"
+        />
+      </path>
+      --<circle cx="50" cy="50" r="50" fill="#000000" />
+      <path d="M25,21 44,21 44,80 25,80 Z" fill="#ffffff" />
+      <path d="M56,21 75,21 75,80 56,80 Z" fill="#ffffff" /> --
+    </svg> -->
+
+    <button id="buttonA" class="play-button" aria-live="assertive" tabindex="32" aria-label="Pause">
+      <svg viewBox="0 0 50 50" version="1.1" width="200" height="200">
+        <defs>
+          <path id="shapeA" d="M11,10 L18,13.74 18,22.28 11,26 M18,13.74 L26,18 26,18 18,22.28">
+            <animate
+              id="animationA"
+              begin="indefinite"
+              attributeType="XML"
+              attributeName="d"
+              fill="freeze"
+              dur="0.5s"
+              repeatCount="1"
+            ></animate>
+          </path>
+        </defs>
+        <use xlink:href="#shapeA"></use>
+      </svg>
+    </button>
+
+    <script type="text/javascript">
+      var animationA = document.getElementById('animationA')
+      var buttonA = document.getElementById('buttonA')
+      var flip = false
+
+      var pause = 'M11,10 L18,13.74 18,22.28 11,26 M18,13.74 L26,18 26,18 18,22.28'
+      var play = 'M11,10 L17,10 17,26 11,26 M20,10 L26,10 26,26 20,26'
+      // var pause =
+      //   'M185,1.12977573 L128.163889,116.292316 L1.07448057,134.759488 L93.0372403,224.401023 L71.3277776,350.976903 L185,291.215879 L298.672222,350.976903 L276.96276,224.401023 L368.925519,134.759488 L241.836111,116.292316 L185,1.12977573 Z'
+      // var play =
+      //   'M160,0 L258.885438,32 L320,110.557281 L320,210.424346 L258.885438,289.442719 C217.122754,309.81424 184.160941,320 160,320 C135.839059,320 102.877246,309.81424 61.1145618,289.442719 L0,210.424346 L0,110.557281 L61.1145618,32 L160,0 Z'
+
+      buttonA.onclick = () => {
+        flip = !flip
+        animationA.setAttribute('from', flip ? pause : play)
+        animationA.setAttribute('to', flip ? play : pause)
+        animationA.beginElement()
+      }
+    </script>
+  </body>
+</html>
