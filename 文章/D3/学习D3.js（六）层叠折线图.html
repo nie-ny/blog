@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <style type="text/css"></style>
+  <body>
+    <div class="d3Chart"></div>
+  </body>
+  <!-- 选择器模块 -->
+  <script src="https://cdn.jsdelivr.net/npm/d3-selection@3"></script>
+
+  <!-- 比例尺模块 和 依赖 -->
+  <script src="https://cdn.jsdelivr.net/npm/d3-array@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-color@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-format@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-interpolate@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-time@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-time-format@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-scale@4"></script>
+
+  <!-- 坐标轴 -->
+  <script src="https://cdn.jsdelivr.net/npm/d3-axis@3"></script>
+
+  <!-- 形状 -->
+  <script src="https://cdn.jsdelivr.net/npm/d3-path@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-shape@3"></script>
+
+  <!-- 动画 -->
+  <script src="https://cdn.jsdelivr.net/npm/d3-dispatch@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-ease@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-timer@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-transition@3"></script>
+  <script type="text/javascript">
+    var bColor = ['#4385F4', '#34A853', '#FBBC05', '#E94335', '#01ACC2', '#AAACC2']
+    var dataArr = [
+      {
+        label: '1月',
+        value: 10.5,
+        value2: 70.5
+      },
+      {
+        label: '2月',
+        value: 70.5,
+        value2: 10.5
+      },
+      {
+        label: '3月',
+        value: 60.5,
+        value2: 10.5
+      },
+      {
+        label: '4月',
+        value: 10.5,
+        value2: 30.5
+      },
+      {
+        label: '5月',
+        value: 20.5,
+        value2: 10.5
+      },
+      {
+        label: '6月',
+        value: 30.5,
+        value2: 3.5
+      }
+    ]
+
+    var width = 450
+    var height = 480
+    var margin = 20
+
+    var svg = d3
+      .select('.d3Chart')
+      .append('svg')
+      .attr('width', width)
+      .attr('height', height)
+      .style('background-color', '#1a3055')
+
+    // 图
+    var chart = svg.append('g').attr('transform', `translate(${margin * 2}, ${margin})`)
+
+    // 分段比例尺
+    // 把X轴长度 分成多段
+    var xScale = d3
+      .scaleBand()
+      .range([0, 400])
+      .domain(dataArr.map((s) => s.label))
+
+    // 线性比例尺
+    // 把Y轴长度 转换为100
+    var yScale = d3.scaleLinear().range([400, 0]).domain([0, 100])
+
+    // 坐标轴
+    const xAxis = d3.axisBottom(xScale)
+    chart.append('g').attr('class', 'xAxis').attr('transform', `translate(0, ${400})`).call(xAxis)
+    const yAxis = d3
+      .axisLeft()
+      .scale(yScale)
+      // .tickSize(-400)
+      .tickFormat((d) => {
+        return d + '%'
+      })
+    // 标签
+    d3.select('.xAxis')
+      .append('text')
+      .attr('x', 400 / 2 - 12)
+      .attr('y', 0)
+      .attr('dy', 45)
+      .style('font-size', '24px')
+      .text('时间')
+
+    chart.append('g').attr('transform', 'translate(0, 0)').call(yAxis)
+    d3.selectAll('.d3Chart text').style('fill', '#fff')
+    d3.selectAll('.d3Chart line').style('stroke', '#fff')
+    d3.selectAll('.d3Chart path').style('stroke', '#fff')
+
+    let items = []
+    // 组装数据 便于绘制
+    dataArr.forEach((row) => {
+      let index = 0
+      Object.keys(row).forEach((key) => {
+        // 非数据 不绘制统计图
+        if (key !== 'label') {
+          if (items[index]) {
+            items[index].push([row.label, row[key], key, index])
+          } else {
+            items[index] = [[row.label, row[key], key, index]]
+          }
+          index++
+        }
+      })
+    })
+
+    // 计算点位置
+    let line = d3
+      .line()
+      .x(function (d) {
+        return d[0]
+      })
+      .y(function (d) {
+        return d[1]
+      })
+
+    const groups = chart.selectAll().data(items)
+
+    const lines = groups
+      .enter()
+      .append('g')
+      .selectAll()
+      .data((d) => [d])
+
+    lines
+      .enter()
+      .append('path')
+      .attr('class', 'lines')
+      .attr('d', function (d) {
+        const row = d.map((item) => {
+          const itemS = []
+          itemS.push(xScale(item[0]))
+          itemS.push(yScale(item[1]))
+          return [...itemS]
+        })
+        return line(row)
+      })
+      .attr('stroke', (d, i) => bColor[d[0][3]])
+      .attr('fill', 'none')
+      .attr('transform', `translate(${xScale.bandwidth() / 2}, 0)`)
+
+    // 点绘制
+    const circles = groups
+      .enter()
+      .append('g')
+      .attr('class', 'Gcircle')
+      .selectAll()
+      .data((d) => d)
+
+    circles
+      .enter()
+      .append('circle')
+      .attr('cx', function (d) {
+        return xScale(d[0])
+      })
+      .attr('cy', function (d) {
+        return yScale(d[1])
+      })
+      .attr('r', 4)
+      .attr('transform', `translate(${xScale.bandwidth() / 2}, 0)`)
+      .attr('fill', '#fff')
+      .attr('stroke', 'rgba(56, 8, 228, .5)')
+
+    const generateArea = d3
+      .area()
+      .x((d) => d[0])
+      .y0((d) => d[1])
+      .y1((d) => 400)
+
+    lines
+      .enter()
+      .append('path')
+      .attr('class', 'area')
+      // .attr('d', function (d) {
+      //   const row = d.map((item) => {
+      //     const itemS = []
+      //     itemS.push(xScale(item[0]))
+      //     itemS.push(yScale(item[1]))
+      //     return [...itemS]
+      //   })
+      //   return generateArea(row)
+      // })
+      .attr('fill', (d, i) => bColor[d[0][3]])
+      .attr('fill-opacity', '0.5')
+      .attr('transform', `translate(${xScale.bandwidth() / 2}, 0)`)
+
+    /**
+     * 添加动画
+     * */
+    // 点插值 函数
+    function getAreaInterpolate(pointX, pointY) {
+      const domain = d3.range(0, 1, 1 / (pointX.length - 1))
+      // 补上结尾 1
+      domain.push(1)
+
+      // 线性比例尺 根据 值域 和 定义域 获取不同区间的值
+      const interpolateX = d3.scaleLinear().domain(domain).range(pointX)
+      const interpolateY = d3.scaleLinear().domain(domain).range(pointY)
+      return {
+        x: interpolateX,
+        y: interpolateY
+      }
+    }
+
+    d3.selectAll('path.lines')
+      .transition()
+      .duration(2000)
+      .attrTween('d', (_d) => {
+        const pointX = _d.map((d) => xScale(d[0]))
+        const pointY = _d.map((d) => yScale(d[1]))
+
+        const interpolate = getAreaInterpolate(pointX, pointY)
+        const ponits = []
+
+        return function (t) {
+          ponits.push([interpolate.x(t), interpolate.y(t)])
+          return line(ponits)
+        }
+      })
+
+    d3.selectAll('path.area')
+      .transition()
+      .duration(2000)
+      .attrTween('d', (_d) => {
+        const pointX = _d.map((d) => xScale(d[0]))
+        const pointY = _d.map((d) => yScale(d[1]))
+
+        const interpolate = getAreaInterpolate(pointX, pointY)
+        const ponits = []
+
+        return function (t) {
+          ponits.push([interpolate.x(t), interpolate.y(t)])
+          return generateArea(ponits)
+        }
+      })
+
+    d3.selectAll('.Gcircle')
+      .selectAll('circle')
+      .attr('r', 0)
+      .transition()
+      .duration(300)
+      .delay(function (d, i) {
+        return (i * 2000) / dataArr.length
+      })
+      .attr('r', 4)
+      .style('stroke-width', 3)
+  </script>
+</html>
