@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>学习</title>
+  </head>
+  <style type="text/css">
+    * {
+    }
+  </style>
+  <!-- 按需引入模块 UMD包 -->
+  <!-- 选择器模块 -->
+  <script src="https://cdn.jsdelivr.net/npm/d3-selection@3"></script>
+
+  <!-- 比例尺模块 和 依赖 -->
+  <script src="https://cdn.jsdelivr.net/npm/d3-array@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-color@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-format@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-interpolate@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-time@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-time-format@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-scale@4"></script>
+
+  <!-- 坐标轴 -->
+  <script src="https://cdn.jsdelivr.net/npm/d3-axis@3"></script>
+
+  <!-- 形状 -->
+  <script src="https://cdn.jsdelivr.net/npm/d3-path@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-shape@3"></script>
+
+  <!-- 动画 -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/d3-color@3"></script> -->
+  <script src="https://cdn.jsdelivr.net/npm/d3-dispatch@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-ease@3"></script>
+  <!-- <script src="https://cdn.jsdelivr.net/npm/d3-interpolate@3"></script> -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/d3-selection@3"></script> -->
+  <script src="https://cdn.jsdelivr.net/npm/d3-timer@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-transition@3"></script>
+  <body>
+    <div class="d3Chart"></div>
+  </body>
+  <script type="text/javascript">
+    var bColor = ['#4385F4', '#34A853', '#FBBC05', '#E94335', '#01ACC2', '#AAACC2']
+    var dataArr = [
+      {
+        label: '1月',
+        value: 10.5
+      },
+      {
+        label: '2月',
+        value: 70.5
+      },
+      {
+        label: '3月',
+        value: 60.5
+      },
+      {
+        label: '4月',
+        value: 10.5
+      },
+      {
+        label: '5月',
+        value: 20.5
+      },
+      {
+        label: '6月',
+        value: 30.5
+      }
+    ]
+
+    var width = 700
+    var height = 700
+    var margin = 60
+
+    var svg = d3
+      .select('.d3Chart')
+      .append('svg')
+      .attr('width', width)
+      .attr('height', height)
+      .style('background-color', '#1a3055')
+
+    // 图
+    var chart = svg.append('g').attr('transform', `translate(${margin}, ${margin})`)
+
+    // 半径
+    var radius = (Math.min(width, height) * 0.5) / 2
+    //  饼图（pie）生成器  计算图所需要的角度信息
+    let drawData = d3
+      .pie()
+      .value(function (d) {
+        return d.value
+      })
+      .sort(null)
+      .sortValues(null)
+      .startAngle(0)
+      .endAngle(Math.PI * 2)
+    // 序数比例尺 颜色
+    // range(start，stop) 返回 start 到 stop 的间隔数组
+    let colorScale = d3.scaleOrdinal().domain(d3.range(0, dataArr.length)).range(bColor)
+
+    // 线性比例尺 半径
+    let scaleRadius = d3
+      .scaleLinear()
+      .domain([0, d3.max(dataArr.map((d) => d.value))])
+      .range([0, d3.min([chart.getBodyWidth(), chart.getBodyHeight()]) * 0.5])
+  </script>
+</html>
