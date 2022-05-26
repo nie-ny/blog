@@ -10,34 +10,7 @@
     * {
     }
   </style>
-  <!-- 按需引入模块 UMD包 -->
-  <!-- 选择器模块 -->
-  <script src="https://cdn.jsdelivr.net/npm/d3-selection@3"></script>
-
-  <!-- 比例尺模块 和 依赖 -->
-  <script src="https://cdn.jsdelivr.net/npm/d3-array@3"></script>
-  <script src="https://cdn.jsdelivr.net/npm/d3-color@3"></script>
-  <script src="https://cdn.jsdelivr.net/npm/d3-format@3"></script>
-  <script src="https://cdn.jsdelivr.net/npm/d3-interpolate@3"></script>
-  <script src="https://cdn.jsdelivr.net/npm/d3-time@3"></script>
-  <script src="https://cdn.jsdelivr.net/npm/d3-time-format@4"></script>
-  <script src="https://cdn.jsdelivr.net/npm/d3-scale@4"></script>
-
-  <!-- 坐标轴 -->
-  <script src="https://cdn.jsdelivr.net/npm/d3-axis@3"></script>
-
-  <!-- 形状 -->
-  <script src="https://cdn.jsdelivr.net/npm/d3-path@3"></script>
-  <script src="https://cdn.jsdelivr.net/npm/d3-shape@3"></script>
-
-  <!-- 动画 -->
-  <!-- <script src="https://cdn.jsdelivr.net/npm/d3-color@3"></script> -->
-  <script src="https://cdn.jsdelivr.net/npm/d3-dispatch@3"></script>
-  <script src="https://cdn.jsdelivr.net/npm/d3-ease@3"></script>
-  <!-- <script src="https://cdn.jsdelivr.net/npm/d3-interpolate@3"></script> -->
-  <!-- <script src="https://cdn.jsdelivr.net/npm/d3-selection@3"></script> -->
-  <script src="https://cdn.jsdelivr.net/npm/d3-timer@3"></script>
-  <script src="https://cdn.jsdelivr.net/npm/d3-transition@3"></script>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
   <body>
     <div class="d3Chart"></div>
   </body>
@@ -146,7 +119,7 @@
         }
       })
 
-    //
+    // 文本
     const arc2 = d3
       .arc()
       .outerRadius(100 * 3.5)
