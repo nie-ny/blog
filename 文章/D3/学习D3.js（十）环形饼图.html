@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <style type="text/css"></style>
+  <body>
+    <div class="d3Chart"></div>
+  </body>
+  <!-- D3 -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script type="text/javascript">
+    var dataArr = [
+      {
+        label: '1月',
+        value: 10.5
+      },
+      {
+        label: '2月',
+        value: 70.5
+      },
+      {
+        label: '3月',
+        value: 60.5
+      },
+      {
+        label: '4月',
+        value: 10.5
+      },
+      {
+        label: '5月',
+        value: 20.5
+      },
+      {
+        label: '6月',
+        value: 30.5
+      }
+    ]
+
+    var width = 700
+    var height = 700
+    var margin = 60
+    var svg = d3
+      .select('.d3Chart')
+      .append('svg')
+      .attr('width', width)
+      .attr('height', height)
+      .style('background-color', '#1a3055')
+    // 图
+    var chart = svg.append('g').attr('transform', `translate(${margin}, ${margin})`)
+
+    // 序数比例尺 - 颜色
+    let colorScale = d3.scaleOrdinal().domain(d3.range(0, dataArr.length)).range(d3.schemeCategory10)
+    // 高度的 1/4 用于唤醒半径
+    var radius = height / 4
+
+    // 饼图（pie）生成器  计算图所需要的角度信息
+    // .padAngle()  饼图扇形之间的间隔设置
+    // .startAngle()  起始角度设置
+    // .endAngle()  终止角度设置
+    // 最后传入数据 返回饼图数据
+    let drawData = d3
+      .pie()
+      .value(function (d) {
+        return d.value
+      })
+      .padAngle(0.02)
+      .startAngle(0)
+      .endAngle(Math.PI * 2)(dataArr)
+
+    // .arc() 是shape中的 弧形生成器
+    // innerRadius() 设置内半径
+    // outerRadius() 设置外半径
+    // cornerRadius() 设置拐角圆滑
+    let arc = d3.arc().innerRadius(50).outerRadius(radius).cornerRadius(5)
+
+    const arcs = chart
+      .append('g')
+      .attr('transform', 'translate( ' + (radius * 2 - margin) + ', ' + (radius * 2 - margin) + ' )')
+
+    arcs
+      .selectAll()
+      .data(drawData)
+      .enter()
+      .append('path')
+      .attr('class', 'pieArc')
+      .attr('stroke', 'steelblue')
+      .attr('stroke-width', 1)
+      .attr('fill', function (d) {
+        return colorScale(d.index)
+      })
+      .attr('d', function (d, i) {
+        // 根据 pie 数据 计算路径
+        return arc(d)
+      })
+      .transition()
+      .duration(1000)
+      .attrTween('d', function (d) {
+        // 初始加载时的过渡效果
+        let fn = d3.interpolate(
+          {
+            endAngle: d.startAngle
+          },
+          d
+        )
+        return function (t) {
+          return arc(fn(t))
+        }
+      })
+
+    // 求和
+    let sum = d3.sum(dataArr, (d) => d.value)
+    arcs
+      .selectAll()
+      .data(drawData)
+      .enter()
+      .append('text')
+      .attr('transform', function (d) {
+        // arc.centroid(d) 将文字平移到弧的中心
+        return 'translate(' + arc.centroid(d) + ') '
+      })
+      // 文字开始点在文字中间
+      .attr('text-anchor', 'middle')
+      .attr('fill', '#fff')
+      // 文字垂直居中
+      .attr('dominant-baseline', 'central')
+      .attr('font-size', '10px')
+      // 格式化文字显示格式
+      .text(function (d) {
+        return ((d.data.value / sum) * 100).toFixed(2) + '%'
+      })
+
+    // 文本
+    const arc2 = d3
+      .arc()
+      .outerRadius(radius * 2.5)
+      .innerRadius(0)
+
+    /*
+     * 计算文本水平偏移
+     **/
+    const textOffsetM = 10
+    const scaleTextDx = d3
+      .scaleLinear()
+      .domain([0, Math.PI / 2])
+      .range([textOffsetM, textOffsetM * 3])
+
+    function computeTextDx(d) {
+      // 计算文本水平偏移
+      const middleAngle = (d.endAngle + d.startAngle) / 2
+      let dx = ''
+      if (middleAngle < Math.PI) {
+        dx = scaleTextDx(Math.abs(middleAngle - Math.PI / 2))
+      } else {
+        dx = -scaleTextDx(Math.abs(middleAngle - (Math.PI * 3) / 2))
+      }
+      return dx
+    }
+
+    arcs
+      .selectAll()
+      .data(drawData)
+      .enter()
+      .append('text')
+      .attr('class', (d) => `text${d.index}`)
+      .attr('text-anchor', (d) => {
+        // 根据弧度 设置 文本排列方式
+        return (d.endAngle + d.startAngle) / 2 > Math.PI ? 'end' : 'start'
+      })
+      .attr('stroke', 'steelblue')
+      .attr('dy', '0.35em')
+      .attr('dx', computeTextDx)
+      .attr('transform', (d) => {
+        return 'translate(' + arc2.centroid(d) + ')'
+      })
+      .text((d) => d.data.label + ': ' + d.data.value)
+
+    // 生成连线的点
+    const linePoints = drawData.map((d) => {
+      const line = []
+      const tempPoint = arc2.centroid(d)
+      const tempDx = computeTextDx(d)
+      const dx = tempDx > 0 ? tempDx - textOffsetM : tempDx + textOffsetM
+      line.push(arc.centroid(d))
+      line.push(tempPoint)
+      line.push([tempPoint[0] + dx, tempPoint[1]])
+      return line
+    })
+
+    const generateLine = d3
+      .line()
+      .x((d) => d[0])
+      .y((d) => d[1])
+
+    arcs
+      .selectAll()
+      .data(linePoints)
+      .enter()
+      .insert('path', ':first-child')
+      .classed('line', true)
+      .attr('fill', 'none')
+      .attr('stroke', 'steelblue')
+      .attr('d', generateLine)
+
+    function arcTween(outerRadius) {
+      return function () {
+        d3.select(this)
+          .transition()
+          .attrTween('d', function (d) {
+            if (outerRadius > 0) {
+              d3.select(`.text${d.index}`).attr('stroke', '#AAACC2')
+            } else {
+              d3.select(`.text${d.index}`).attr('stroke', 'steelblue')
+            }
+
+            let interpolate = d3.interpolate(radius, radius + outerRadius)
+            return function (t) {
+              let arcT = d3.arc().innerRadius(50).outerRadius(interpolate(t)).cornerRadius(5)
+              return arcT(d)
+            }
+          })
+      }
+    }
+    d3.selectAll('.pieArc').on('mouseover', arcTween(20)).on('mouseout', arcTween(0))
+  </script>
+</html>
