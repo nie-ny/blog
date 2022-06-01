@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <style type="text/css"></style>
+  <body>
+    <div class="d3Chart"></div>
+  </body>
+  <!-- D3 -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script type="text/javascript">
+    const dataTree = {
+      name: '太刀',
+      children: [
+        {
+          name: '矿石',
+          children: [
+            {
+              name: '结晶框',
+              children: [
+                { name: '蓝矿', num: 10 },
+                { name: '黑铁矿', num: 3 },
+                { name: '白灰矿', num: 4 }
+              ]
+            }
+          ]
+        },
+        {
+          name: '木材',
+          children: [
+            {
+              name: '稀木',
+              children: [
+                { name: '钴木', num: 4 },
+                { name: '黑木', num: 2 }
+              ]
+            },
+            {
+              name: '水木',
+              children: [{ name: '蓝木', num: 4 }]
+            }
+          ]
+        },
+        {
+          name: '宝石',
+          children: [
+            {
+              name: '太阳类',
+              children: [
+                { name: '日金石', num: 6 },
+                { name: '熔岩石', num: 1 }
+              ]
+            },
+            {
+              name: '深海类',
+              children: [
+                { name: '寒铁石', num: 2 },
+                { name: '金晶石', num: 3 },
+                { name: '玄冰结晶', num: 2 }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+
+    var width = 500
+    var height = 500
+    var margin = 30
+    var svg = d3
+      .select('.d3Chart')
+      .append('svg')
+      .attr('width', width)
+      .attr('height', height)
+      .style('background-color', '#1a3055')
+    // 图
+    var chart = svg.append('g').attr('transform', `translate(${margin}, ${margin})`)
+
+    // 生成层次结构数据 - 并为各个节点指定 层次结构数据
+    const rootTree = d3
+      .hierarchy(dataTree)
+      .sum((d) => d.num) // 计算绘图属性value的值  -求和 其子节点所有.num属性的和值
+      .sort((a, b) => a.value - b.value) // 根据 上面计算出的 value属性 排序
+    // console.log('🚀 ~ file: 学习D3.js（十二）矩形树状图.html ~ line 88 ~ rootTree', rootTree)
+
+    // 根据 每个节点的值递归的将区域划分为矩形 并生成绘图数据
+    // .size() 设置矩形的布局尺寸
+    // .round() 启用或禁用四舍五入
+    // .padding() 设置布局间隔
+    const TreeMap = d3
+      .treemap()
+      .size([width - 2 * margin, height - 2 * margin])
+      .round(true)
+      .padding(1)(rootTree)
+    // console.log('🚀 ~ file: 学习D3.js（十二）矩形树状图.html ~ line 99 ~ TreeMap', TreeMap)
+    // leaves
+    // console.log('🚀 ~ file: 学习D3.js（十二）矩形树状图.html ~ line 86 ~ TreeMap', rootTree.descendants())
+
+    var colorScale = d3.scaleOrdinal(d3.schemeSet3)
+    // console.log('🚀 ~ file: 学习D3.js（十二）矩形树状图.html ~ line 104 ~ d3.schemeSet3', d3.schemeSet3)
+
+    // 矩形绘制组
+    const rectChart = chart.append('g')
+
+    rectChart
+      .selectAll()
+      .data(rootTree.leaves())
+      .enter()
+      .append('rect')
+      .attr('class', 'cell')
+      .attr('x', (d) => d.x0)
+      .attr('y', (d) => d.y0)
+      .attr('width', (d) => d.x1 - d.x0)
+      .attr('height', (d) => d.y1 - d.y0)
+      .attr('fill', (d, i) => colorScale(i))
+
+    rectChart
+      .selectAll()
+      .data(rootTree.leaves())
+      .enter()
+      .append('text')
+      .attr('class', 'cellText')
+      .attr('transform', (d) => 'translate(' + (d.x0 + d.x1) / 2 + ',' + ((d.y0 + d.y1) / 2 + 6) + ')')
+      .attr('fill', '#555555')
+      .attr('text-anchor', 'middle')
+      .text((d) => d.data.name)
+      .text(function (d) {
+        if (textWidthIsOk(d, this)) {
+          return d.data.name
+        } else {
+          return '...'
+        }
+      })
+    // 检测文本长度是否合适
+    function textWidthIsOk(d, text) {
+      const textWidth = text.getBBox().width
+      if (d.x1 - d.x0 >= textWidth) return true
+      return false
+    }
+
+    var tooltips = d3
+      .select('body')
+      .append('div')
+      .style('width', 'auto')
+      .style('height', '40px')
+      .style('background-color', '#fff')
+      .style('dispaly', 'flex')
+      .style('justify-content', 'center')
+      .style('padding', '10px')
+      .style('border-radius', '5px')
+      .style('opacity', 0)
+
+    d3.selectAll('.cell,.cellText')
+      .on('mouseover', function (e, d) {
+        tooltips
+          .html(`材料：${d.data.name}<br /> 数量：${d.value}`)
+          .style('position', 'absolute')
+          .style('left', `${e.clientX}px`)
+          .style('top', `${e.clientY}px`)
+          .style('opacity', 1)
+      })
+      .on('mouseleave', function (e, d) {
+        tooltips.style('opacity', 0).style('left', `0px`).style('top', `0px`)
+      })
+  </script>
+</html>
