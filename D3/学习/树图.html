@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <style type="text/css"></style>
+  <body>
+    <div class="d3Chart"></div>
+  </body>
+  <!-- D3 -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script type="text/javascript">
+    const dataTree = {
+      name: '太刀',
+      children: [
+        {
+          name: '矿石',
+          children: [
+            {
+              name: '结晶框',
+              children: [
+                { name: '蓝矿', num: 10 },
+                { name: '黑铁矿', num: 3 },
+                { name: '白灰矿', num: 4 }
+              ]
+            }
+          ]
+        },
+        {
+          name: '木材',
+          children: [
+            {
+              name: '稀木',
+              children: [
+                { name: '钴木', num: 4 },
+                { name: '黑木', num: 2 }
+              ]
+            },
+            {
+              name: '水木',
+              children: [{ name: '蓝木', num: 4 }]
+            }
+          ]
+        },
+        {
+          name: '宝石',
+          children: [
+            {
+              name: '太阳类',
+              children: [
+                { name: '日金石', num: 6 },
+                { name: '熔岩石', num: 1 }
+              ]
+            },
+            {
+              name: '深海类',
+              children: [
+                { name: '寒铁石', num: 2 },
+                { name: '金晶石', num: 3 },
+                { name: '玄冰结晶', num: 2 }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+
+    var width = 500
+    var height = 500
+    var margin = 30
+    var svg = d3
+      .select('.d3Chart')
+      .append('svg')
+      .attr('width', width)
+      .attr('height', height)
+      .style('background-color', '#1a3055')
+    // 图
+    var chart = svg.append('g').attr('transform', `translate(${2 * margin}, ${2 * margin})`)
+
+    const rootTree = d3
+      .hierarchy(dataTree)
+      .sum((d) => d.num) // 计算绘图属性value的值  -求和 其子节点所有.num属性的和值
+      .sort((a, b) => a.value - b.value) // 根据 上面计算出的value属性 排序
+
+    // 创建一个新的树布局
+    // .size() 设置布局的尺寸
+    const treeData = d3.tree().size([width - 4 * margin, height - 4 * margin])(rootTree)
+
+    var colorScale = d3.scaleOrdinal(d3.schemeSet3)
+
+    // 绘制组
+    const rectChart = chart.append('g')
+
+    // 连线
+    const nodesExceptRoot = treeData.descendants().slice(1)
+    rectChart
+      .selectAll()
+      .data(nodesExceptRoot)
+      .enter()
+      .append('path')
+      .attr('class', 'link')
+      .attr('fill', 'none')
+      .attr('stroke', colorScale(1))
+      .attr('transform', (d) => {
+        return 'scale(0.1)'
+      })
+      .attr('d', (d) => {
+        return generatePath(d, d.parent)
+      })
+      .transition()
+      .duration(1000)
+      .attr('transform', (d) => {
+        return 'scale(1)'
+      })
+    function generatePath(node1, node2) {
+      if (!node2) {
+        return ''
+      }
+      const path = d3.path()
+      path.moveTo(node1.y, node1.x)
+      path.bezierCurveTo((node1.y + node2.y) / 2, node1.x, (node1.y + node2.y) / 2, node2.x, node2.y, node2.x)
+      return path.toString()
+    }
+
+    // tree.descendants() 返回后代节点数组，第一个节点为自身，然后依次为所有子节点的拓扑排序
+    const chartG = rectChart
+      .selectAll()
+      .data(treeData.descendants())
+      .enter()
+      .append('g')
+      .attr('class', 'g-chartG')
+      // .attr('transform-origin', (d) => {
+      //   //子树从点击位置逐渐放大
+      //   if (d.parent) {
+      //     return width / 2 + ' ' + height / 2
+      //   }
+      //   return d.y + ' ' + d.x
+      // })
+      .attr('transform', (d) => {
+        return 'scale(0.1)' + 'translate(' + d.y + ',' + d.x + ')'
+      })
+    // 点
+    chartG.append('circle').attr('r', 5).attr('cx', 0).attr('cy', 0).attr('stroke', colorScale(1))
+
+    // 'g' 元素的 动画
+    chartG
+      .transition()
+      .duration(1000)
+      .attr('transform', (d) => 'scale(1)' + 'translate(' + d.y + ',' + d.x + ')')
+      .select('circle')
+      .attr('fill', (d) => (d.children ? colorScale(1) : colorScale(2)))
+
+    // 文本
+    chartG
+      .append('text')
+      .attr('class', 'text')
+      .text((d) => (d.data.name.length < 5 ? d.data.name : d.data.name.slice(0, 3) + '...'))
+      .attr('dy', function () {
+        return this.getBBox().height / 4
+      })
+      .attr('fill', colorScale(3))
+      .attr('text-anchor', (d) => {
+        return 'end'
+      })
+      .attr('dx', (d) => {
+        return -5 * 2
+      })
+  </script>
+</html>
