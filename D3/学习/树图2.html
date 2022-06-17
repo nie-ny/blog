@@ -91,6 +91,7 @@
     var colorScale = d3.scaleOrdinal(d3.schemeSet3)
 
     // 绘制组
+    const linkChart = chart.append('g')
     const rectChart = chart.append('g')
 
     function draw(init = false) {
@@ -102,13 +103,30 @@
         .data(nodes, (d) => d.data.name)
         .join(
           (enter) => {
-            let $gs = enter.append('g')
+            let $gs = enter.append('g').attr('transform', (d) => {
+              let x, y
+              if (d.originX) {
+                x = d.originX
+                delete d.originX
+              } else {
+                x = d.x
+              }
+              if (d.originY) {
+                y = d.originY
+                delete d.originY
+              } else {
+                y = d.y
+              }
+
+              return `translate(${x}, ${y})`
+            })
+
             $gs
               .append('circle')
               .attr('r', 24)
               .attr('cx', 0)
               .attr('cy', 0)
-              .attr('fill', (d) => (d.children ? colorScale(1) : colorScale(2)))
+              .attr('fill', (d) => (d.children || d._children ? colorScale(1) : colorScale(2)))
 
             $gs
               .append('text')
@@ -139,34 +157,48 @@
         .attr('class', 'node')
         .style('cursor', 'pointer')
         .on('click', handle_node_click)
-
-      // 找出被关闭的元素  设置初始位置
-      rectNode
-        .filter((a) => a.originX !== undefined && a.originY !== undefined)
-        .attr('opacity', 0)
-        .attr('transform', (d) => {
-          let x, y
-          if (d.originX) {
-            x = d.originX
-            delete d.originX
-          } else {
-            x = d.x
-          }
-          if (d.originY) {
-            y = d.originY
-            delete d.originY
-          } else {
-            y = d.y
-          }
-
-          return `translate(${x}, ${y})`
-        })
-
-      rectNode
         .transition()
         .duration(init ? 0 : 1000)
         .attr('opacity', 1)
         .attr('transform', (d) => `translate(${d.x}, ${d.y})`)
+
+      let links = root.links()
+
+      linkChart
+        .selectAll('.link')
+        .data(links, (d, i) => d.target.data.name)
+        .join(
+          (enter) =>
+            enter
+              .append('path')
+              .attr('class', 'link')
+              .attr('fill', 'none')
+              .attr('stroke', 'gray')
+              .attr('d', (d) => {
+                let s = d.source
+                let origin = `${s.sourceX || s.x},${s.sourceY || s.y}`
+                return `M ${origin} L ${origin}`
+              }),
+          (update) => update,
+          (exit) =>
+            exit
+              .transition()
+              .duration(init ? 0 : 1000)
+              .attr('d', (d) => {
+                let s = d.source
+                let origin = `${s.x},${s.y}`
+
+                return `M ${origin} L ${origin}`
+              })
+              .remove()
+        )
+        .transition()
+        .duration(init ? 0 : 1000)
+        .attr('d', (d) => {
+          let s = d.source
+          let t = d.target
+          return `M ${s.x},${s.y} L ${t.x},${t.y}`
+        })
     }
 
     /**
@@ -175,6 +207,9 @@
      * @param {Object} d 数据
      */
     function handle_node_click(ev, d) {
+      d.sourceX = d.x
+      d.sourceY = d.y
+
       if (d.depth !== 0) {
         if (d.children) {
           d._children = d.children

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <style type="text/css"></style>
+  <body>
+    <div class="d3Chart"></div>
+  </body>
+  <!-- D3 -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script type="text/javascript">
+    var dataArr = [
+      {
+        label: '1月',
+        value: 10.5
+      },
+      {
+        label: '2月',
+        value: 70.5
+      },
+      {
+        label: '3月',
+        value: 60.5
+      },
+      {
+        label: '4月',
+        value: 10.5
+      },
+      {
+        label: '5月',
+        value: 20.5
+      },
+      {
+        label: '6月',
+        value: 30.5
+      }
+    ]
+
+    var width = 900
+    var height = 600
+    var margin = 30
+    var svg = d3
+      .select('.d3Chart')
+      .append('svg')
+      .attr('width', width)
+      .attr('height', height)
+      .style('background-color', '#1a3055')
+    // 图
+    var chart = svg.append('g').attr('transform', `translate(${2 * margin}, ${2 * margin})`)
+
+    var widthScale = d3
+      .scaleLinear()
+      .domain([0, d3.max(dataArr, (d) => d.value)])
+      .range([0, width * 0.5])
+
+    const handleData = dataArr
+      .sort((a, b) => b.value - a.value)
+      .map((d, i, array) => {
+        if (i !== array.length - 1) {
+          d.nextValue = array[i + 1].value
+        } else {
+          d.nextValue = 0
+        }
+        return d
+      })
+  </script>
+</html>
