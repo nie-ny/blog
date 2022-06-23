@@ -56,16 +56,74 @@
       .scaleLinear()
       .domain([0, d3.max(dataArr, (d) => d.value)])
       .range([0, width * 0.5])
+    var colorScale = d3.scaleOrdinal(d3.schemeSet3)
 
-    const handleData = dataArr
+    var handleData = dataArr
       .sort((a, b) => b.value - a.value)
       .map((d, i, array) => {
+        // 获取下一个数据的 值 最后一个 值设置为0
         if (i !== array.length - 1) {
           d.nextValue = array[i + 1].value
         } else {
           d.nextValue = 0
         }
         return d
+      })
+
+    var funnelChart = chart.append('g').attr('transform', 'translate(' + (width - 2 * margin) / 2 + ',0)')
+
+    // 条高度
+    var funnelHeight = 60
+    funnelChart
+      .selectAll()
+      .data(handleData)
+      .enter()
+      .append('polygon')
+      .attr('class', (d, i) => 'trap + trap-' + i)
+      .attr('points', (d) => getPoints(widthScale(d.value), widthScale(d.nextValue), funnelHeight))
+      .attr('transform', (d, i) => 'translate(0,' + i * (5 + funnelHeight) + ')')
+      .attr('fill', (d) => colorScale(d.label))
+
+    /**
+     * 计算梯形的点坐标
+     * */
+    function getPoints(topWidth, bottomWidth, height) {
+      const points = []
+
+      points.push(-topWidth / 2 + ',' + 0)
+      points.push(topWidth / 2 + ',' + 0)
+
+      if (bottomWidth === 0) {
+        // 最后 一个 以三角行结尾
+        points.push(0 + ',' + height)
+      } else {
+        points.push(bottomWidth / 2 + ',' + height)
+        points.push(-bottomWidth / 2 + ',' + height)
+      }
+
+      return points.join(' ')
+    }
+
+    funnelChart
+      .selectAll()
+      .data(handleData)
+      .enter()
+      .append('text')
+      .attr('class', (d, i) => 'label + label-' + i)
+      .text((d) => d.label)
+      .attr('text-anchor', 'middle')
+      .attr('x', 0)
+      .attr('y', function (d, i) {
+        return i * (5 + funnelHeight) + funnelHeight / 2 + this.getBBox().height / 4
+      })
+      .attr('stroke', '#000000')
+
+    d3.selectAll('.trap')
+      .on('mouseover', function (e, d) {
+        d3.select(e.target).attr('fill', 'white')
+      })
+      .on('mouseleave', function (e, d) {
+        d3.select(e.target).attr('fill', colorScale(d.label))
       })
   </script>
 </html>
