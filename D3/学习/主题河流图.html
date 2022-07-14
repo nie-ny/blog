@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>学习</title>
+  </head>
+  <style type="text/css">
+    * {
+    }
+  </style>
+  <!-- D3 -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <body>
+    <div class="d3Chart"></div>
+  </body>
+  <script type="text/javascript">
+    const bColor = ['#4385F4', '#34A853', '#FBBC05', '#E94335', '#01ACC2', '#AAACC2']
+    const dataArr = [
+      {
+        label: '1月',
+        value: 10.5,
+        value2: 70.5
+      },
+      {
+        label: '2月',
+        value: 70.5,
+        value2: 10.5
+      },
+      {
+        label: '3月',
+        value: 60.5,
+        value2: 10.5
+      },
+      {
+        label: '4月',
+        value: 10.5,
+        value2: 30.5
+      },
+      {
+        label: '5月',
+        value: 20.5,
+        value2: 10.5
+      },
+      {
+        label: '6月',
+        value: 30.5,
+        value2: 3.5
+      }
+    ]
+
+    const width = 450
+    const height = 450
+    const margin = 20
+
+    const svg = d3
+      .select('.d3Chart')
+      .append('svg')
+      .attr('width', width)
+      .attr('height', height)
+      .style('background-color', '#1a3055')
+
+    // 图
+    const chart = svg.append('g').attr('transform', `translate(${margin * 2}, ${margin})`)
+  </script>
+</html>
