@@ -1,12 +1,25 @@
 import { useState, useEffect } from 'react'
+import { scale } from './util'
+import { Box1, Box2, Box3, Box4, Box5, Head } from './content'
 import './App.css'
-import { BorderBox1 } from '@jiaminghi/data-view-react'
 
 function App() {
   const [state, setState] = useState({ scale: 1 })
-
   useEffect(() => {
-    setState({ scale: 1 })
+    setState({
+      scale: scale()
+    })
+
+    window.onresize = function () {
+      setState({
+        scale: scale()
+      })
+    }
+
+    return () => {
+      // 清除
+      window.onresize = null
+    }
   }, [])
 
   return (
@@ -16,9 +29,12 @@ function App() {
         transform: `scale(${state.scale}) translate(-50%,-50%)`
       }}
     >
-      <div className="box-x">
-        <BorderBox1>BorderBox1</BorderBox1>
-      </div>
+      <Head></Head>
+      <Box1 />
+      <Box2 />
+      <Box3 />
+      <Box4 />
+      <Box5 />
     </div>
   )
 }

@@ -1,0 +1,14 @@
+.box-3 {
+  position: absolute;
+  top: 100px;
+  right: 0;
+
+  width: 630px;
+  height: 560px;
+}
+
+.border-box-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

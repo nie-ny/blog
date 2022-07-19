@@ -1,0 +1,21 @@
+#root {
+  height: 100vh;
+  width: 100vw;
+}
+
+.App {
+  height: 100vh;
+  width: 100vw;
+  font-size: 16px;
+}
+
+.box-x {
+  width: 4rem;
+  height: 2rem;
+}
+
+.border-box-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

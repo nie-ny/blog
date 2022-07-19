@@ -1,0 +1,14 @@
+.box-5 {
+  position: absolute;
+  bottom: 10px;
+  right: 0;
+
+  width: 630px;
+  height: 400px;
+}
+
+.border-box-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

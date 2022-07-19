@@ -1,14 +1,14 @@
-#root{
+#root {
   height: 100vh;
   width: 100vw;
 }
 
 .App {
-
-}
-
-.box-x{
-  width: 400px;
-  height: 200px;
-  text-align: center;
+  width: 1920px;
+  height: 1080px;
+  transform-origin: 0 0;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  background-image: url(bg.png);
 }
