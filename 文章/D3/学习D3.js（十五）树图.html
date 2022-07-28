@@ -10,7 +10,7 @@
   <body>
     <div class="d3Chart"></div>
   </body>
-  <!-- D3 -->
+  <!-- D3模块 -->
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <script type="text/javascript">
     const dataTree = {
@@ -80,25 +80,55 @@
     // 图
     var chart = svg.append('g').attr('transform', `translate(${2 * margin}, ${2 * margin})`)
 
+    var colorScale = d3.scaleOrdinal(d3.schemeSet3)
+
     const rootTree = d3
       .hierarchy(dataTree)
       .sum((d) => d.num) // 计算绘图属性value的值  -求和 其子节点所有.num属性的和值
       .sort((a, b) => a.value - b.value) // 根据 上面计算出的value属性 排序
+
     // 创建一个新的树布局
     // .size() 设置布局的尺寸
     const treeData = d3.tree().size([width - 4 * margin, height - 4 * margin])
-
-    var colorScale = d3.scaleOrdinal(d3.schemeSet3)
 
     // 绘制组
     const linkChart = chart.append('g')
     const rectChart = chart.append('g')
 
     /**
+     * @name 处理结点 点击
+     * @param {Object} ev 事件
+     * @param {Object} d 数据
+     */
+    function handle_node_click(ev, d) {
+      d.sourceX = d.x
+      d.sourceY = d.y
+
+      if (d.depth !== 0) {
+        if (d.children) {
+          d._children = d.children
+          d.children = undefined
+
+          draw()
+        } else if (d._children) {
+          for (let a of d._children) {
+            a.originX = a.parent.x
+            a.originY = a.parent.y
+          }
+          d.children = d._children
+
+          draw()
+        }
+      }
+    }
+
+    /**
      * init 是否第一次加载
      * */
     function draw(init = false) {
+      // 为数据添加位置信息
       let root = treeData(rootTree)
+      // 获取所有节点数据
       let nodes = root.descendants()
 
       const rectNode = rectChart
@@ -106,6 +136,9 @@
         .data(nodes, (d) => d.data.name)
         .join(
           (enter) => {
+            /**
+             * 绘制节点 和 节点文本
+             * */
             let $gs = enter.append('g').attr('transform', (d) => {
               let x, y
               if (d.originX) {
@@ -148,7 +181,7 @@
           },
           (update) => update,
           (exit) => {
-            // 处理 多出的 节点, 删除
+            // 删除多出 节点 添加动画
             exit
               .transition()
               .duration(init ? 0 : 1000)
@@ -160,11 +193,13 @@
         .attr('class', 'node')
         .style('cursor', 'pointer')
         .on('click', handle_node_click)
+        // 节点加载 进行动画
         .transition()
         .duration(init ? 0 : 1000)
         .attr('opacity', 1)
         .attr('transform', (d) => `translate(${d.x}, ${d.y})`)
 
+      // 获取线条 位置信息
       let links = root.links()
       linkChart
         .selectAll('.link')
@@ -201,33 +236,6 @@
           let t = d.target
           return `M ${s.x},${s.y} L ${t.x},${t.y}`
         })
-    }
-
-    /**
-     * @name 处理结点 点击
-     * @param {Object} ev 事件
-     * @param {Object} d 数据
-     */
-    function handle_node_click(ev, d) {
-      d.sourceX = d.x
-      d.sourceY = d.y
-
-      if (d.depth !== 0) {
-        if (d.children) {
-          d._children = d.children
-          d.children = undefined
-
-          draw()
-        } else if (d._children) {
-          for (let a of d._children) {
-            a.originX = a.parent.x
-            a.originY = a.parent.y
-          }
-          d.children = d._children
-
-          draw()
-        }
-      }
     }
 
     draw(true)
