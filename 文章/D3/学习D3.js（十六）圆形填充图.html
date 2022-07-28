@@ -10,9 +10,10 @@
   <body>
     <div class="d3Chart"></div>
   </body>
-  <!-- D3 -->
+  <!-- D3模块 -->
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <script type="text/javascript">
+    //
     const dataTree = {
       name: '太刀',
       children: [
@@ -68,39 +69,32 @@
       ]
     }
 
-    const width = 500
-    const height = 500
-    const margin = 30
-    const svg = d3
+    var width = 500
+    var height = 500
+    var margin = 30
+    var svg = d3
       .select('.d3Chart')
       .append('svg')
       .attr('width', width)
       .attr('height', height)
       .style('background-color', '#1a3055')
     // 图
-    const chart = svg.append('g').attr('transform', `translate(${2 * margin}, ${2 * margin})`)
+    var chart = svg.append('g').attr('transform', `translate(${2 * margin}, ${2 * margin})`)
 
     const colorScale = d3.scaleOrdinal(d3.schemeSet3)
-
     const rootTree = d3
       .hierarchy(dataTree)
       .sum((d) => d.num) // 计算绘图属性value的值  -求和 其子节点所有.num属性的和值
       .sort((a, b) => a.value - b.value) // 根据 上面计算出的value属性 排序
-
-    // 添加布局信息
     const pack = d3.pack().size([width - 4 * margin, height - 4 * margin])(rootTree)
-    // console.log('🚀 ~ file: 封闭图.html ~ line 90 ~ pack', pack)
 
-    // 绘制组
     const rectChart = chart.append('g')
-
     const rectChartG = rectChart
       .selectAll()
       .data(pack.descendants())
       .enter()
       .append('g')
       .attr('class', (d, i) => 'g g-' + i)
-
     rectChartG
       .append('circle')
       .attr('class', 'circle')
@@ -108,7 +102,6 @@
       .attr('cy', (d) => d.y)
       .attr('r', (d) => d.r)
       .attr('fill', (d, i) => colorScale(d.data.name))
-
     rectChartG
       .append('text')
       .attr('class', 'text')
@@ -124,10 +117,9 @@
         if (textWidthIsOk(d, this)) {
           return d.data.name
         } else {
-          return d.data.name.slice(0, 1)
+          return '...'
         }
       })
-
     // 检测文本长度是否合适
     function textWidthIsOk(d, text) {
       const textWidth = text.getBBox().width
