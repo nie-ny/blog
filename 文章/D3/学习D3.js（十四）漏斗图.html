@@ -10,7 +10,7 @@
   <body>
     <div class="d3Chart"></div>
   </body>
-  <!-- D3 -->
+  <!-- D3模块 -->
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <script type="text/javascript">
     var dataArr = [
@@ -67,21 +67,11 @@
         } else {
           d.nextValue = 0
         }
+        d.index = i
         return d
       })
 
     var funnelChart = chart.append('g').attr('transform', 'translate(' + (width - 2 * margin) / 2 + ',0)')
-    // 条高度
-    var funnelHeight = 60
-    funnelChart
-      .selectAll()
-      .data(handleData)
-      .enter()
-      .append('polygon')
-      .attr('class', (d, i) => 'trap + trap-' + i)
-      .attr('points', (d) => getPoints(widthScale(d.value), widthScale(d.nextValue), funnelHeight))
-      .attr('transform', (d, i) => 'translate(0,' + i * (5 + funnelHeight) + ')')
-      .attr('fill', (d) => colorScale(d.label))
 
     /**
      * 计算梯形的点坐标
@@ -103,12 +93,24 @@
       return points.join(' ')
     }
 
+    // 梯形高度
+    var funnelHeight = 60
+    funnelChart
+      .selectAll()
+      .data(handleData)
+      .enter()
+      .append('polygon')
+      .attr('class', (d, i) => 'trap  trap-' + i)
+      .attr('points', (d) => getPoints(widthScale(d.value), widthScale(d.nextValue), funnelHeight))
+      .attr('transform', (d, i) => 'translate(0,' + i * (5 + funnelHeight) + ')')
+      .attr('fill', (d) => colorScale(d.label))
+
     funnelChart
       .selectAll()
       .data(handleData)
       .enter()
       .append('text')
-      .attr('class', (d, i) => 'label + label-' + i)
+      .attr('class', (d, i) => 'label  label-' + i)
       .text((d) => d.label)
       .attr('text-anchor', 'middle')
       .attr('x', 0)
@@ -123,6 +125,13 @@
       })
       .on('mouseleave', function (e, d) {
         d3.select(e.target).attr('fill', colorScale(d.label))
+      })
+    d3.selectAll('.label')
+      .on('mouseover', function (e, d) {
+        d3.select('.trap-' + d.index).attr('fill', 'white')
+      })
+      .on('mouseleave', function (e, d) {
+        d3.select('.trap-' + d.index).attr('fill', colorScale(d.label))
       })
   </script>
 </html>
