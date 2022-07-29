@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>学习</title>
+  </head>
+  <style type="text/css">
+    * {
+    }
+  </style>
+  <!-- D3 -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <body>
+    <div class="d3Chart"></div>
+  </body>
+  <script type="text/javascript">
+    //
+    const data = 95
+
+    // 画布
+    const width = 500
+    const height = 500
+    const margin = 30
+    const svg = d3
+      .select('.d3Chart')
+      .append('svg')
+      .attr('width', width)
+      .attr('height', height)
+      .style('background-color', '#1a3055')
+    // 图
+    const chart = svg.append('g')
+
+    const colorScale = d3.scaleOrdinal(d3.schemeSet3)
+    // 仪表盘半径
+    const radius = d3.min([width - 4 * margin, height - 4 * margin]) / 2
+
+    // 弧度 分段
+    const nums = [0, 50, 90, 100]
+    const numLength = 100
+    const anglelength = 280 // 仪表盘 度数
+    let angleDraw = []
+    nums.forEach((item, i) => {
+      if (i !== nums.length - 1) {
+        const angleS = (item / numLength) * anglelength
+        const angleE = (nums[i + 1] / numLength) * anglelength
+        angleDraw.push({
+          startAngle: (angleS - anglelength / 2) * (Math.PI / 180),
+          endAngle: (angleE - anglelength / 2) * (Math.PI / 180)
+        })
+      }
+    })
+    // 创建 扇形绘制器
+    let innerArc = 25 // 仪表盘 条形宽度
+    const arc = d3
+      .arc()
+      .outerRadius(radius)
+      .innerRadius(radius - innerArc)
+
+    chart
+      .append('g')
+      .attr('transform', 'translate(' + width / 2 + ',' + height / 2 + ')')
+      .selectAll()
+      .data(angleDraw)
+      .enter()
+      .append('path')
+      .attr('class', (d, i) => ' arc-' + i)
+      .attr('d', arc)
+      .attr('fill', (d, i) => colorScale(i))
+
+    const kedu = []
+    for (let i = -anglelength / 2; i <= anglelength / 2; i += anglelength / 100) {
+      kedu.push((i * Math.PI) / 180)
+    }
+
+    const ticks = chart
+      .append('g')
+      .attr('transform', 'translate(' + width / 2 + ',' + height / 2 + ')')
+      .selectAll()
+      .data(kedu)
+      .enter()
+      .append('g')
+      .attr('class', 'ticks')
+      .each(drawTicks)
+      .each(drawLabels)
+
+    function drawTicks(d, i) {
+      if (i === 0 || i === 100) return
+      const innerRadius = i % 10 === 0 ? radius - innerArc : radius - innerArc / 3
+      d3.select(this)
+        .append('line')
+        .attr('stroke', '#000000')
+        .attr('x1', Math.sin(d) * radius)
+        .attr('y1', -Math.cos(d) * radius)
+        .attr('x2', Math.sin(d) * innerRadius)
+        .attr('y2', -Math.cos(d) * innerRadius)
+    }
+
+    function drawLabels(d, i) {
+      let textAnchor = 'end'
+      if (i === 50) {
+        textAnchor = 'middle'
+      }
+      if (i % 10 === 0) {
+        const textRadius = radius - innerArc - 15
+        d3.select(this)
+          .append('text')
+          .attr('class', 'label')
+          .attr('x', Math.sin(d) * textRadius)
+          .attr('y', -Math.cos(d) * textRadius)
+          .attr('dy', 5.5)
+          .attr('stroke', '#ffffff')
+          .attr('text-anchor', d < -0.01 ? 'start' : textAnchor)
+          .text((i / 100) * 100)
+      }
+    }
+
+    // 指针位置点 计算
+    function points() {
+      // 顶点
+      const upper = Math.floor(radius - innerArc - 50)
+      // 两边 中间点
+      const short = Math.floor(upper * 0.13)
+      // 两边点
+      const both = Math.floor(short * 0.6)
+
+      return ['0,' + short, both + ',0', '0,' + -upper, -both + ',0']
+    }
+
+    chart
+      .append('g')
+      .attr('transform', 'translate(' + width / 2 + ',' + height / 2 + ')')
+      .selectAll()
+      .data([data])
+      .enter()
+      .append('polygon')
+      .attr('class', 'pointer')
+      .attr('points', points)
+      .attr('fill', colorScale(0))
+      .attr('transform', 'rotate(' + -0.5 * anglelength + ')')
+      .transition()
+      .duration(1000)
+      .attrTween('transform', rotateTween)
+      .attrTween('fill', fillTween)
+
+    function rotateTween(d) {
+      return function (t) {
+        return 'rotate(' + ((d * t) / numLength - 0.5) * anglelength + ')'
+      }
+    }
+    function fillTween(d) {
+      return function (t) {
+        let i = 0
+        while (i < nums.length - 1 && nums[i] < d * t) {
+          i++
+        }
+        return colorScale(i - 1)
+      }
+    }
+  </script>
+</html>
