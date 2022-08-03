@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>学习</title>
+  </head>
+  <style type="text/css">
+    * {
+    }
+  </style>
+  <!-- D3 -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://unpkg.com/d3-sankey@0"></script>
+
+  <body>
+    <div class="d3Chart"></div>
+  </body>
+  <script type="text/javascript">
+    const data = {
+      nodes: [
+        { name: 'a' },
+        { name: 'b' },
+        { name: 'c' },
+        { name: 'd' },
+        { name: 'e' },
+        { name: 'f' },
+        { name: 'g' },
+        { name: 'h' },
+        { name: 'i' }
+      ],
+      links: [
+        { source: 'a', target: 'd', value: 10 },
+        { source: 'a', target: 'i', value: 2 },
+        { source: 'b', target: 'd', value: 8 },
+        { source: 'b', target: 'e', value: 6 },
+        { source: 'c', target: 'e', value: 5 },
+        { source: 'b', target: 'e', value: 2 },
+        { source: 'b', target: 'i', value: 4 },
+        { source: 'd', target: 'f', value: 3 },
+        { source: 'd', target: 'g', value: 4 },
+        { source: 'd', target: 'h', value: 5 },
+        { source: 'e', target: 'g', value: 7 },
+        { source: 'e', target: 'f', value: 3 },
+        { source: 'e', target: 'h', value: 5 }
+      ]
+    }
+
+    // 画布
+    const width = 500
+    const height = 500
+    const margin = 30
+    const svg = d3
+      .select('.d3Chart')
+      .append('svg')
+      .attr('width', width)
+      .attr('height', height)
+      .style('background-color', '#1a3055')
+    // 图
+    const chart = svg.append('g').attr('transform', `translate(${margin}, ${margin})`)
+
+    const colorScale = d3.scaleOrdinal(d3.schemeSet3)
+
+    const sankey = d3
+      .sankey()
+      .nodeWidth(30)
+      .nodePadding(20)
+      .size([width - 2 * margin, height - 2 * margin])
+      .nodeId((d) => d.name)
+
+    const { nodes, links } = sankey({
+      nodes: data.nodes,
+      links: data.links
+    })
+
+    chart
+      .append('g')
+      .selectAll()
+      .data(nodes)
+      .join('g')
+      .attr('class', 'node')
+      .attr('indexName', (d) => d.name)
+      .append('rect')
+      .attr('fill', (d, i) => colorScale(d.name))
+      .attr('x', (d) => d.x0)
+      .attr('y', (d) => d.y0)
+      .attr('height', (d) => d.y1 - d.y0)
+      .attr('width', (d) => d.x1 - d.x0)
+      .append('title')
+      .text((d) => `${d.name}`)
+
+    chart
+      .append('g')
+      .attr('fill', 'none')
+      .selectAll()
+      .data(links)
+      .join('path')
+      .attr('indexName', (d) => d.source.name + '-' + d.target.name)
+      .attr('d', d3.sankeyLinkHorizontal())
+      .attr('stroke', (d, i) => colorScale(d.source.name))
+      .attr('stroke-width', (d) => d.width)
+      .attr('stroke-opacity', '0.5')
+      .append('title')
+      .text((d) => `${d.value.toLocaleString()}`)
+
+    // chart
+    //   .append('g')
+    //   .style('font', '10px sans-serif')
+    //   .selectAll()
+    //   .data(nodes)
+    //   .join('text')
+    //   .attr('x', (d) => (d.x0 < width / 2 ? d.x1 + 6 : d.x0 - 6))
+    //   .attr('y', (d) => (d.y1 + d.y0) / 2)
+    //   .attr('dy', '0.35em')
+    //   .attr('text-anchor', (d) => (d.x0 < width / 2 ? 'start' : 'end'))
+    //   .text((d) => d.name)
+    //   .append('tspan')
+    //   .attr('fill-opacity', 0.7)
+    //   .text((d) => ` ${d.value.toLocaleString()}`)
+
+    chart
+      .selectAll('.node')
+      .append('text')
+      .attr('class', 'text')
+      .attr('x', (d) => (d.x0 + d.x1) / 2)
+      .attr('y', (d) => (d.y0 + d.y1) / 2)
+      .attr('stroke', '#000000')
+      .attr('text-anchor', 'middle')
+      .attr('dy', 6)
+      .text((d) => d.name)
+
+    d3.selectAll('.node')
+      .on('mouseover', function (e, d) {
+        d3.selectAll('.node, path').attr('fill-opacity', '0.1').attr('stroke-opacity', '0.1')
+
+        d3.selectAll('[indexName*=' + d.name + ']')
+          .attr('fill-opacity', '1')
+          .attr('stroke-opacity', '0.6')
+      })
+      .on('mouseleave', function () {
+        d3.selectAll('.node, path').attr('fill-opacity', '1').attr('stroke-opacity', '0.5')
+      })
+
+    // 连线
+    d3.selectAll('path')
+      .on('mouseover', function (e, d) {
+        d3.selectAll('.node, path').attr('fill-opacity', '0.1').attr('stroke-opacity', '0.1')
+
+        const hoverNodes = d3.select(e.target).attr('stroke-opacity', '0.5').attr('indexName').split('-')
+
+        hoverNodes.forEach((name) => {
+          d3.selectAll('[indexName=' + name + ']').attr('fill-opacity', '1')
+        })
+      })
+      .on('mouseleave', function () {
+        d3.selectAll('.node, path').attr('fill-opacity', '1').attr('stroke-opacity', '0.5')
+      })
+  </script>
+</html>
