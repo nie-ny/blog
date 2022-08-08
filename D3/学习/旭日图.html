@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>学习</title>
+  </head>
+  <style type="text/css">
+    * {
+    }
+  </style>
+  <!-- D3 -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+
+  <body>
+    <div class="d3Chart"></div>
+  </body>
+  <script type="text/javascript">
+    const data = {
+      name: 'A',
+      children: [
+        {
+          name: 'a',
+          children: [
+            {
+              name: 'a-a',
+              children: [
+                {
+                  name: 'a-aa',
+                  value: 2
+                }
+              ]
+            },
+            {
+              name: 'a-b',
+              value: 4
+            }
+          ]
+        },
+        {
+          name: 'b',
+          children: [
+            {
+              name: 'b-a',
+              children: [
+                {
+                  name: 'b-aa',
+                  value: 2
+                }
+              ]
+            }
+          ]
+        },
+        {
+          name: 'c',
+          children: [
+            {
+              name: 'c-a',
+              children: [
+                {
+                  name: 'c-aa',
+                  value: 2
+                },
+                {
+                  name: 'c-ab',
+                  value: 5
+                },
+                {
+                  name: 'c-ac',
+                  children: [
+                    {
+                      name: 'c-aca',
+                      value: 2
+                    },
+                    {
+                      name: 'c-acb',
+                      value: 5
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+
+    // 画布
+    const width = 500
+    const height = 500
+    const margin = 30
+    const svg = d3
+      .select('.d3Chart')
+      .append('svg')
+      .attr('width', width)
+      .attr('height', height)
+      .style('background-color', '#1a3055')
+    // 图
+    const chart = svg.append('g').attr('transform', `translate(${margin}, ${margin})`)
+
+    // d3.interpolateRainbow(t) 返回一串RGB颜色  t:取值范围是[0，1]
+    // d3.quantize(interpolator, n) 返回数组   通过插值器函数(interpolator)  返回传入的样本数(n)
+    // 创建颜色比例尺
+    const color = d3.scaleOrdinal(d3.quantize(d3.interpolateRainbow, data.children.length + 1))
+
+    // 使用 叠堆函数 组装数据
+    const root = d3
+      .hierarchy(data)
+      .sum((d) => d.value)
+      .sort((a, b) => b.value - a.value)
+
+    const partition = (newData) => {
+      //  d3.partition() 递归地将节点树分区为旭日图或者冰柱图
+      return d3.partition().size([2 * Math.PI, newData.height + 1])(newData)
+    }
+
+    const slices = chart.append('g').attr('transform', `translate(${width / 2 - margin},${height / 2 - margin})`)
+
+    let currentRoot = 'chart'
+
+    function draw(newData) {
+      // 获取展示数据
+      const nodes = partition(newData)
+      nodes.each((d) => (d.current = d))
+      const radius = width / ((nodes.height + 2) * 2)
+      // 中心节点
+      currentRoot = nodes.data.name
+
+      const path = slices
+        .selectAll('.node')
+        .data(nodes.descendants(), (d) => d.data.name)
+        .join(
+          (enter) => {
+            let $gs = enter.append('path')
+
+            $gs.append('title').text((d) => `${d.data.name}: ${d.value}`)
+            return $gs
+          },
+          (update) => update,
+          (exit) => {
+            // 多出的节点 删除
+            exit.transition().duration(0).attr('opacity', 0).remove()
+          }
+        )
+        .attr('class', 'node')
+        .style('cursor', 'pointer')
+        .attr('fill', (d) => {
+          while (d.depth > 1) d = d.parent
+          return color(d.data.name)
+        })
+        .on('click', handle_node_click)
+
+        .transition()
+        .duration(300)
+        .attrTween('d', arcTween)
+
+      // path
+      function arcTween(item) {
+        /**
+         * 弧度计算
+         * */
+        // let currentArc = this._current
+        // if (!currentArc) {
+        //   currentArc = { startAngle: 0, endAngle: 0 }
+        // }
+        // const interpolateArc = d3.interpolate(
+        //   //对弧度插值
+        //   currentArc,
+        //   {
+        //     startAngle: item.x0,
+        //     endAngle: item.x1
+        //   }
+        // )
+        // this._current = interpolateArc(1)
+
+        /**
+         * 半径计算
+         * */
+        const innerRadiusR = item.y0 * radius
+        let currentRadius = this._currentR
+        if (!currentRadius) {
+          currentRadius = innerRadiusR
+        }
+        const outerRadiusR = d3.interpolate(currentRadius, item.y1 * radius - 1)
+        this._currentR = outerRadiusR(1)
+
+        return function (t) {
+          const arc = d3
+            .arc()
+            .startAngle(item.x0)
+            .endAngle(item.x1)
+            .padAngle(Math.min((item.x1 - item.x0) / 2, 0.005))
+            .innerRadius(innerRadiusR)
+            .outerRadius(outerRadiusR(t))
+          return arc()
+        }
+      }
+
+      // // 文本位置计算
+      function labelTransform(d) {
+        const x = (((d.x0 + d.x1) / 2) * 180) / Math.PI
+        let y = ((d.y0 + d.y1) / 2) * radius
+        if (d.y0 === 0) {
+          return `translate(0,0)`
+        }
+        return `rotate(${x - 90}) translate(${y},0) rotate(${x < 180 ? 0 : 180})`
+      }
+      const label = slices
+        .selectAll('text')
+        .data(nodes.descendants(), (d) => d.data.name)
+        .join('text')
+        .attr('text-anchor', 'middle')
+        .attr('pointer-events', 'none')
+        .style('user-select', 'none')
+        .attr('dy', '0.35em')
+        .attr('transform', (d) => labelTransform(d.current))
+        .text((d) => d.data.name)
+      label.exit().remove()
+    }
+
+    function handle_node_click(e, d) {
+      if (d.data.name === currentRoot) {
+        // 点击中心节点回退
+        if (d.parent) {
+          const newD = d.parent.copy()
+          newD.parent = d.parent.parent
+          draw(newD)
+        }
+      } else {
+        // 点击其余节点下钻
+        const newD = d.copy()
+        newD.parent = d.parent
+        draw(newD)
+      }
+    }
+
+    draw(root)
+  </script>
+</html>
