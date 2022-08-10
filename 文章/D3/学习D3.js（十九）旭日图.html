@@ -4,18 +4,15 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>学习</title>
+    <title>Document</title>
   </head>
-  <style type="text/css">
-    * {
-    }
-  </style>
-  <!-- D3 -->
-  <script src="https://d3js.org/d3.v7.min.js"></script>
-
+  <style type="text/css"></style>
   <body>
     <div class="d3Chart"></div>
   </body>
+  <!-- D3 -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+
   <script type="text/javascript">
     const data = {
       name: 'A',
@@ -98,27 +95,44 @@
     // 图
     const chart = svg.append('g')
 
-    // d3.interpolateRainbow(t) 返回一串RGB颜色  t:取值范围是[0，1]
-    // d3.quantize(interpolator, n) 返回数组   通过插值器函数(interpolator)  返回传入的样本数(n)
     // 创建颜色比例尺
     const color = d3.scaleOrdinal(d3.quantize(d3.interpolateRainbow, data.children.length + 1))
 
-    // 使用 叠堆函数 组装数据
+    // 构造根节点数据
     const root = d3
       .hierarchy(data)
       .sum((d) => d.value)
       .sort((a, b) => b.value - a.value)
 
+    // 分区图布局
     const partition = (newData) => {
-      //  d3.partition() 递归地将节点树分区为旭日图或者冰柱图
+      //  d3.partition() 递归地将节点树  分区为旭日图或者冰柱图
       return d3.partition().size([2 * Math.PI, newData.height + 1])(newData)
     }
 
     const slices = chart.append('g').attr('transform', `translate(${width / 2},${height / 2})`)
     // 中心点 标识
     let currentRoot = 'chart'
+
+    function handle_node_click(e, d) {
+      if (d.data.name === currentRoot) {
+        // 点击中心节点回退
+        if (d.parent) {
+          const newD = d.parent.copy()
+          newD.parent = d.parent.parent
+          draw(newD)
+        }
+      } else {
+        // 点击其余节点下钻
+        // .copy() 复制层次结构
+        const newD = d.copy()
+        newD.parent = d.parent
+        draw(newD)
+      }
+    }
+
     function draw(newData) {
-      // 获取展示数据
+      // 对数据添加布局信息
       const nodes = partition(newData)
       nodes.each((d) => (d.current = d))
       const radius = width / 2 / (nodes.height + 2)
@@ -173,6 +187,7 @@
         /**
          * 半径计算
          * */
+        // 不同层级 内半径不同
         const innerRadiusR = item.y0 * radius
         let currentRadius = this._currentR
         if (!currentRadius) {
@@ -203,31 +218,23 @@
       const label = slices
         .selectAll('text')
         .data(nodes.descendants(), (d) => d.data.name)
-        .join('text')
+        .join(
+          (enter) => {
+            let $gs = enter.append('text')
+            return $gs
+          },
+          (update) => update,
+          (exit) => {
+            // 多出的节点删除
+            exit.transition().duration(100).attr('opacity', 0).remove()
+          }
+        )
         .attr('text-anchor', 'middle')
         .attr('pointer-events', 'none')
         .style('user-select', 'none')
         .attr('dy', '0.35em')
         .attr('transform', (d) => labelTransform(d.current))
         .text((d) => d.data.name)
-      label.exit().remove()
-    }
-
-    function handle_node_click(e, d) {
-      if (d.data.name === currentRoot) {
-        // 点击中心节点回退
-        if (d.parent) {
-          const newD = d.parent.copy()
-          newD.parent = d.parent.parent
-          draw(newD)
-        }
-      } else {
-        // 点击其余节点下钻
-        // .copy() 复制层次结构
-        const newD = d.copy()
-        newD.parent = d.parent
-        draw(newD)
-      }
     }
 
     draw(root)
