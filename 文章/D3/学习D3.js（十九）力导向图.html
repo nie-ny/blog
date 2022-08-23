@@ -66,5 +66,16 @@
 
     // 创建颜色比例尺
     const colorScale = d3.scaleOrdinal(d3.quantize(d3.interpolateRainbow, nodes.length + 1))
+
+    // .forceSimulation() 创建一个力模拟
+    // .force(name[, force]) 如果指定了力，则为指定的名称分配力并返回此模拟。
+    // d3.forceLink() 适用每个链接的源和目标 --链接力
+    // d3.forceManyBody() -- 多体力
+    // d3.forceCenter(x, y) 使用指定的x和y坐标创建新的定心力。如果未指定x和y，则默认为⟨0,0⟩。
+    const force = d3
+      .forceSimulation()
+      .force('link', d3.forceLink())
+      .force('charge', d3.forceManyBody())
+      .force('center', d3.forceCenter(width / 2, height / 2))
   </script>
 </html>

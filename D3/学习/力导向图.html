@@ -78,8 +78,13 @@
       .force('charge', d3.forceManyBody())
       .force('center', d3.forceCenter(width / 2, height / 2))
 
+    // .nodes() 指定节点，将模拟的节点设置为指定的对象数组
+    // .on('tick', fun) 监听迭代次数逐步执行模拟 -- 每一次力的模拟都会执行这个方法
     force.nodes(nodes).on('tick', ticked)
 
+    // .force('link') 如果未指定力，则返回具有指定名称的force
+    // .links() 指定链接，设置与此力关联的链接数组，重新计算每个链接的距离和强度参数，并返回此力
+    // .distance() 指定距离，则将距离访问器设置为指定的数字或函数，重新计算每个链接的距离访问器，并返回此力
     force
       .force('link')
       .links(edges)
@@ -92,6 +97,7 @@
     console.log(nodes)
     console.log(edges)
 
+    // 绘制线
     const links = chart
       .append('g')
       .selectAll('line')
@@ -100,7 +106,6 @@
       .append('line')
       .attr('stroke', '#ccc')
       .attr('stroke-width', 1)
-
     const linksText = chart
       .append('g')
       .selectAll('text')
@@ -124,7 +129,7 @@
         var cirY = d.y
         return 'translate(' + cirX + ',' + cirY + ')'
       })
-      .call(d3.drag().on('start', started).on('drag', dragged).on('end', ended))
+    // .call(d3.drag().on('start', started).on('drag', dragged).on('end', ended))
 
     gs.append('circle')
       .attr('r', function (d, i) {
@@ -177,7 +182,7 @@
 
     function started(d) {
       // if (!d3.event.active) {
-      force.alphaTarget(1).restart() //设置衰减系数，对节点位置移动过程的模拟，数值越高移动越快，数值范围[0，1]
+      force.alphaTarget(1).restart() // 设置衰减系数，对节点位置移动过程的模拟，数值越高移动越快，数值范围[0，1]
       // }
       d.fx = d.x
       d.fy = d.y
@@ -194,60 +199,5 @@
       d.fx = null
       d.fy = null
     }
-
-    // const force = d3
-    //   .forceSimulation()
-    //   .velocityDecay(0.8) //速度衰减
-    //   .alphaDecay(0) //alpha衰变, 0表示不衰减
-    //   .force('charge', d3.forceManyBody()) //节点相互作用力，默认为斥力-30
-    //   .force('collision', d3.forceCollide(12 + 0.2).strength(0.1)) //碰撞
-    //   .force('center', d3.forceCenter(width / 2, height / 2))
-
-    // force.nodes(nodes) //绑定节点
-
-    // force.force('link', d3.forceLink(edges).strength(1).distance(20)) //绑定节点间链接
-
-    // const points = chart.selectAll('circle').data(nodes)
-
-    // points
-    //   .enter()
-    //   .append('circle')
-    //   .attr('r', function (d, i) {
-    //     // 半径
-    //     return d.radius * 10
-    //   })
-    //   .attr('fill', (d) => colorScale(d.name))
-
-    // const drag = d3
-    //   .drag()
-    //   .on('start', (d) => {
-    //     d.fx = d.x
-    //     d.fy = d.y
-    //   })
-    //   .on('drag', (d) => {
-    //     d.fx = d3.event.x
-    //     d.fy = d3.event.y
-    //   })
-    //   .on('end', (d) => {
-    //     d.fx = null
-    //     d.fy = null
-    //   })
-
-    // chart.selectAll('circle').call(drag)
-
-    // force.on('tick', function () {
-    //   // chart
-    //   //   .body()
-    //   //   .selectAll('line')
-    //   //   .attr('x1', (d) => d.source.x)
-    //   //   .attr('y1', (d) => d.source.y)
-    //   //   .attr('x2', (d) => d.target.x)
-    //   //   .attr('y2', (d) => d.target.y)
-
-    //   chart
-    //     .selectAll('circle')
-    //     .attr('cx', (d) => d.x)
-    //     .attr('cy', (d) => d.y)
-    // })
   </script>
 </html>
