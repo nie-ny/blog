@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>d3关系图谱</title>
+  </head>
+
+  <body>
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      xmlns:xlink="http://www.w3.org/1999/xlink"
+      id="svgId"
+      height="1000"
+      width="100%"
+    ></svg>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script>
+      const data = {
+        nodes: [
+          {
+            currency: '万元',
+            id: '130790264',
+            img: '',
+            name: '兆协投资有限公司',
+            organ: false,
+            reg_amount: 0,
+            type: 'company'
+          },
+          {
+            currency: '万元',
+            id: '115804450',
+            img: '',
+            name: '北京兆协食品有限公司上海销售分部',
+            organ: false,
+            reg_amount: 0,
+            type: 'company'
+          },
+          {
+            ex_com_id: 67,
+            id: '126',
+            img: '',
+            name: '翁祖明',
+            type: 'man'
+          },
+          {
+            ex_com_id: '115804450',
+            id: '7065171',
+            name: '杨敬祖',
+            type: 'man'
+          },
+          {
+            ex_com_id: 67932906,
+            id: '8032034',
+            name: '陈家协',
+            type: 'man'
+          },
+          {
+            ex_com_id: 67932906,
+            id: '69542',
+            img: '',
+            name: '林杰',
+            type: 'man'
+          },
+          {
+            ex_com_id: 67932906,
+            id: '630248',
+            img: '',
+            name: '陈钟峰',
+            type: 'man'
+          },
+          {
+            currency: '万美元',
+            id: '67932906',
+            img: '',
+            name: '丹阳钱隆金属材料有限公司',
+            organ: false,
+            reg_amount: 2990,
+            type: 'company'
+          },
+          {
+            ex_com_id: 67932906,
+            id: '17302430',
+            img: '',
+            name: '陈身秀',
+            type: 'man'
+          },
+          {
+            ex_com_id: 67932906,
+            id: '17302431',
+            img: '',
+            name: '陈兴莺',
+            type: 'man'
+          },
+          {
+            currency: '万美元',
+            id: '67',
+            img: '',
+            name: '北京兆协食品有限公司',
+            organ: false,
+            reg_amount: 12,
+            type: 'company'
+          }
+        ],
+        links: [
+          {
+            src: 130790264,
+            dst: 67932906,
+            type: '投资',
+            with: 'company'
+          },
+          {
+            src: 126,
+            dst: 67,
+            type: '法定代表人',
+            with: 'man'
+          },
+          {
+            src: 126,
+            dst: 130790264,
+            type: '投资',
+            with: 'man'
+          },
+          {
+            src: 7065171,
+            dst: 115804450,
+            type: '法定代表人',
+            with: 'man'
+          },
+          {
+            src: 7065171,
+            dst: 130790264,
+            type: '法定代表人',
+            with: 'man'
+          },
+          {
+            src: 8032034,
+            dst: 67932906,
+            type: '董事',
+            with: 'man'
+          },
+          {
+            src: 17302430,
+            dst: 67932906,
+            type: '法定代表人',
+            with: 'man'
+          },
+          {
+            src: 17302431,
+            dst: 67932906,
+            type: '副董事长',
+            with: 'man'
+          },
+          {
+            src: 69542,
+            dst: 67932906,
+            type: '投资',
+            with: 'man'
+          },
+          {
+            src: 630248,
+            dst: 67932906,
+            type: '监事',
+            with: 'man'
+          }
+        ]
+      }
+
+      const { nodes, links } = data
+      const width = document.documentElement.clientWidth
+      const height = document.documentElement.clientHeight
+      formatLink(links, nodes)
+      formatNode(nodes)
+
+      const simulation = d3
+        .forceSimulation(nodes)
+        .force('link', d3.forceLink(links).distance(200))
+        .force('charge', d3.forceManyBody().strength(-200).distanceMax(100))
+        .force('center', d3.forceCenter(width / 2, height / 2))
+        .on('tick', tick)
+
+      // 创建一个根容器，用于存放要画的图形
+      const container = d3.select('svg').append('g').attr('class', 'container')
+
+      // 绘制箭头
+      drawMarker()
+      // 绘制连接线
+      drawLinkPath(container, links)
+      // 绘制关系文本
+      drawRelationText(container, links)
+
+      // 圆圈和文字的外层g，可以在这个上面添加点击、hover事件
+      let nodeSelection = container
+        .append('g')
+        .attr('class', 'nodegroup')
+        .selectAll('.node')
+        .data(nodes)
+        .enter()
+        .append('g')
+        .attr('id', (d) => {
+          return d.idx
+        })
+
+      // 遍历绘制圆圈和圆圈上的文本
+      nodeSelection.each((d) => {
+        drawCircle(d.idx)
+        drawText(d.idx)
+      })
+
+      // ===== 绘图 =====
+      function drawMarker() {
+        d3.select('svg')
+          .append('svg:defs')
+          .append('svg:marker')
+          .attr('id', 'blueMarker')
+          .attr('viewBox', '0 -5 10 10')
+          .attr('refX', 70)
+          .attr('refY', 0)
+          .attr('markerUnits', 'userSpaceOnUse')
+          .attr('markerWidth', 6)
+          .attr('markerHeight', 6)
+          .attr('orient', 'auto')
+          .append('svg:path')
+          .attr('d', 'M0,-5L10,0L0,5')
+          .attr('fill', '#4099ea')
+        d3.select('svg')
+          .select('defs')
+          .append('svg:marker')
+          .attr('id', 'redMarker')
+          .attr('viewBox', '0 -5 10 10')
+          .attr('refX', 70)
+          .attr('refY', 0)
+          .attr('markerUnits', 'userSpaceOnUse')
+          .attr('markerWidth', 6)
+          .attr('markerHeight', 6)
+          .attr('orient', 'auto')
+          .append('svg:path')
+          .attr('d', 'M0,-5L10,0L0,5')
+          .attr('fill', '#fd6568')
+      }
+
+      function drawCircle(id) {
+        const circleG = d3.select(`#${id}`).attr('class', 'circle-g')
+        circleG
+          .append('circle')
+          .attr('class', 'real-circle')
+          .attr('fill', (d) => {
+            // 某个企业详情页点击进来的，给个这个企业特殊样式
+            if (d.isSelf) {
+              return '#fe9d3b'
+            }
+            if (d.type === 'man') {
+              return '#fe5557'
+            }
+            return '#52a3eb'
+          })
+          .attr('stroke', function (d) {
+            if (d.isSelf) {
+              return '#ec8a2f'
+            } else if (d.type === 'company') {
+              return '#0082e5'
+            }
+            return 'none'
+          })
+          // 设置圆圈半径
+          .attr('r', (d) => {
+            if (d.type === 'man') {
+              return 23
+            }
+            return 35
+          })
+      }
+
+      function drawText(id) {
+        d3.select(`#${id}`)
+          .insert('text')
+          .attr('class', 'circle-text')
+          .attr('dy', '.35em')
+          .attr('text-anchor', 'middle')
+          .attr('font-size', 12)
+          .style('fill', function (node) {
+            return '#fff'
+          })
+          .attr('y', (d) => {
+            return d.x
+          })
+          .attr('x', function (d) {
+            let re_en = /[a-zA-Z]+/g
+            //如果是全英文，不换行
+            if (d.name.match(re_en)) {
+              d3.select(this)
+                .append('tspan')
+                .attr('x', 0)
+                .attr('y', 2)
+                .text(function () {
+                  return d.name
+                })
+            }
+            //如果小于四个字符，不换行
+            else if (d.name.length <= 4) {
+              d3.select(this)
+                .append('tspan')
+                .attr('x', -2)
+                .attr('y', 2)
+                .text(function () {
+                  return d.name
+                })
+            } else if (d.name.length > 4 && d.name.length <= 8) {
+              //大于4  这两行
+              let top = d.name.substring(0, 4)
+              let bot = d.name.substring(4, d.name.length)
+
+              d3.select(this).text(function () {
+                return ''
+              })
+
+              d3.select(this)
+                .append('tspan')
+                .attr('x', 0)
+                .attr('y', -7)
+                .text(function () {
+                  return top
+                })
+
+              d3.select(this)
+                .append('tspan')
+                .attr('x', 0)
+                .attr('y', 10)
+                .text(function () {
+                  return bot
+                })
+            }
+            // 文字长度大于8 折三行
+            else if (d.name.length > 8 && d.name.length <= 12) {
+              let top = d.name.substring(0, 4)
+              let bot = d.name.substring(4, 8)
+              let bot1 = d.name.substring(8, d.name.length)
+
+              d3.select(this).text(function () {
+                return ''
+              })
+
+              d3.select(this)
+                .append('tspan')
+                .attr('x', 0)
+                .attr('y', -15)
+                .text(function () {
+                  return top
+                })
+
+              d3.select(this)
+                .append('tspan')
+                .attr('x', 0)
+                .attr('y', 2)
+                .text(function () {
+                  return bot
+                })
+
+              d3.select(this)
+                .append('tspan')
+                .attr('x', 0)
+                .attr('y', 16)
+                .text(function () {
+                  return bot1
+                })
+            }
+            //文字长度大于12 折四行
+            else if (d.name.length > 12 && d.name.length <= 16) {
+              let top = d.name.substring(0, 4)
+              let bot = d.name.substring(4, 8)
+              let bot1 = d.name.substring(8, 12)
+              let bot2 = d.name.substring(12, d.name.length)
+
+              d3.select(this).text(function () {
+                return ''
+              })
+
+              d3.select(this)
+                .append('tspan')
+                .attr('x', 0)
+                .attr('y', -20)
+                .text(function () {
+                  return top
+                })
+
+              d3.select(this)
+                .append('tspan')
+                .attr('x', 0)
+                .attr('y', -3)
+                .text(function () {
+                  return bot
+                })
+
+              d3.select(this)
+                .append('tspan')
+                .attr('x', 0)
+                .attr('y', 10)
+                .text(function () {
+                  return bot1
+                })
+              d3.select(this)
+                .append('tspan')
+                .attr('x', 0)
+                .attr('y', 23)
+                .text(function () {
+                  return bot2
+                })
+            } else if (d.name.length > 16) {
+              //文字长度大于16  方案
+              let top = d.name.substring(0, 4)
+              let bot = d.name.substring(4, 8)
+              let bot1 = d.name.substring(8, 12)
+              let bot2 = d.name.substring(12, 14)
+
+              bot2 += '...'
+              d3.select(this).text(function () {
+                return ''
+              })
+
+              d3.select(this)
+                .append('tspan')
+                .attr('x', 0)
+                .attr('y', -22)
+                .text(function () {
+                  return top
+                })
+
+              d3.select(this)
+                .append('tspan')
+                .attr('x', 0)
+                .attr('y', -7)
+                .text(function () {
+                  return bot
+                })
+
+              d3.select(this)
+                .append('tspan')
+                .attr('x', 0)
+                .attr('y', 10)
+                .text(function () {
+                  return bot1
+                })
+              d3.select(this)
+                .append('tspan')
+                .attr('x', 0)
+                .attr('y', 25)
+                .text(function () {
+                  return bot2
+                })
+            }
+          })
+      }
+
+      function drawLinkPath(container, links) {
+        // 添加连接路径path
+        container
+          .append('g')
+          .attr('class', 'line-path')
+          .selectAll('.path')
+          .data(links)
+          .enter()
+          .append('path')
+          .attr('class', 'path')
+          .attr('fill', 'none')
+          .attr('stroke-width', 1)
+          .attr('stroke', '#D8D8D8')
+          .attr('marker-end', function (d) {
+            let id = 'blueMarker'
+            if (d.type === '投资') {
+              id = 'redMarker'
+            }
+            return `url(#${id})`
+          })
+          .attr('cursor', 'pointer')
+      }
+
+      function drawRelationText(container, links) {
+        //边上的文字（人物之间的关系）
+        let edges_text = container
+          .append('g')
+          .attr('class', 'relation-text')
+          .selectAll('.linetext')
+          .data(links)
+          .enter()
+          .append('svg:g')
+          .attr('class', 'linetext')
+          .attr('fill-opacity', 1)
+
+        edges_text
+          .append('svg:text')
+          .attr('font-size', 10)
+          .attr('fill', '#8e8e8e')
+          .attr('y', '.31em')
+          .attr('text-anchor', 'middle')
+          .text(function (d) {
+            return d.type
+          })
+
+        edges_text
+          .insert('rect', 'text')
+          .attr('width', function (d, i, e) {
+            const { width } = e[i].parentNode.getBoundingClientRect()
+            return width
+          })
+          .attr('height', function (d) {
+            return 14
+          })
+          .attr('y', '-.5em')
+          .attr('x', function (d, i, e) {
+            const { width } = e[i].nextSibling.getBoundingClientRect()
+            return -width / 2
+          })
+          .attr('fill', 'rgba(255,255,255,.5)')
+      }
+
+      function formatNode(nodes) {
+        const name = ''
+        nodes.forEach((node) => {
+          if (name === node.name) {
+            node.isSelf = true
+          }
+          node.idx = 'zf' + uuid()
+        })
+      }
+      // 格式化连接关系数据
+      function formatLink(links, nodes) {
+        links.forEach((link, i) => {
+          link.index = i
+          const src = nodes.find((node) => node.id == link.src)
+          const dst = nodes.find((node) => node.id == link.dst)
+          link['source'] = src
+          link['target'] = dst
+        })
+      }
+      function uuid() {
+        return Math.random().toString(34).replaceAll(/\,|\./g, '')
+      }
+
+      // ===== 更新 =====
+      function tick() {
+        updateLinkLine()
+        updateCircleAndText()
+        updateLinkRelationText()
+      }
+      function updateCircleAndText() {
+        d3.selectAll('circle')
+          .attr('cx', (d) => {
+            return d.x
+          })
+          .attr('cy', (d) => d.y)
+        d3.selectAll('.circle-text').attr('transform', (d) => {
+          return `translate(${d.x},${d.y})`
+        })
+      }
+      function updateLinkLine() {
+        const edges_line = d3.selectAll('.path')
+        edges_line.attr('d', function (d) {
+          return 'M' + d.source.x + ' ' + d.source.y + ' L ' + d.target.x + ' ' + d.target.y
+        })
+      }
+      function updateLinkRelationText() {
+        const svg = d3.select('svg')
+        let edges_text = svg.selectAll('.linetext')
+
+        //更新连接线上文字的位置
+        edges_text.attr('transform', function (d) {
+          let translateX = (d.source.x + d.target.x) / 2
+          let translateY = (d.source.y + d.target.y) / 2
+          return `translate(${translateX},${translateY}) rotate(0)`
+        })
+      }
+
+      // ===== 拖拽 =====
+      const dragFunc = d3.drag().on('start', dragStarted).on('drag', dragged).on('end', dragend)
+
+      dragFunc(nodeSelection)
+      function dragStarted(d) {
+        if (!d3.event.active) simulation.alphaTarget(0.01).restart()
+        console.log('🚀 ~ file: 力导向图关系图.html ~ line 580 ~ dragStarted ~ d3.event', d3.event, d)
+        d.fx = d.x
+        d.fy = d.y
+      }
+      function dragged(d) {
+        d.fx = d3.event.x
+        d.fy = d3.event.y
+      }
+      function dragend(d) {
+        if (!d3.event.active) simulation.alphaTarget(0)
+        d.fx = null
+        d.fy = null
+      }
+
+      // ===== 缩放 =====
+      initZoom()
+      function initZoom() {
+        const zoom = d3
+          .zoom()
+          .scaleExtent([0.2, 5])
+          .on('zoom', () => {
+            let transform = d3.event.transform
+            return container.attr('transform', `translate(${transform.x},${transform.y})scale(${transform.k})`)
+          })
+
+        //动画持续时间
+        container.transition().duration(300).call(zoom.transform, d3.zoomIdentity)
+        d3.select('svg')
+          .call(zoom)
+          // 取消默认的双击放大事件
+          .on('dblclick.zoom', null)
+      }
+    </script>
+  </body>
+</html>

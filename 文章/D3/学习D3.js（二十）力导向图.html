@@ -4,18 +4,15 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>学习</title>
+    <title>Document</title>
   </head>
-  <style type="text/css">
-    * {
-    }
-  </style>
-  <!-- D3 -->
-  <script src="https://d3js.org/d3.v7.min.js"></script>
-
+  <style type="text/css"></style>
   <body>
     <div class="d3Chart"></div>
   </body>
+  <!-- D3 -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+
   <script type="text/javascript">
     // 节点集
     // radius 节点半径
@@ -70,17 +67,20 @@
     // 创建颜色比例尺
     const colorScale = d3.scaleOrdinal(d3.quantize(d3.interpolateRainbow, nodes.length + 1))
 
+    // .forceSimulation() 创建一个力模拟
+    // .force(name[, force]) 如果指定了力，则为指定的名称分配力并返回此模拟。
+    // d3.forceLink() 适用每个链接的源和目标 --链接力
+    // d3.forceManyBody() -- 多体力
+    // d3.forceCenter(x, y) 使用指定的x和y坐标创建新的定心力。如果未指定x和y，则默认为⟨0,0⟩。
     const force = d3
       .forceSimulation()
-      // .velocityDecay(0.1) //速度衰减
-      // .alphaDecay(0) //alpha衰变, 0表示不衰减
       .force('link', d3.forceLink())
       .force('charge', d3.forceManyBody())
       .force('center', d3.forceCenter(width / 2, height / 2))
 
     // .nodes() 指定节点，将模拟的节点设置为指定的对象数组
     // .on('tick', fun) 监听迭代次数逐步执行模拟 -- 每一次力的模拟都会执行这个方法
-    force.nodes(nodes).on('tick', ticked)
+    const forceNodes = force.nodes(nodes).on('tick', ticked)
 
     // .force('link') 如果未指定力，则返回具有指定名称的force
     // .links() 指定链接，设置与此力关联的链接数组，重新计算每个链接的距离和强度参数，并返回此力
@@ -92,34 +92,23 @@
         //每一边的长度
         return d.value * 150
       })
-
-    //在浏览器的控制台输出
+    // 在浏览器的控制台输出
     console.log(nodes)
     console.log(edges)
 
+    // 创建绘制组 绑定数据
+    const line = chart.append('g').selectAll().data(edges).enter().append('g')
     // 绘制线
-    const links = chart
-      .append('g')
-      .selectAll('line')
-      .data(edges)
-      .enter()
-      .append('line')
-      .attr('stroke', '#ccc')
-      .attr('stroke-width', 1)
-    const linksText = chart
-      .append('g')
-      .selectAll('text')
-      .data(edges)
-      .enter()
+    const links = line.append('line').attr('stroke', '#ccc').attr('stroke-width', 1)
+    const linksText = line
       .append('text')
       .text(function (d) {
         return d.value
       })
       .attr('fill', '#ccc')
 
-    // 绘制节点
-    const nodesChart = chart.append('g')
-    const gs = nodesChart
+    const nodesChart = chart
+      .append('g')
       .selectAll()
       .data(nodes)
       .enter()
@@ -131,7 +120,8 @@
       })
       .call(d3.drag().on('start', started).on('drag', dragged).on('end', ended))
 
-    gs.append('circle')
+    nodesChart
+      .append('circle')
       .attr('r', function (d, i) {
         // 半径
         return d.radius * 10
@@ -140,7 +130,8 @@
         return colorScale(d.name)
       })
 
-    gs.append('text')
+    nodesChart
+      .append('text')
       .attr('x', -20)
       .attr('y', -5)
       .attr('dy', 10)
@@ -175,12 +166,14 @@
           return (d.source.y + d.target.y) / 2
         })
 
-      gs.attr('transform', function (d) {
+      nodesChart.attr('transform', function (d) {
         return 'translate(' + d.x + ',' + d.y + ')'
       })
     }
 
-    // d.fx和d.fy表示固定坐标
+    console.log('🚀 ~ file: 学习D3.js（二十）力导向图.html ~ line 175 ~ d3.event.active ', d3.event)
+
+    // d.fx 和 d.fy 表示固定坐标
     function started(e, d) {
       force.alphaTarget(0.8).restart() // 设置衰减系数，对节点位置移动过程的模拟，数值越高移动越快，数值范围[0，1]
       d.fx = d.x
