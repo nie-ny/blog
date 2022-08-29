@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>学习</title>
+  </head>
+  <style type="text/css">
+    * {
+    }
+  </style>
+
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+
+  <body>
+    <div class="d3Chart"></div>
+  </body>
+  <script type="text/javascript">
+    //
+    const names = ['生命', '力量', '耐力', '速度', '魔力']
+    const dataArr = [
+      {
+        name: '张三',
+        a1: '90',
+        a2: '80',
+        a3: '20',
+        a4: '20',
+        a5: '5'
+      },
+      {
+        name: '李四',
+        a1: '50',
+        a2: '5',
+        a3: '20',
+        a4: '10',
+        a5: '95'
+      },
+      {
+        name: '王五',
+        a1: '50',
+        a2: '60',
+        a3: '50',
+        a4: '60',
+        a5: '50'
+      }
+    ]
+
+    // 画布
+    const width = 500
+    const height = 500
+    const margin = 20
+    const svg = d3
+      .select('.d3Chart')
+      .append('svg')
+      .attr('width', width)
+      .attr('height', height)
+      .style('background-color', '#1a3055')
+    // 图
+    const chart = svg.append('g').attr('transform', `translate(${margin}, ${margin})`)
+
+    // 创建颜色比例尺
+    const colorScale = d3.scaleOrdinal(d3.quantize(d3.interpolateRainbow, dataArr.length + 1))
+
+    // 比例尺 -- 如果每条线比例尺不一样 可以循环创建 比例尺数组
+    const scale = d3
+      .scaleLinear()
+      .domain([0, 100])
+      .range([height - margin * 3, 0])
+
+    chart
+      .append('g')
+      .selectAll()
+      .data(names)
+      .enter()
+      .append('g')
+      .attr('class', (d, i) => 'axis axis-' + i)
+      .attr('transform', (d, i) => 'translate(' + ((i + 0.5) * (height - margin * 2)) / 5 + ',0)')
+      .call(d3.axisLeft(scale).ticks(10))
+      .append('text')
+      .attr('dx', '0.5em')
+      .attr('transform', (d, i) => 'translate(0,' + (height - margin * 2) + ')')
+      .text((d) => d)
+
+    d3.selectAll('.d3Chart text').style('fill', '#fff')
+    d3.selectAll('.d3Chart line').style('stroke', '#fff')
+    d3.selectAll('.d3Chart path').style('stroke', '#fff')
+
+    const lines = chart.append('g').selectAll().data(dataArr)
+    const line = lines.enter().append('g').attr('class', 'line')
+
+    line
+      .append('path')
+      .attr('class', (d, i) => 'line line-' + d.name)
+      .attr('stroke', (d, i) => colorScale(d.name))
+      .attr('stroke-width', 2)
+      .attr('fill', 'none')
+      .attr('d', (d) => d3.line()(generatePoints(d)))
+
+    /**
+     * 折线点计算
+     * */
+    function generatePoints(d) {
+      const arr = names.map((item, i) => {
+        return [((i + 0.5) * (height - margin * 2)) / 5, scale(d[`a${i + 1}`])]
+      })
+      return arr
+    }
+
+    line
+      .append('text')
+      .attr('class', (d, i) => 'lineText lineText-' + i)
+      .attr('dx', '0.5em')
+      .attr('fill', (d, i) => colorScale(d.name))
+      .attr('style', 'cursor: pointer;')
+      .attr('transform', (d, i) => 'translate(' + ((4 + 0.5) * (height - margin * 2)) / 5 + ',' + scale(d['a5']) + ')')
+      .text((d) => d.name)
+
+    d3.selectAll('.lineText')
+      .on('mouseenter', (e, d) => {
+        d3.select(`.line-${d.name}`).attr('stroke-width', '5')
+      })
+      .on('mouseleave', (e, d) => {
+        d3.select(`.line-${d.name}`).attr('stroke-width', '2')
+      })
+  </script>
+</html>
