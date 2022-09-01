@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>学习</title>
+  </head>
+  <style type="text/css">
+    * {
+    }
+  </style>
+  <!-- D3 -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+
+  <body>
+    <div class="d3Chart"></div>
+  </body>
+  <script type="text/javascript">
+    // 数据
+    const dataArr = {
+      '2022-01-15': 3,
+      '2022-05-16': 2,
+      '2022-05-17': 1,
+      '2022-05-18': 3,
+      '2022-05-19': 6,
+      '2022-05-20': 5,
+      '2022-07-21': 1,
+      '2022-05-22': 2,
+      '2022-05-23': 1,
+      '2022-03-24': 3,
+      '2022-05-25': 2,
+      '2022-05-26': 5,
+      '2022-05-27': 4,
+      '2022-05-28': 6,
+      '2022-05-29': 2,
+      '2022-05-30': 1,
+      '2022-06-31': 3
+    }
+
+    // 画布
+    const width = 1200
+    const height = 240
+    const margin = 40
+    const svg = d3
+      .select('.d3Chart')
+      .append('svg')
+      .attr('width', width)
+      .attr('height', height)
+      .style('background-color', '#1a3055')
+    // 图
+    const chart = svg.append('g').attr('transform', `translate(${margin}, ${margin})`)
+
+    const scaleColor = d3
+      .scaleLinear()
+      .domain([0, d3.max(Object.values(dataArr))])
+      .range(['#FC9', '#F96'])
+
+    /**
+     * 数据组装
+     * */
+    function generateDataset(options = { fill: {} }) {
+      // 开始时间
+      const startDate = options.startDate
+        ? new Date(options.startDate)
+        : new Date(new Date().getFullYear() + '-' + '01' + '-' + '01')
+      // 结束时间
+      const endDate = options.endDate ? new Date(options.endDate) : new Date()
+
+      // 相隔天数
+      const totalDays = Math.floor((endDate.getTime() - startDate.getTime()) / 86400000)
+
+      // 循环天数
+      let year, month
+      let yearIndex = -1,
+        monthIndex = -1
+      let yearGroup = []
+      let dayTem = 0
+      while (dayTem <= totalDays) {
+        const dateName = d3.timeFormat('%Y-%m-%d')(new Date(startDate.getTime() + 86400000 * dayTem))
+        const dateArr = dateName.split('-')
+
+        if (!year || dateArr[0] !== year) {
+          year = dateArr[0]
+          yearGroup.push({
+            name: dateArr[0],
+            monthGroup: []
+          })
+
+          yearIndex++
+          monthIndex = -1
+        }
+
+        if (!month || dateArr[1] !== month) {
+          month = dateArr[1]
+          yearGroup[yearIndex].monthGroup.push({
+            name: dateArr[0] + '-' + dateArr[1],
+            dayGroup: []
+          })
+          monthIndex++
+        }
+
+        let total = null
+        if (options.fill.hasOwnProperty(dateName)) {
+          total = options.fill[dateName]
+        }
+
+        yearGroup[yearIndex].monthGroup[monthIndex].dayGroup.push({
+          name: dateName,
+          dayTem: dayTem + startDate.getDay(),
+          total
+        })
+
+        dayTem++
+      }
+
+      return yearGroup
+    }
+
+    const dayDatas = generateDataset({ startDate: '2021-11-01', endDate: '2022-9-30', fill: dataArr })
+
+    const yearSvg = chart
+      .selectAll()
+      .data(dayDatas)
+      .enter()
+      .append('g')
+      .attr('class', (d) => 'year year-' + d.name)
+
+    const monthSvg = yearSvg
+      .selectAll()
+      .data((d) => d.monthGroup)
+      .enter()
+      .append('g')
+      .attr('class', (d) => 'month month-' + d.name)
+
+    // 绘制方块
+    const daySvg = monthSvg
+      .selectAll()
+      .data((d) => d.dayGroup)
+      .enter()
+      .append('rect')
+      .attr('width', 20)
+      .attr('height', 20)
+      .attr('rx', 3)
+      .attr('fill', (d) => {
+        if (!d.total) {
+          return '#EFEFEF'
+        }
+        return scaleColor(d.total)
+      })
+      .attr('x', (d) => Math.floor(d.dayTem / 7) * 21)
+      .attr('y', (d) => (d.dayTem % 7) * 21)
+    // .append('title')
+    // .text((d) => {
+    //   let message = '--'
+    //   if (d.total) {
+    //     message = '有 ' + d.total + ' 篇内容'
+    //   }
+    //   return d.name + '\n' + message
+    // })
+
+    const title = chart.append('g')
+
+    // 绘制 周几
+    const weeks = ['一', '二', '三', '四', '五', '六', '日']
+    title
+      .append('g')
+      .attr('class', 'week')
+      .selectAll('.label')
+      .data(weeks)
+      .enter()
+      .append('text')
+      .attr('class', 'label')
+      .attr('x', -25)
+      .attr('y', 20 / 2)
+      .attr('dy', (d, i) => i * 21 + 5)
+      .attr('fill', '#EFEFEF')
+      .text((d) => d)
+
+    let monthAll = []
+    dayDatas.forEach((element) => {
+      monthAll = monthAll.concat(element.monthGroup)
+    })
+
+    title
+      .append('g')
+      .attr('class', 'month-title')
+      .selectAll()
+      .data(monthAll)
+      .enter()
+      .append('text')
+      .attr('x', (d, i) => {
+        return i * 21 * 4.25 + 40
+      })
+      .attr('y', -10)
+      .attr('fill', '#EFEFEF')
+      .attr('font-size', '1em')
+      .attr('font-family', 'monospace')
+      .text((d) => d.name)
+
+    var tooltips = d3
+      .select('body')
+      .append('div')
+      .style('width', 'auto')
+      .style('height', '40px')
+      .style('background-color', '#fff')
+      .style('dispaly', 'flex')
+      .style('justify-content', 'center')
+      .style('padding', '10px')
+      .style('border-radius', '5px')
+      .style('opacity', 0)
+
+    daySvg
+      .on('mouseenter', (e, d) => {
+        let message = '--'
+        if (d.total) {
+          message = '有 ' + d.total + ' 篇内容'
+        }
+        tooltips
+          .html(d.name + '<br />' + message)
+          .style('position', 'absolute')
+          .style('left', `${e.clientX - 60}px`)
+          .style('top', `${e.clientY - 60}px`)
+          .style('opacity', 1)
+
+        d3.select(d.target).attr('fill', 'red')
+      })
+      .on('mouseleave', (e, d) => {
+        tooltips.style('opacity', 0).style('left', `0px`).style('top', `0px`)
+        d3.select(d.target).attr('fill', '#EFEFEF')
+      })
+  </script>
+</html>
