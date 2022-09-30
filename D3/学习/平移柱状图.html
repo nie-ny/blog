@@ -10,16 +10,6 @@
     svg {
       font: 10px sans-serif;
     }
-
-    .bar {
-      fill: steelblue;
-      clip-path: url(#clip);
-    }
-
-    .subBar {
-      fill: gray;
-      opacity: 0.5;
-    }
   </style>
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <body>
@@ -108,6 +98,7 @@
       .enter()
       .append('rect')
       .classed('subBar', true)
+      .attr('fill', 'gray')
       .attr('height', function (d, i) {
         return height2 - y2(d.price)
       })
@@ -206,6 +197,7 @@
         .enter()
         .append('rect')
         .classed('bar', true)
+        .attr('fill', 'steelblue')
         .attr('height', function (d, i) {
           return height - y(d.price)
         })

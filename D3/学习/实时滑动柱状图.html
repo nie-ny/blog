@@ -11,105 +11,111 @@
     }
   </style>
   <script src="https://d3js.org/d3.v7.min.js"></script>
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.25.6/d3-legend.js"></script> -->
+
   <body>
     <div class="d3Chart"></div>
   </body>
   <script type="text/javascript">
-    /**
-     * 未完成
-     *
-     * */
+    const width = 600
+    const height = 400
+    const margin = {
+      top: 50,
+      right: 50,
+      bottom: 50,
+      left: 100
+    }
 
-    // 画布
-    const width = 700
-    const height = 500
-    const margin = 20
     const svg = d3
       .select('.d3Chart')
       .append('svg')
-      .attr('width', width)
-      .attr('height', height)
-      .style('background-color', '#1a3055')
-    // 图
-    const chart = svg.append('g').attr('transform', `translate(${2 * margin}, ${2 * margin})`)
+      .attr('width', width + margin.left + margin.right)
+      .attr('height', height + margin.top + margin.bottom)
 
-    const duration = 500
-    // 模拟数据
-    const numlength = 15
-    let id = 0
-    const dataArr = []
-    for (let i = 0; i < numlength; i++) {
-      dataArr.push({
-        id: ++id,
-        value: Math.round(Math.random() * 100)
-      })
-    }
+    const chart = svg.append('g').attr('id', 'chart').attr('transform', `translate(${margin.left}, ${margin.top})`)
 
-    console.log('🚀 ~ file: 平移柱状图.html ~ line 41 ~ dataArr', dataArr)
+    // svg.insert('rect', ':first-child').attr('width', '100%').attr('height', '100%').attr('fill', '#ff96ca')
+    // chart.append('rect').attr('width', width).attr('height', height).attr('fill', '#42adf4')
+
+    const ageDomain = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90]
+    const peopleDomain = [0, 11635647]
+    const sexDomain = [1, 2]
 
     // 比例尺
-    const xScale = d3
-      .scaleBand()
-      .range([0, 600])
-      .domain(dataArr.map((d) => d.id))
-      .padding(0.4)
-    const yScale = d3.scaleLinear().range([400, 0]).domain([0, 100])
-
-    const colorScale = d3.scaleOrdinal(d3.quantize(d3.interpolateRainbow, dataArr.length + 1))
+    const x = d3.scaleBand().rangeRound([0, width]).padding(0.1).domain(ageDomain)
+    const y = d3.scaleLinear().range([height, 0]).domain(peopleDomain)
+    const maleColor = '#42adf4'
+    const femaleColor = '#ff96ca'
+    const color = d3.scaleOrdinal().range([maleColor, femaleColor]).domain(sexDomain)
 
     // 坐标轴
-    // X
-    chart.append('g').attr('transform', 'translate(15, 400)').call(d3.axisBottom(xScale))
-    // Y
-    const makeYlines = () =>
-      d3
-        .axisLeft()
-        .scale(yScale)
-        // .tickSize(-400)
-        .tickFormat((d) => {
-          return d + '%'
-        })
-    chart.append('g').attr('transform', 'translate(15, 0)').call(makeYlines())
+    chart.append('g').attr('class', 'axis axis--x').attr('transform', `translate(0, ${height})`).call(d3.axisBottom(x))
+    chart.append('g').attr('class', 'axis axis--y').call(d3.axisLeft(y))
 
-    d3.selectAll('.d3Chart text').style('fill', '#fff')
-    d3.selectAll('.d3Chart line').style('stroke', '#fff')
-    d3.selectAll('.d3Chart path').style('stroke', '#fff')
+    // 标题
+    svg.selectAll('text').style('font-family', 'sans-serif')
+    svg
+      .append('text')
+      .attr('transform', `translate(${(width + margin.left + margin.right) / 2},30)`)
+      .style('text-anchor', 'middle')
+      .style('font-weight', 700)
+      .text('统计人口')
+    chart
+      .append('text')
+      .attr('transform', 'rotate(-90)')
+      .attr('y', 10 - margin.left)
+      .attr('x', 0 - height / 2)
+      .attr('dy', '1em')
+      .style('text-anchor', 'middle')
+      .text('人数')
+    chart
+      .append('text')
+      .attr('transform', `translate(${width / 2}, ${height + margin.top - 10})`)
+      .style('text-anchor', 'middle')
+      .text('年龄组')
 
-    function render(data) {
-      // 柱状
-      const barG = chart
-        .append('g')
-        .selectAll()
-        .data(data, function (d) {
-          return d.id
-        })
+    // 图例
+    // const legend_auto = d3.legendColor().scale(color).labels(['男', '女'])
+    // svg
+    //   .append('g')
+    //   .attr('class', 'legend_auto')
+    //   .style('font-size', 12)
+    //   .style('font-family', 'sans-serif')
+    //   .attr('transform', 'translate(650, 100)')
+    //   .call(legend_auto)
 
-      const barGEnter = barG.enter().append('g')
-      barGEnter
-        .append('rect')
-        .style('fill', '#ffffff')
-        .attr('x', (g, i) => xScale(g.id) + xScale.bandwidth() / 2 + 5)
-        .attr('y', (g) => yScale(g.value))
-        .attr('width', xScale.bandwidth)
-        .attr('height', (g) => 400 - yScale(g.value))
-      barGEnter
-        .append('text')
-        .style('font-size', '14px')
-        .style('fill', '#fff')
-        .attr('x', (g, i) => xScale(g.id) + xScale.bandwidth() / 2 + 2)
-        .attr('y', (g) => yScale(g.value) - 10)
-        .text((g) => `${g.value}%`)
-    }
+    const legend = chart
+      .selectAll('.legend') // step 1
+      .data(color.domain()) // step 2
+      .enter() // step 3
+      .append('g') // step 4
+      .attr('class', 'legend') // step 5
+      .attr('transform', function (d, i) {
+        // step 5
+        // i is the index
+        return `translate(0, ${i * 20})`
+      })
+      .style('font-family', 'sans-serif')
 
-    render(dataArr)
+    legend
+      .append('rect')
+      .attr('class', 'legend-rect')
+      .attr('x', width + margin.right - 12)
+      .attr('y', 65)
+      .attr('width', 12)
+      .attr('height', 12)
+      .style('fill', color)
 
-    // var int = setInterval(function () {
-    //   dataArr.shift()
-    //   dataArr.push({
-    //     id: ++id,
-    //     value: Math.round(Math.random() * 100)
-    //   })
-    //   render(dataArr)
-    // }, 2000)
+    legend
+      .append('text')
+      .attr('class', 'legend-text')
+      .attr('x', width + margin.right - 22)
+      .attr('y', 70)
+      .style('font-size', '12px')
+      .attr('dy', '.35em')
+      .style('text-anchor', 'end')
+      .text(function (d) {
+        return d === 1 ? 'Male' : 'Female'
+      })
   </script>
 </html>

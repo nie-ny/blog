@@ -6,7 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>学习</title>
   </head>
-  <style type="text/css"></style>
+  <style type="text/css">
+    rect.pane {
+      cursor: move;
+      fill: none;
+      pointer-events: all;
+    }
+
+    .area {
+      fill: lightgray;
+      clip-path: url(#clip);
+    }
+  </style>
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <body>
     <div class="d3Chart"></div>
@@ -150,25 +161,26 @@
     }
     // csvParse() 解析给定的CSV字符串，返回一个对象数组。 type() 额外处理每个对象的方法
     const data = d3.csvParse(getMockCsvData(), type)
+    // console.log('🚀 ~ file: 平移折线图.html ~ line 153 ~ data', data)
 
-    const config = {
-      props: {
-        paddingTop: 10,
-        paddingRight: 10,
-        paddingBottom: 30,
-        paddingLeft: 40,
-        paddingSplit: 25,
-        verticalSplitRatio: 0.15
-      }
-    }
+    // const config = {
+    //   props: {
+    //     paddingTop: 10,
+    //     paddingRight: 10,
+    //     paddingBottom: 30,
+    //     paddingLeft: 40,
+    //     paddingSplit: 25,
+    //     verticalSplitRatio: 0.15
+    //   }
+    // }
 
-    const padding = {
-      top: config.props.paddingTop,
-      right: config.props.paddingRight,
-      bottom: config.props.paddingBottom,
-      left: config.props.paddingLeft,
-      split: config.props.paddingSplit
-    }
+    // const padding = {
+    //   top: config.props.paddingTop,
+    //   right: config.props.paddingRight,
+    //   bottom: config.props.paddingBottom,
+    //   left: config.props.paddingLeft,
+    //   split: config.props.paddingSplit
+    // }
 
     const margin = {
       top: 50,
@@ -187,8 +199,8 @@
     const height2 = 500 - margin2.top - margin2.bottom
 
     // 比例尺
-    const x = d3.scaleBand().range([0, width]).padding(0.1)
-    const x2 = d3.scaleBand().range([0, width])
+    const x = d3.scaleTime().range([0, width])
+    const x2 = d3.scaleTime().range([0, width])
     const y = d3.scaleLinear().range([height, 0])
     const y2 = d3.scaleLinear().range([height2, 0])
 
@@ -207,7 +219,7 @@
       .on('brush', brushed)
 
     // 区域绘制
-    var area = d3
+    const area = d3
       .area()
       .x(function (d) {
         return x(d.date)
@@ -241,15 +253,92 @@
     // 裁剪
     svg.append('defs').append('clipPath').attr('id', 'clip').append('rect').attr('width', width).attr('height', height)
 
+    const focus = svg
+      .append('g')
+      .attr('class', 'focus')
+      .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+
+    const context = svg
+      .append('g')
+      .attr('class', 'context')
+      .attr('transform', 'translate(' + margin2.left + ',' + margin2.top + ')')
+
+    // const zoom = d3.zoom().on('zoom', draw)
+
+    // const rect = svg
+    //   .append('rect')
+    //   .attr('class', 'pane')
+    //   .attr('width', width)
+    //   .attr('height', height)
+    //   .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+    //   .call(zoom)
+
+    // d3.extent()  获取数组中 最小值和最大值
+    x.domain(
+      d3.extent(
+        data.map(function (d) {
+          return d.date
+        })
+      )
+    )
+    y.domain([
+      0,
+      d3.max(
+        data.map(function (d) {
+          return d.price
+        })
+      )
+    ])
+    x2.domain(x.domain())
+    y2.domain(y.domain())
+
+    focus
+      .append('g')
+      .attr('class', 'x axis')
+      .attr('transform', 'translate(-1,' + height + ')')
+      .call(xAxis)
+    focus.append('g').attr('transform', 'translate(-1,0)').attr('class', 'y axis').call(yAxis)
+
+    focus.append('path').datum(data).attr('class', 'area').attr('d', area)
+
+    context.append('path').datum(data).attr('class', 'area').attr('d', area2)
+    context
+      .append('g')
+      .attr('class', 'x axis')
+      .attr('transform', 'translate(0,' + height2 + ')')
+      .call(xAxis2)
+
+    context
+      .append('g')
+      .attr('class', 'x brush')
+      .call(brush)
+      .selectAll('rect')
+      .attr('y', -6)
+      .attr('height', height2 + 7)
+
+    // /**
+    //  * 缩放回调
+    //  * */
+    // function draw(d) {
+    //   console.log('🚀 ~ file: 平移折线图.html ~ line 323 ~ draw ~ d', d)
+
+    //   focus.select('.area').attr('transform', d.transform)
+    //   // focus.select('.x.axis').call(xAxis)
+
+    //   // Force changing brush range
+    //   // brush.move(x.domain().map(x2))
+    //   // svg.select('.brush').call(brush)
+    // }
+
     /*
-     * 画笔回调
+     * 画笔 回调
      */
-    function brushed() {
-      // x.domain(brush.empty() ? x2.domain() : brush.extent())
-      // focus.select('.area').attr('d', area)
-      // focus.select('.x.axis').call(xAxis)
-      // // Reset zoom scale's domain
-      // zoom.x(x)
+    function brushed(brush) {
+      // x2.invert 计算与给定范围值对应的域值。
+      const selection = brush.selection
+      x.domain(selection.map(x2.invert))
+      focus.select('.area').attr('d', area)
+      focus.select('.x.axis').call(xAxis)
     }
   </script>
 </html>
