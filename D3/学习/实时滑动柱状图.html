@@ -42,15 +42,17 @@
     const sexDomain = [1, 2]
 
     // 比例尺
-    const x = d3.scaleBand().rangeRound([0, width]).padding(0.1).domain(ageDomain)
+    const x = d3.scaleBand().rangeRound([0, width]).padding(0.1)
     const y = d3.scaleLinear().range([height, 0]).domain(peopleDomain)
     const maleColor = '#42adf4'
     const femaleColor = '#ff96ca'
     const color = d3.scaleOrdinal().range([maleColor, femaleColor]).domain(sexDomain)
 
     // 坐标轴
-    chart.append('g').attr('class', 'axis axis--x').attr('transform', `translate(0, ${height})`).call(d3.axisBottom(x))
+    const xAxis = d3.axisBottom(x)
+    chart.append('g').attr('class', 'axis axis--x').attr('transform', `translate(0, ${height})`).call(xAxis)
     chart.append('g').attr('class', 'axis axis--y').call(d3.axisLeft(y))
+    x.domain(ageDomain)
 
     // 标题
     svg.selectAll('text').style('font-family', 'sans-serif')
@@ -117,5 +119,135 @@
       .text(function (d) {
         return d === 1 ? 'Male' : 'Female'
       })
+
+    const state = { year: 1900, sex: 2 }
+
+    function isYearAndSex(row, year, sex) {
+      return row.year === year && row.sex === sex
+    }
+
+    const filteredData = [
+      { year: 1900, age_group: 0, sex: 2, people: 4589196 },
+      { year: 1900, age_group: 5, sex: 2, people: 4390483 },
+      { year: 1900, age_group: 10, sex: 2, people: 4001749 },
+      { year: 1900, age_group: 15, sex: 2, people: 3801743 },
+      { year: 1900, age_group: 20, sex: 2, people: 3751061 },
+      { year: 1900, age_group: 25, sex: 2, people: 3236056 },
+      { year: 1900, age_group: 30, sex: 2, people: 2665174 },
+      { year: 1900, age_group: 35, sex: 2, people: 2347737 },
+      { year: 1900, age_group: 40, sex: 2, people: 2004987 },
+      { year: 1900, age_group: 45, sex: 2, people: 1648025 },
+      { year: 1900, age_group: 50, sex: 2, people: 1411981 },
+      { year: 1900, age_group: 55, sex: 2, people: 1064632 },
+      { year: 1900, age_group: 60, sex: 2, people: 887508 },
+      { year: 1900, age_group: 65, sex: 2, people: 640212 },
+      { year: 1900, age_group: 70, sex: 2, people: 440007 },
+      { year: 1900, age_group: 75, sex: 2, people: 265879 },
+      { year: 1900, age_group: 80, sex: 2, people: 132449 },
+      { year: 1900, age_group: 85, sex: 2, people: 48614 },
+      { year: 1900, age_group: 90, sex: 2, people: 20093 }
+    ]
+
+    // const bars = chart.selectAll('.bar').data(filteredData)
+
+    // bars
+    //   .enter()
+    //   .append('rect')
+    //   .attr('class', 'bar')
+    //   .attr('x', (d) => x(d.age_group))
+    //   .attr('y', (d) => y(d.people))
+    //   .attr('width', x.bandwidth())
+    //   .attr('height', (d) => height - y(d.people))
+    //   .attr('fill', (d) => color(d.sex))
+
+    // function updateNaive(sex, step) {
+    //   // Step 1
+    //   state.year += step
+    //   state.sex = sex
+    //   // const newData = census.filter((row) => isYearAndSex(row, state.year, state.sex))
+
+    //   const newData = filteredData.map((row) => {
+    //     return {
+    //       ...row,
+    //       people: row.people + ~~(Math.random() * 1000000)
+    //     }
+    //   })
+
+    //   // Step 2
+    //   const bars = chart.selectAll('.bar').data(newData)
+
+    //   // Step 3
+    //   bars
+    //     .transition('update')
+    //     .duration(500)
+    //     .attr('x', (d) => x(d.age_group))
+    //     .attr('y', (d) => y(d.people))
+    //     .attr('height', (d) => height - y(d.people))
+    //     .attr('fill', (d) => color(d.sex))
+    // }
+
+    // setInterval(() => {
+    //   updateNaive(2, 1900)
+    // }, 1000)
+
+    function updateBetter(sex, step) {
+      //
+
+      const newData = filteredData.map((row) => {
+        return {
+          ...row
+        }
+      })
+
+      filteredData.shift()
+
+      filteredData.push({
+        sex: 2,
+        age_group: ~~(Math.random() * 300) + '' + ~~(Math.random() * 300),
+        people: ~~(Math.random() * 1000000)
+      })
+
+      x.domain(
+        filteredData.map(function (d) {
+          return d.age_group
+        })
+      )
+      chart.select('.axis--x').call(xAxis)
+
+      const bars = chart.selectAll('.bar').data(filteredData, (d) => {
+        return d.age_group
+      })
+
+      bars
+        .enter()
+        .append('rect')
+        .attr('class', 'bar')
+        .attr('x', (d) => x(d.age_group))
+        .attr('y', (d) => y(0))
+        .attr('width', x.bandwidth())
+        .attr('height', 0)
+        .attr('fill', (d) => color(d.sex))
+        .transition('enter-transition')
+        .duration(500)
+        .attr('y', (d) => y(d.people))
+        .attr('height', (d) => height - y(d.people))
+
+      // Step 4. Update.
+      bars
+        .transition('update-transition')
+        .duration(500)
+        .attr('x', (d) => x(d.age_group))
+        .attr('y', (d) => y(d.people))
+        .attr('height', (d) => height - y(d.people))
+        .attr('fill', (d) => color(d.sex))
+
+      // // Step 5. Exit.
+      bars.exit().transition('exit-transition').duration(500).attr('height', 0).attr('y', y(0)).attr('x', 0).remove()
+    }
+
+    updateBetter()
+    setInterval(() => {
+      updateBetter()
+    }, 1000)
   </script>
 </html>
