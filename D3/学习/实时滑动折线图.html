@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>学习</title>
+  </head>
+  <style type="text/css">
+    * {
+    }
+  </style>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.25.6/d3-legend.js"></script> -->
+
+  <body>
+    <div class="d3Chart"></div>
+  </body>
+  <script type="text/javascript">
+    let n = 40
+    const random = d3.randomNormal(0, 0.2)
+    const data = d3.range(n).map(random)
+
+    const width = 600
+    const height = 400
+    const margin = {
+      top: 50,
+      right: 50,
+      bottom: 50,
+      left: 100
+    }
+
+    const svg = d3
+      .select('.d3Chart')
+      .append('svg')
+      .attr('width', width + margin.left + margin.right)
+      .attr('height', height + margin.top + margin.bottom)
+
+    const chart = svg.append('g').attr('id', 'chart').attr('transform', `translate(${margin.left}, ${margin.top})`)
+
+    const x = d3.scaleLinear().domain([0, n]).range([0, width])
+    const y = d3.scaleLinear().domain([-1, 1]).range([height, 0])
+
+    const line = d3
+      .line()
+      .x(function (d, i) {
+        return x(i)
+      })
+      .y(function (d, i) {
+        return y(d)
+      })
+
+    chart
+      .append('defs')
+      .append('clipPath')
+      .attr('id', 'clip')
+      .append('rect')
+      .attr('width', width)
+      .attr('height', height)
+
+    chart
+      .append('g')
+      .attr('class', 'axis axis--x')
+      .attr('transform', 'translate(0,' + y(-1) + ')')
+      .call(d3.axisBottom(x))
+    chart.append('g').attr('class', 'axis axis--y').call(d3.axisLeft(y))
+
+    data.push(random())
+    chart
+      .append('g')
+      .attr('clip-path', 'url(#clip)')
+      .append('path')
+      .datum(data)
+      .attr('d', line)
+      .attr('class', 'line')
+      .attr('fill', 'none')
+      .attr('stroke', '#000')
+      .attr('stroke-width', '1.5px')
+    // .transition()
+    // .duration(500)
+    // .ease(d3.easeLinear)
+    // .on('start', tick)
+
+    // function tick() {
+
+    //   data.push(random())
+
+    //   d3.select(this).attr('d', line).attr('transform', null)
+
+    //   d3.active(this)
+    //     .attr('transform', 'translate(' + x(-1) + ',0)')
+    //     .transition()
+    //     .on('start', tick)
+
+    //   data.shift()
+    // }
+
+    function tick() {
+      data.push(random())
+
+      d3.select('.line')
+        .attr('d', line)
+        .attr('transform', null)
+        .transition()
+        .duration(900)
+        .ease(d3.easeLinear)
+        .attr('transform', 'translate(' + x(-1) + ',0)')
+
+      data.shift()
+    }
+
+    tick()
+    setInterval(() => {
+      tick()
+    }, 1001)
+  </script>
+</html>
