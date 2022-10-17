@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <style type="text/css"></style>
+  <body>
+    <div class="d3Chart"></div>
+  </body>
+  <!-- D3 -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+
+  <script type="text/javascript">
+    // 创建数据
+    let data = []
+    for (var i = 0; i < 300; i++) {
+      var datum = {}
+      datum.date = i
+      datum.price = Math.floor(Math.random() * 600)
+      data.push(datum)
+    }
+
+    const margin = { top: 10, right: 10, bottom: 100, left: 40 }
+    const margin2 = { top: 430, right: 10, bottom: 20, left: 40 }
+    const width = 750 - margin.left - margin.right
+    const height = 500 - margin.top - margin.bottom
+    const height2 = 500 - margin2.top - margin2.bottom
+
+    const svg = d3
+      .select('.d3Chart')
+      .append('svg')
+      .attr('width', width + margin.left + margin.right)
+      .attr('height', height + margin.top + margin.bottom)
+
+    // 比例尺
+    const x = d3.scaleBand().range([0, width]).padding(0.1)
+    const x2 = d3.scaleBand().range([0, width])
+    const y = d3.scaleLinear().range([height, 0])
+    const y2 = d3.scaleLinear().range([height2, 0])
+
+    // 坐标轴
+    const xAxis = d3.axisBottom(x)
+    const xAxis2 = d3.axisBottom(x2).tickValues([])
+    const yAxis = d3.axisLeft().scale(y)
+
+    x.domain(
+      data.map(function (d) {
+        return d.date
+      })
+    )
+    y.domain([
+      0,
+      d3.max(data, function (d) {
+        return d.price
+      })
+    ])
+    x2.domain(x.domain())
+    y2.domain(y.domain())
+
+    // 沿x轴创建画笔
+    const brush = d3
+      .brushX()
+      .extent([
+        [0, 0],
+        [width, height2]
+      ]) // 设置 画笔范围
+      .on('brush', brushed)
+    function brushed(brush) {}
+
+    // 创建图表绘制组
+    const chartSvg = svg
+      .append('g')
+      .attr('class', 'focus')
+      .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+    chartSvg
+      .append('g')
+      .attr('class', 'x axis')
+      .attr('transform', 'translate(0,' + height + ')')
+      .call(xAxis)
+    chartSvg.append('g').attr('class', 'y axis').call(yAxis)
+
+    enter(data)
+    /**
+     * 绑定数据 绘制柱状
+     */
+    function enter(data) {
+      x.domain(
+        data.map(function (d) {
+          return d.date
+        })
+      )
+      y.domain([
+        0,
+        d3.max(data, function (d) {
+          return d.price
+        })
+      ])
+
+      const bars = chartSvg.selectAll('.bar').data(data)
+      bars
+        .enter()
+        .append('rect')
+        .classed('bar', true)
+        .attr('fill', 'steelblue')
+        .attr('height', function (d, i) {
+          return height - y(d.price)
+        })
+        .attr('width', function (d, i) {
+          return x.bandwidth()
+        })
+        .attr('x', function (d) {
+          return x(d.date)
+        })
+        .attr('y', function (d) {
+          return y(d.price)
+        })
+    }
+
+    updateScale(data, { selection: [0, 0] })
+    /**
+     * 根据画笔数据 修改x轴显示的刻度 并根据最新的比例尺 重新绘制坐标轴
+     * */
+    function updateScale(data, brush) {
+      // 指数比例尺
+      const tickScale = d3
+        .scalePow()
+        .range([data.length / 10, 0])
+        .domain([data.length, 0])
+        .exponent(0.2) // 指数为0.2
+
+      // 画笔区域宽度
+      var brushValue = brush.selection[1] - brush.selection[0]
+      if (brushValue === 0) {
+        brushValue = width
+      }
+      // 得到数据间隔数
+      var tickValueMultiplier = Math.ceil(Math.abs(tickScale(brushValue)))
+
+      // 获取间隔刻度的数据名
+      var filteredTickValues = data
+        .filter(function (d, i) {
+          return i % tickValueMultiplier === 0
+        })
+        .map(function (d) {
+          return d.date
+        })
+
+      chartSvg.select('.x.axis').call(xAxis.tickValues(filteredTickValues))
+      chartSvg.select('.y.axis').call(yAxis)
+    }
+  </script>
+</html>

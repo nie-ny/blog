@@ -4,20 +4,16 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>学习</title>
+    <title>Document</title>
   </head>
-  <style type="text/css">
-    * {
-    }
-  </style>
-  <!-- D3 -->
-  <script src="https://d3js.org/d3.v7.min.js"></script>
-
+  <style type="text/css"></style>
   <body>
     <div class="d3Chart"></div>
   </body>
+  <!-- D3 -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+
   <script type="text/javascript">
-    // 数据
     const dataArr = {
       '2022-01-15': 3,
       '2022-05-16': 2,
@@ -117,7 +113,9 @@
       return yearGroup
     }
 
+    // startDate：日历开始时间 endDate：日历结束时间 dataArr：要展示的数据 - 之前定义好的格式
     const dayDatas = generateDataset({ startDate: '2021-11-01', endDate: '2022-9-30', fill: dataArr })
+    console.log('🚀 ~ file: 学习D3.js（二十二）日历热力图.html ~ line 118 ~ dayDatas', dayDatas)
 
     const yearSvg = chart
       .selectAll()
@@ -153,7 +151,7 @@
 
     const title = chart.append('g')
 
-    // 绘制 周几
+    // 绘制 周
     const weeks = ['一', '二', '三', '四', '五', '六', '日']
     title
       .append('g')
@@ -190,7 +188,6 @@
       .attr('font-family', 'monospace')
       .text((d) => d.name)
 
-    // 交互
     var tooltips = d3
       .select('body')
       .append('div')
