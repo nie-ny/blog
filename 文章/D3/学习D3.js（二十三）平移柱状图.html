@@ -68,7 +68,7 @@
         [width, height2]
       ]) // 设置 画笔范围
       .on('brush', brushed)
-    function brushed(brush) {}
+    // function brushed(brush) {}
 
     // 创建图表绘制组
     const chartSvg = svg
@@ -119,7 +119,7 @@
         })
     }
 
-    updateScale(data, { selection: [0, 0] })
+    updateScale(data, { selection: [0, 100] })
     /**
      * 根据画笔数据 修改x轴显示的刻度 并根据最新的比例尺 重新绘制坐标轴
      * */
@@ -132,15 +132,15 @@
         .exponent(0.2) // 指数为0.2
 
       // 画笔区域宽度
-      var brushValue = brush.selection[1] - brush.selection[0]
+      const brushValue = brush.selection[1] - brush.selection[0]
       if (brushValue === 0) {
         brushValue = width
       }
       // 得到数据间隔数
-      var tickValueMultiplier = Math.ceil(Math.abs(tickScale(brushValue)))
+      const tickValueMultiplier = Math.ceil(Math.abs(tickScale(brushValue)))
 
       // 获取间隔刻度的数据名
-      var filteredTickValues = data
+      const filteredTickValues = data
         .filter(function (d, i) {
           return i % tickValueMultiplier === 0
         })
@@ -150,6 +150,102 @@
 
       chartSvg.select('.x.axis').call(xAxis.tickValues(filteredTickValues))
       chartSvg.select('.y.axis').call(yAxis)
+    }
+
+    // 刷子操作区
+    const context = svg
+      .append('g')
+      .attr('class', 'context')
+      .attr('transform', 'translate(' + margin2.left + ',' + margin2.top + ')')
+
+    const subBars = context.selectAll('.subBar').data(data)
+    subBars
+      .enter()
+      .append('rect')
+      .classed('subBar', true)
+      .attr('fill', 'gray')
+      .attr('height', function (d, i) {
+        return height2 - y2(d.price)
+      })
+      .attr('width', function (d, i) {
+        return x.bandwidth()
+      })
+      .attr('x', function (d) {
+        return x2(d.date)
+      })
+      .attr('y', function (d) {
+        return y2(d.price)
+      })
+    context
+      .append('g')
+      .attr('class', 'x axis')
+      .attr('transform', 'translate(0,' + height2 + ')')
+      .call(xAxis2)
+
+    // 添加刷子
+    context.append('g').attr('class', 'x brush').call(brush).selectAll('rect').attr('y', 0).attr('height', height2)
+
+    /**
+     * 刷子操作函数
+     * 根据区域 获取要展示的数据
+     * */
+    function brushed(brush) {
+      let selected = null
+      selected = x2.domain().filter(function (d) {
+        return brush.selection[0] <= x2(d) && x2(d) <= brush.selection[1]
+      })
+
+      let start
+      let end
+      if (brush.selection[0] != brush.selection[1]) {
+        start = selected[0]
+        end = selected[selected.length - 1] + 1
+      } else {
+        start = 0
+        end = data.length
+      }
+
+      const updatedData = data.slice(start, end)
+
+      enter(updatedData)
+      update(updatedData)
+      exit(updatedData)
+
+      updateScale(updatedData, brush)
+    }
+
+    function update(data) {
+      x.domain(
+        data.map(function (d) {
+          return d.date
+        })
+      )
+      y.domain([
+        0,
+        d3.max(data, function (d) {
+          return d.price
+        })
+      ])
+
+      var bars = chartSvg.selectAll('.bar').data(data)
+      bars
+        .attr('height', function (d, i) {
+          return height - y(d.price)
+        })
+        .attr('width', function (d, i) {
+          return x.bandwidth()
+        })
+        .attr('x', function (d) {
+          return x(d.date)
+        })
+        .attr('y', function (d) {
+          return y(d.price)
+        })
+    }
+
+    function exit(data) {
+      var bars = chartSvg.selectAll('.bar').data(data)
+      bars.exit().remove()
     }
   </script>
 </html>
