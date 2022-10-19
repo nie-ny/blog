@@ -4,32 +4,16 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>学习</title>
+    <title>Document</title>
   </head>
-  <style type="text/css">
-    rect.pane {
-      cursor: move;
-      fill: none;
-      pointer-events: all;
-    }
-
-    .area {
-      fill: lightgray;
-      clip-path: url(#clip);
-    }
-  </style>
-  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style type="text/css"></style>
   <body>
     <div class="d3Chart"></div>
   </body>
+  <!-- D3 -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+
   <script type="text/javascript">
-    // timeParse() 解析和格式化时间 -- %b月 %Y年
-    const parseDate = d3.timeParse('%b %Y')
-    function type(d) {
-      d.date = parseDate(d.date)
-      d.price = +d.price
-      return d
-    }
     // Csv 格式数据
     function getMockCsvData() {
       return (
@@ -159,14 +143,30 @@
         'Mar 2010,1140.45'
       )
     }
+
+    // timeParse() 解析和格式化时间 -- %b月 %Y年
+    const parseDate = d3.timeParse('%b %Y')
+    function type(d) {
+      d.date = parseDate(d.date)
+      d.price = +d.price
+      return d
+    }
+
     // csvParse() 解析给定的CSV字符串，返回一个对象数组。 type() 额外处理每个对象的方法
     const data = d3.csvParse(getMockCsvData(), type)
 
+    // 全局画布变量
     const margin = { top: 50, right: 50, bottom: 125, left: 50 }
     const margin2 = { top: 410, right: 50, bottom: 50, left: 50 }
     const width = 960 - margin.left - margin.right
     const height = 500 - margin.top - margin.bottom
     const height2 = 500 - margin2.top - margin2.bottom
+
+    const svg = d3
+      .select('.d3Chart')
+      .append('svg')
+      .attr('width', width + margin.left + margin.right)
+      .attr('height', height + margin.top + margin.bottom)
 
     // 比例尺
     const x = d3.scaleTime().range([0, width])
@@ -179,6 +179,26 @@
     const xAxis2 = d3.axisBottom(x2)
     const yAxis = d3.axisLeft(y)
 
+    // 为比例尺添加输入域。
+    x.domain(
+      d3.extent(
+        data.map(function (d) {
+          return d.date
+        })
+      )
+    )
+    y.domain([
+      0,
+      d3.max(
+        data.map(function (d) {
+          return d.price
+        })
+      )
+    ])
+    x2.domain(x.domain())
+    y2.domain(y.domain())
+
+    //
     // 沿x轴创建画笔
     const brush = d3
       .brushX()
@@ -187,6 +207,7 @@
         [width, height2]
       ]) // 设置 画笔范围
       .on('brush', brushed)
+    // function brushed(brush) {}
 
     // 区域绘制
     const area = d3
@@ -210,74 +231,36 @@
         return y2(d.price)
       })
 
-    const svg = d3
-      .select('.d3Chart')
-      .append('svg')
-      .attr('width', width + margin.left + margin.right)
-      .attr('height', height + margin.top + margin.bottom)
-    // .attr('width', '100%')
-    // .attr('height', '100%')
-    // .attr('viewBox', '0 0 960 500')
-    // .attr('preserveAspectRatio', 'none')
-
-    // 裁剪
-    svg.append('defs').append('clipPath').attr('id', 'clip').append('rect').attr('width', width).attr('height', height)
-
-    const focus = svg
+    //
+    const chartSvg = svg
       .append('g')
       .attr('class', 'focus')
       .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
 
+    chartSvg
+      .append('g')
+      .attr('class', 'x axis')
+      .attr('transform', 'translate(-1,' + height + ')')
+      .call(xAxis)
+    chartSvg.append('g').attr('transform', 'translate(-1,0)').attr('class', 'y axis').call(yAxis)
+
+    // 绘制区域
+    chartSvg.append('path').datum(data).attr('class', 'area').attr('fill', 'steelblue').attr('d', area)
+
+    //
     const context = svg
       .append('g')
       .attr('class', 'context')
       .attr('transform', 'translate(' + margin2.left + ',' + margin2.top + ')')
 
-    // const zoom = d3.zoom().on('zoom', draw)
-
-    // const rect = svg
-    //   .append('rect')
-    //   .attr('class', 'pane')
-    //   .attr('width', width)
-    //   .attr('height', height)
-    //   .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
-    //   .call(zoom)
-
-    // d3.extent()  获取数组中 最小值和最大值
-    x.domain(
-      d3.extent(
-        data.map(function (d) {
-          return d.date
-        })
-      )
-    )
-    y.domain([
-      0,
-      d3.max(
-        data.map(function (d) {
-          return d.price
-        })
-      )
-    ])
-    x2.domain(x.domain())
-    y2.domain(y.domain())
-
-    focus
-      .append('g')
-      .attr('class', 'x axis')
-      .attr('transform', 'translate(-1,' + height + ')')
-      .call(xAxis)
-    focus.append('g').attr('transform', 'translate(-1,0)').attr('class', 'y axis').call(yAxis)
-
-    focus.append('path').datum(data).attr('class', 'area').attr('d', area)
-
-    context.append('path').datum(data).attr('class', 'area').attr('d', area2)
     context
       .append('g')
       .attr('class', 'x axis')
       .attr('transform', 'translate(0,' + height2 + ')')
       .call(xAxis2)
-
+    // 折线区域
+    context.append('path').datum(data).attr('class', 'area').attr('fill', 'steelblue').attr('d', area2)
+    // 添加画笔
     context
       .append('g')
       .attr('class', 'x brush')
@@ -286,19 +269,9 @@
       .attr('y', -6)
       .attr('height', height2 + 7)
 
-    // /**
-    //  * 缩放回调
-    //  * */
-    // function draw(d) {
-    //   console.log('🚀 ~ file: 平移折线图.html ~ line 323 ~ draw ~ d', d)
-
-    //   focus.select('.area').attr('transform', d.transform)
-    //   // focus.select('.x.axis').call(xAxis)
-
-    //   // Force changing brush range
-    //   // brush.move(x.domain().map(x2))
-    //   // svg.select('.brush').call(brush)
-    // }
+    // 设置裁剪
+    svg.append('defs').append('clipPath').attr('id', 'clip').append('rect').attr('width', width).attr('height', height)
+    chartSvg.select('.area').attr('clip-path', 'url(#clip)')
 
     /*
      * 画笔 回调
@@ -307,8 +280,8 @@
       // x2.invert 计算与给定范围值对应的域值。
       const selection = brush.selection
       x.domain(selection.map(x2.invert))
-      focus.select('.area').attr('d', area)
-      focus.select('.x.axis').call(xAxis)
+      chartSvg.select('.area').attr('d', area)
+      chartSvg.select('.x.axis').call(xAxis)
     }
   </script>
 </html>
