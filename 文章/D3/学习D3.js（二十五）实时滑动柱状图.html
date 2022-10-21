@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <style type="text/css"></style>
+  <body>
+    <div class="d3Chart"></div>
+  </body>
+  <!-- D3 -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+
+  <script type="text/javascript">
+    const data = [
+      { age_group: 0, people: 4589196 },
+      { age_group: 5, people: 4390483 },
+      { age_group: 10, people: 4001749 },
+      { age_group: 15, people: 3801743 },
+      { age_group: 20, people: 3751061 },
+      { age_group: 25, people: 3236056 },
+      { age_group: 30, people: 2665174 },
+      { age_group: 35, people: 2347737 },
+      { age_group: 40, people: 2004987 },
+      { age_group: 45, people: 1648025 },
+      { age_group: 50, people: 1411981 },
+      { age_group: 55, people: 1064632 },
+      { age_group: 60, people: 887508 },
+      { age_group: 65, people: 640212 },
+      { age_group: 70, people: 440007 },
+      { age_group: 75, people: 265879 },
+      { age_group: 80, people: 132449 },
+      { age_group: 85, people: 48614 },
+      { age_group: 90, people: 20093 }
+    ]
+
+    const width = 600
+    const height = 400
+    const margin = { top: 50, right: 50, bottom: 50, left: 100 }
+
+    const svg = d3
+      .select('.d3Chart')
+      .append('svg')
+      .attr('width', width + margin.left + margin.right)
+      .attr('height', height + margin.top + margin.bottom)
+
+    const chart = svg.append('g').attr('id', 'chart').attr('transform', `translate(${margin.left}, ${margin.top})`)
+
+    // 比例尺
+    const x = d3.scaleBand().rangeRound([0, width]).padding(0.1)
+    const y = d3.scaleLinear().range([height, 0]).domain([0, 10000000])
+    x.domain(
+      data.map(function (d) {
+        return d.age_group
+      })
+    )
+
+    const color = d3.scaleOrdinal().range(['#42adf4', '#ff96ca']).domain([1, 2])
+
+    // 绘制坐标轴
+    const xAxis = d3.axisBottom(x)
+    chart.append('g').attr('class', 'axis axis--x').attr('transform', `translate(0, ${height})`).call(xAxis)
+    chart.append('g').attr('class', 'axis axis--y').call(d3.axisLeft(y))
+
+    function updateBetter(sex, step) {
+      x.domain(
+        data.map(function (d) {
+          return d.age_group
+        })
+      )
+      chart.select('.axis--x').call(xAxis)
+
+      //
+      const bars = chart.selectAll('.bar').data(data, (d) => {
+        return d.age_group
+      })
+
+      bars
+        .enter()
+        .append('rect')
+        .attr('class', 'bar')
+        .attr('x', (d) => x(d.age_group))
+        .attr('y', (d) => y(0))
+        .attr('width', x.bandwidth())
+        .attr('height', 0)
+        .attr('fill', (d) => color(1))
+        .transition('enter-transition')
+        .duration(500)
+        .attr('y', (d) => y(d.people))
+        .attr('height', (d) => height - y(d.people))
+
+      // Step 4. Update.
+      bars
+        .transition('update-transition')
+        .duration(500)
+        .attr('x', (d) => x(d.age_group))
+        .attr('y', (d) => y(d.people))
+        .attr('height', (d) => height - y(d.people))
+        .attr('fill', (d) => color(1))
+
+      // // Step 5. Exit.
+      bars.exit().transition('exit-transition').duration(500).attr('height', 0).attr('y', y(0)).attr('x', 0).remove()
+
+      data.shift()
+      data.push({
+        sex: 2,
+        age_group: ~~(Math.random() * 300) + '' + ~~(Math.random() * 300),
+        people: ~~(Math.random() * 5000000)
+      })
+    }
+
+    updateBetter()
+    setInterval(() => {
+      updateBetter()
+    }, 1000)
+  </script>
+</html>
