@@ -65,6 +65,7 @@
     chart.append('g').attr('class', 'axis axis--y').call(d3.axisLeft(y))
 
     function updateBetter(sex, step) {
+      // 第一步
       x.domain(
         data.map(function (d) {
           return d.age_group
@@ -72,11 +73,10 @@
       )
       chart.select('.axis--x').call(xAxis)
 
-      //
+      // 第二步
       const bars = chart.selectAll('.bar').data(data, (d) => {
         return d.age_group
       })
-
       bars
         .enter()
         .append('rect')
@@ -91,7 +91,7 @@
         .attr('y', (d) => y(d.people))
         .attr('height', (d) => height - y(d.people))
 
-      // Step 4. Update.
+      // 第三步
       bars
         .transition('update-transition')
         .duration(500)
@@ -100,9 +100,10 @@
         .attr('height', (d) => height - y(d.people))
         .attr('fill', (d) => color(1))
 
-      // // Step 5. Exit.
+      // 第四步
       bars.exit().transition('exit-transition').duration(500).attr('height', 0).attr('y', y(0)).attr('x', 0).remove()
 
+      // 第五步
       data.shift()
       data.push({
         sex: 2,
@@ -112,6 +113,7 @@
     }
 
     updateBetter()
+
     setInterval(() => {
       updateBetter()
     }, 1000)
