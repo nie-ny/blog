@@ -111,7 +111,7 @@
         .enter()
         .append('text')
         .attr('class', 'valueLabel')
-        .attr('x', (d) => xScale(d.value) + 9)
+        .attr('x', (d) => xScale(d.value) + 19)
         .attr('y', (d) => yScale(d.rank) + (yScale(1) - yScale(0)) / 2)
         .text((d) => d3.format(',.0f')(d.lastValue))
 
@@ -228,6 +228,44 @@
           .duration(tickDuration)
           .ease(d3.easeLinear)
           // .attr('x', d => xScale(d.value) -8 )
+          .attr('y', (d) => yScale(top_n + 1) + 20)
+          .remove()
+
+        let valueLabels = svg.selectAll('.valueLabel').data(yearSlice, (d) => d.name)
+
+        valueLabels
+          .enter()
+          .append('text')
+          .attr('class', 'valueLabel')
+          .attr('x', (d) => xScale(d.value) + 19)
+          .attr('y', (d) => yScale(top_n) + 20)
+          .text((d) => d3.format(',.0f')(d.lastValue))
+        //enter进来的时候用lastvalue，后面update的时候再慢慢增加至value
+        // .transition()
+        // .duration(tickDuration)
+        // .ease(d3.easeLinear)
+        // .attr('y', (d) => yScale(d.rank) + (yScale(1) - yScale(0)) / 2)
+
+        valueLabels
+          .transition()
+          .duration(tickDuration)
+          .ease(d3.easeLinear)
+          .attr('x', (d) => xScale(d.value) + 19)
+          .attr('y', (d) => yScale(d.rank) + (yScale(1) - yScale(0)) / 2)
+          .tween('textTween', function (d) {
+            //做出在两个value间跳动的效果
+            let i = d3.interpolateRound(d.lastValue, d.value)
+            return function (t) {
+              this.textContent = d3.format(',')(i(t))
+            }
+          })
+
+        valueLabels
+          .exit()
+          .transition()
+          .duration(tickDuration)
+          .ease(d3.easeLinear)
+          .attr('x', (d) => xScale(d.value) + 19)
           .attr('y', (d) => yScale(top_n + 1) + 20)
           .remove()
 
