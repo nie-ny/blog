@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>学习</title>
+  </head>
+  <body>
+    <canvas id="c3d" class="c2d" width="1200" height="800"></canvas>
+    <script type="module">
+      import * as THREE from '../three.js-dev/build/three.module.js'
+      import { OrbitControls } from '../three.js-dev/examples/jsm/controls/OrbitControls.js'
+
+      const Dom = document.querySelector('#c3d')
+      const width = Dom.clientWidth
+      const height = Dom.clientHeight
+
+      // 纹理加载器
+      const loader = new THREE.TextureLoader()
+
+      // 渲染器
+      let renderer
+      // 相机
+      let camera
+      // 场景
+      let scene
+      // 灯光
+      let light
+      // 相机控制
+      let controls
+
+      /**
+       * 初始化渲染器
+       * */
+      function initRenderer() {
+        // antialias: true, alpha: true 抗锯齿设置
+        renderer = new THREE.WebGLRenderer({ canvas: Dom, antialias: true, alpha: true })
+        // window.devicePixelRatio 设备像素比
+        renderer.setPixelRatio(window.devicePixelRatio)
+        renderer.setSize(width, height)
+        // Dom.appendChild(renderer.domElement)
+      }
+
+      /**
+       * 初始化相机
+       */
+      function initCamera() {
+        camera = new THREE.PerspectiveCamera(45, width / height, 1, 10000)
+        camera.position.set(5, -20, 200)
+        camera.lookAt(0, 3, 0)
+        window.camera = camera
+      }
+      /**
+       * 初始化场景
+       */
+      function initScene() {
+        scene = new THREE.Scene()
+        scene.background = new THREE.Color(0x020924)
+        // 雾
+        // scene.fog = new THREE.Fog(0x020924, 200, 1000)
+        window.scene = scene
+      }
+
+      /**
+       * 初始化 相机控制
+       */
+      function initControls() {
+        controls = new OrbitControls(camera, renderer.domElement)
+        controls.enableDamping = true
+        controls.enableZoom = true
+        controls.autoRotate = false
+        controls.autoRotateSpeed = 2
+        controls.enablePan = true
+      }
+
+      /**
+       * 初始化光
+       */
+      function initLight() {
+        // 环境光
+        // const ambientLight = new THREE.AmbientLight(0xcccccc, 1.1)
+        // scene.add(ambientLight)
+        // 平行光
+        let directionalLight = new THREE.DirectionalLight(0xffffff, 0.2)
+        directionalLight.position.set(1, 0.1, 0).normalize()
+        // 平行光2
+        let directionalLight2 = new THREE.DirectionalLight(0xff2ffff, 0.2)
+        directionalLight2.position.set(1, 0.1, 0.1).normalize()
+        scene.add(directionalLight)
+        scene.add(directionalLight2)
+        // 半球光
+        let hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.2)
+        hemiLight.position.set(0, 1, 0)
+        scene.add(hemiLight)
+        // 平行光3
+        let directionalLight3 = new THREE.DirectionalLight(0xffffff)
+        directionalLight3.position.set(1, 500, -20)
+        // 开启阴影
+        directionalLight3.castShadow = true
+        // 设置光边界
+        directionalLight3.shadow.camera.top = 18
+        directionalLight3.shadow.camera.bottom = -10
+        directionalLight3.shadow.camera.left = -52
+        directionalLight3.shadow.camera.right = 12
+        scene.add(directionalLight3)
+      }
+
+      /**
+       * 渲染函数
+       * */
+      function renders() {
+        renderer.clear()
+        renderer.render(scene, camera)
+      }
+      /**
+       * 动画渲染函数
+       */
+      function animate() {
+        window.requestAnimationFrame(() => {
+          if (controls) controls.update()
+          renders()
+          animate()
+        })
+      }
+
+      /**
+       * 背景绘制
+       * */
+      function bg() {
+        const positions = []
+        const colors = []
+        // 创建 几何体
+        const geometry = new THREE.BufferGeometry()
+        for (let i = 0; i < 10000; i++) {
+          let vertex = new THREE.Vector3()
+          vertex.x = Math.random() * 2 - 1
+          vertex.y = Math.random() * 2 - 1
+          vertex.z = Math.random() * 2 - 1
+          positions.push(vertex.x, vertex.y, vertex.z)
+          // let color = new THREE.Color()
+          // color.setHSL(Math.random() * 0.2 + 0.5, 0.55, Math.random() * 0.25 + 0.55)
+          // colors.push(color.r, color.g, color.b)
+        }
+        // 对几何体 设置 坐标 和 颜色
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3))
+        // geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3))
+        // 默认球体
+        geometry.computeBoundingSphere()
+
+        // 星星资源图片
+        // const texture = new THREE.TextureLoader().load('./11.png')
+        // ParticleBasicMaterial 点基础材质
+        var starsMaterial = new THREE.ParticleBasicMaterial({
+          map: generateSprite(),
+          size: 2,
+          transparent: true,
+          opacity: 1,
+          //true：且该几何体的colors属性有值，则该粒子会舍弃第一个属性--color，而应用该几何体的colors属性的颜色
+          // vertexColors: true,
+          blending: THREE.AdditiveBlending,
+          sizeAttenuation: true
+        })
+        // 粒子系统 网格
+        let stars = new THREE.ParticleSystem(geometry, starsMaterial)
+        stars.scale.set(300, 300, 300)
+        scene.add(stars)
+
+        // ------------- 2 ----------
+        // PointsMaterial 点材质
+        // let material = new THREE.PointsMaterial({ size: 1, vertexColors: THREE.VertexColors })
+        // Points 点网格
+        // let particleSystem = new THREE.Points(geometry, material)
+        // particleSystem.scale.set(300, 300, 300)
+        // scene.add(particleSystem)
+      }
+
+      /**
+       * 创建圆形纹理
+       * */
+      function generateSprite() {
+        const canvas = document.createElement('canvas')
+        canvas.width = 16
+        canvas.height = 16
+
+        const context = canvas.getContext('2d')
+        // 创建颜色渐变
+        const gradient = context.createRadialGradient(
+          canvas.width / 2,
+          canvas.height / 2,
+          0,
+          canvas.width / 2,
+          canvas.height / 2,
+          canvas.width / 2
+        )
+        gradient.addColorStop(0, 'rgba(255,255,255,1)')
+        gradient.addColorStop(0.2, 'rgba(0,255,255,1)')
+        gradient.addColorStop(0.4, 'rgba(0,0,64,1)')
+        gradient.addColorStop(1, 'rgba(0,0,0,1)')
+
+        // 绘制方形
+        context.fillStyle = gradient
+        context.fillRect(0, 0, canvas.width, canvas.height)
+        // 转为纹理
+        const texture = new THREE.Texture(canvas)
+        texture.needsUpdate = true
+        return texture
+      }
+
+      /**
+       * 球相关加载
+       * */
+      function earth() {
+        const radius = 5
+        const widthSegments = 100
+        const heightSegments = 100
+        const sphereGeometry = new THREE.SphereGeometry(radius, widthSegments, heightSegments)
+
+        const earthTexture = loader.load('./3.jpg')
+        const earthMaterial = new THREE.MeshStandardMaterial({
+          map: earthTexture
+        })
+        const earthMesh = new THREE.Mesh(sphereGeometry, earthMaterial)
+        earthMesh.rotation.set(0.5, 2.9, 0.1)
+        scene.add(earthMesh)
+      }
+
+      window.onload = () => {
+        initRenderer()
+        initCamera()
+        initScene()
+        initLight()
+        initControls()
+
+        // 绘制
+        bg()
+        earth()
+
+        // 渲染
+        animate()
+        // window.addEventListener('resize', onWindowResize, false)
+      }
+    </script>
+  </body>
+</html>
