@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>学习</title>
+  </head>
+  <style type="text/css"></style>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+
+  <body>
+    <div class="d3Chart"></div>
+  </body>
+  <script type="text/javascript">
+    //
+    const margin = { top: 80, right: 65, bottom: 5, left: 20 }
+    const width = 1200
+    const height = 700
+
+    const svg = d3.select('.d3Chart').append('svg').attr('width', width).attr('height', height)
+    const chart = svg.append('g').attr('transform', `translate(${margin.top}, ${margin.left})`)
+
+    // 展示条数
+    const top_n = 20
+    // 间距
+    const barPadding = (height - margin.top - margin.bottom) / (top_n * 5)
+    // 排名开始年份
+    let year = 2000
+    // 执行间隔
+    const tickDuration = 100
+
+    // 比例尺函数
+    const xScale = d3
+      .scaleLinear()
+      .range([margin.left, width - margin.right])
+      .nice()
+    const yScale = d3
+      .scaleLinear()
+      .domain([top_n, 0])
+      .range([height - margin.bottom, margin.top])
+    // 排行只需要 绘制 X轴
+    // 绘制坐标轴函数
+    const xAxis = d3
+      .axisTop(xScale)
+      .ticks(width > 500 ? 5 : 2)
+      .tickSize(-(height - margin.top - margin.bottom))
+
+    // d3.csv() 获取逗号分隔值（CSV）文件
+    d3.csv('./file/brand_values.csv').then((data) => {
+      // 数据格式转换
+      data.forEach((d) => {
+        d.lastValue = Number(d.lastValue)
+        d.value = isNaN(d.value) ? 0 : Number(d.value)
+        d.year = Number(d.year)
+        d.rank = Number(d.rank)
+        d.color = d3.hsl(Math.random() * 360, 1, 0.75, 0.8)
+      })
+
+      // 根据开始年份 获取当年数据 并进行排序 截取为设置的条数 并对数据设置排名
+      let yearSlice = data
+        .filter((d) => d.year == year && !isNaN(d.value))
+        .sort((a, b) => b.value - a.value)
+        .slice(0, top_n)
+      yearSlice.forEach((d, i) => (d.rank = i))
+      console.log('🚀 ~ file: 学习D3.js（二十六）排名柱状图.html ~ line 66 ~ d3.csv ~ yearSlice', yearSlice)
+
+      render_init(yearSlice)
+
+      let ticker = d3.interval((e) => {
+        // ~~ 向上取整
+        svg.select('.yearText').html(~~year)
+        // 保留一位小数
+        year = d3.format('.1f')(+year + 0.1)
+        // 结束循环
+        if (year === '2018.0') {
+          ticker.stop()
+        }
+
+        // 重新切分数据
+        yearSlice = data
+          .filter((d) => d.year == year && !isNaN(d.value))
+          .sort((a, b) => b.value - a.value)
+          .slice(0, top_n)
+        yearSlice.forEach((d, i) => {
+          d.rank = i
+        })
+
+        // 修改比例尺
+        xScale.domain([0, d3.max(yearSlice, (d) => d.value) + 10000])
+        // x轴重新绘制 添加动画
+        svg.select('.xAxis').transition().duration(tickDuration).ease(d3.easeLinear).call(xAxis)
+
+        // 绑定数据 通过标识符判断是否存在
+        const bars = svg.selectAll('.bar').data(yearSlice, (d) => d.name)
+        // 不存在的 柱状进行创建
+        bars
+          .enter()
+          .append('rect')
+          .attr('class', 'bar')
+          .attr('x', xScale(0) + margin.left + 1)
+          .attr('width', (d) => xScale(d.value) - xScale(0))
+          .attr('y', (d) => yScale(top_n + 1) + 5)
+          .attr('height', yScale(1) - yScale(0) - barPadding)
+          .attr('fill', (d) => d.color)
+        // 对现存在的所有 节点 添加动画
+        bars
+          .transition()
+          .duration(tickDuration)
+          .ease(d3.easeLinear)
+          .attr('width', (d) => xScale(d.value) - xScale(0))
+          .attr('y', (d) => yScale(d.rank) + 5)
+        // 删除数据中以不存在的节点 添加离开动画
+        bars
+          .exit()
+          .transition()
+          .duration(tickDuration)
+          .ease(d3.easeLinear)
+          .attr('y', (d) => yScale(top_n + 1) + 5)
+          .attr('width', 0)
+          .remove()
+
+        const labels = svg.selectAll('.label').data(yearSlice, (d) => d.name)
+        labels
+          .enter()
+          .append('text')
+          .attr('class', 'label')
+          .attr('x', (d) => xScale(d.value))
+          .attr('y', (d) => yScale(top_n + 1) + 8)
+          .attr('text-anchor', 'end')
+          .text((d) => d.name)
+
+        labels
+          .transition()
+          .duration(tickDuration)
+          .ease(d3.easeLinear)
+          .attr('x', (d) => xScale(d.value))
+          .attr('y', (d) => yScale(d.rank) + (yScale(1) - yScale(0)) / 2 + 8)
+
+        labels
+          .exit()
+          .transition()
+          .duration(tickDuration)
+          .ease(d3.easeLinear)
+          .attr('y', (d) => yScale(top_n + 1) + 20)
+          .remove()
+
+        const valueLabels = svg.selectAll('.valueLabel').data(yearSlice, (d) => d.name)
+        valueLabels
+          .enter()
+          .append('text')
+          .attr('class', 'valueLabel')
+          .attr('x', (d) => xScale(d.value) + 30)
+          .attr('y', (d) => yScale(top_n) + 20)
+          .text((d) => d3.format(',.0f')(d.lastValue))
+
+        valueLabels
+          .transition()
+          .duration(tickDuration)
+          .ease(d3.easeLinear)
+          .attr('x', (d) => xScale(d.value) + 30)
+          .attr('y', (d) => yScale(d.rank) + (yScale(1) - yScale(0)) / 2 + 8)
+          .tween('textTween', function (d) {
+            //做出在两个value间跳动的效果
+            let i = d3.interpolateRound(d.lastValue, d.value)
+            return function (t) {
+              this.textContent = d3.format(',')(i(t))
+            }
+          })
+
+        valueLabels
+          .exit()
+          .transition()
+          .duration(tickDuration)
+          .ease(d3.easeLinear)
+          .attr('x', (d) => xScale(d.value) + 30)
+          .attr('y', (d) => yScale(top_n + 1) + 20)
+          .remove()
+
+        //
+      }, 30)
+    })
+
+    /**
+     * 初始化柱状图
+     */
+    function render_init(yearSlice) {
+      // 绘制标题
+      chart
+        .append('text')
+        .attr('class', 'title')
+        .attr('y', 30)
+        .attr('x', width / 2)
+        .attr('style', 'font-size: 2em;font-weight: 500;')
+        .text('排名柱状图')
+
+      xScale.domain([0, d3.max(yearSlice, (d) => d.value) + 10000])
+      svg.append('g').attr('class', 'xAxis').call(xAxis).attr('transform', `translate(${margin.left},${margin.top})`)
+
+      // 柱状绘制
+      svg
+        .selectAll('rect.bar')
+        .data(yearSlice, (d) => d.name)
+        .enter()
+        .append('rect')
+        .attr('class', 'bar')
+        .attr('x', xScale(0) + margin.left + 1)
+        .attr('width', (d) => xScale(d.value) - xScale(0))
+        .attr('y', (d) => yScale(d.rank) + 5)
+        .attr('height', yScale(1) - yScale(0) - barPadding)
+        .attr('fill', (d) => d.color)
+
+      // 品牌名绘制
+      svg
+        .selectAll('text.label')
+        .data(yearSlice, (d) => name)
+        .enter()
+        .append('text')
+        .attr('class', 'label')
+        .attr('style', 'font-weight: 500;')
+        .attr('x', (d) => xScale(d.value))
+        .attr('y', (d) => yScale(d.rank) + (yScale(1) - yScale(0)) / 2 + 8)
+        .attr('text-anchor', 'end')
+        .text((d) => d.name)
+
+      // 数值绘制
+      svg
+        .selectAll('text.valueLabel')
+        .data(yearSlice, (d) => d.name)
+        .enter()
+        .append('text')
+        .attr('class', 'valueLabel')
+        .attr('x', (d) => xScale(d.value) + 30)
+        .attr('y', (d) => yScale(d.rank) + (yScale(1) - yScale(0)) / 2 + 8)
+        .text((d) => d3.format(',.0f')(d.lastValue))
+
+      // 年份绘制
+      svg
+        .append('text')
+        .attr('class', 'yearText')
+        .attr('x', width - margin.right)
+        .attr('y', height - 25)
+        .attr('fill', '#2eb0c5d9')
+        .attr('text-anchor', 'end')
+        .attr('style', 'font-size:2em; font-weight: 500;font-weight: bold;')
+        .html(~~year)
+    }
+  </script>
+</html>

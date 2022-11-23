@@ -142,7 +142,7 @@
     d3.selectAll('.g > .circle')
       .on('mouseover', function (e, d) {
         tooltips
-          .html(`月份：${d.data.name}<br /> 数据：${d.value}%`)
+          .html(`类型：${d.data.name}<br /> 数据：${d.value}%`)
           .style('position', 'absolute')
           .style('left', `${e.clientX}px`)
           .style('top', `${e.clientY}px`)
@@ -158,7 +158,7 @@
     d3.selectAll('.g > .text')
       .on('mouseover', function (e, d) {
         tooltips
-          .html(`月份：${d.data.name}<br /> 数据：${d.value}%`)
+          .html(`类型：${d.data.name}<br /> 数据：${d.value}%`)
           .style('position', 'absolute')
           .style('left', `${e.clientX}px`)
           .style('top', `${e.clientY}px`)

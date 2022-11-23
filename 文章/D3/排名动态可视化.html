@@ -25,18 +25,19 @@
     <div class="d3Chart"></div>
   </body>
   <script type="text/javascript">
-    const top_n = 12
     const margin = { top: 80, right: 65, bottom: 5, left: 20 }
 
     const width = 1200
     const height = 600
 
-    const barPadding = (height - margin.top - margin.bottom) / (top_n * 5)
-
     const svg = d3.select('.d3Chart').append('svg').attr('width', width).attr('height', height)
-    // .style('background-color', '#1a3055')
     // 图
     const chart = svg.append('g').attr('transform', `translate(${margin.top}, ${margin.left})`)
+
+    // 展示条数
+    const top_n = 20
+    // 间距
+    const barPadding = (height - margin.top - margin.bottom) / (top_n * 5)
 
     let title = chart
       .append('text')
