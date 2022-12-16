@@ -146,8 +146,8 @@
         // 默认球体
         geometry.computeBoundingSphere()
 
+        // ------------- 1 ----------
         // 星星资源图片
-        // const texture = new THREE.TextureLoader().load('./11.png')
         // ParticleBasicMaterial 点基础材质
         var starsMaterial = new THREE.ParticleBasicMaterial({
           map: generateSprite(),
@@ -174,7 +174,7 @@
       }
 
       /**
-       * 创建圆形纹理
+       * 创建 方形纹理
        * */
       function generateSprite() {
         const canvas = document.createElement('canvas')
