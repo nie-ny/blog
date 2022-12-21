@@ -104,10 +104,18 @@
         scene.add(directionalLight3)
       }
 
+      // 旋转队列
+      let rotateArr = []
       /**
        * 渲染函数
        * */
-      function renders() {
+      function renders(time) {
+        time *= 0.003
+        // 网格对象 旋转
+        rotateArr.forEach((obj) => {
+          obj.rotation.y = time
+        })
+
         renderer.clear()
         renderer.render(scene, camera)
       }
@@ -115,9 +123,10 @@
        * 动画渲染函数
        */
       function animate() {
-        window.requestAnimationFrame(() => {
+        window.requestAnimationFrame((time) => {
           if (controls) controls.update()
-          renders()
+
+          renders(time)
           animate()
         })
       }
@@ -205,6 +214,8 @@
         return texture
       }
 
+      // 顶层地球，月亮
+      const landOrbitObject = new THREE.Object3D()
       /**
        * 球相关加载
        * */
@@ -214,13 +225,33 @@
         const heightSegments = 100
         const sphereGeometry = new THREE.SphereGeometry(radius, widthSegments, heightSegments)
 
+        // 地球
         const earthTexture = loader.load('./3.jpg')
         const earthMaterial = new THREE.MeshStandardMaterial({
           map: earthTexture
         })
         const earthMesh = new THREE.Mesh(sphereGeometry, earthMaterial)
         earthMesh.rotation.set(0.5, 2.9, 0.1)
-        scene.add(earthMesh)
+
+        // 月球
+        const moonTexture = loader.load('./2.jpg')
+        const moonMaterial = new THREE.MeshPhongMaterial({ map: moonTexture })
+        const moonMesh = new THREE.Mesh(sphereGeometry, moonMaterial)
+        moonMesh.scale.set(0.2, 0.2, 0.2)
+        moonMesh.position.x = 10
+
+        // 顶层月亮
+        const moonObject = new THREE.Object3D()
+        moonObject.add(moonMesh)
+        // 加入旋转队列
+        rotateArr.push(moonObject)
+
+        // 加入 地球
+        landOrbitObject.add(earthMesh)
+        // 加入 顶层月亮
+        landOrbitObject.add(moonObject)
+
+        scene.add(landOrbitObject)
       }
 
       window.onload = () => {
@@ -236,7 +267,6 @@
 
         // 渲染
         animate()
-        // window.addEventListener('resize', onWindowResize, false)
       }
     </script>
   </body>
