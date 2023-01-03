@@ -105,15 +105,41 @@
       }
 
       // 旋转队列
-      let rotateArr = []
+      const rotateArr = []
+      const rotateSlowArr = []
+      // 放大并透明 队列
+      const bigByOpacityArr = []
+      // 移动 队列
+      const moveArr = []
       /**
        * 渲染函数
        * */
       function renders(time) {
         time *= 0.003
-        // 网格对象 旋转
+        // 3D对象 旋转
         rotateArr.forEach((obj) => {
           obj.rotation.y = time
+        })
+        rotateSlowArr.forEach((obj) => {
+          obj.rotation.y = obj._y + time * 0.1
+        })
+
+        bigByOpacityArr.forEach(function (mesh) {
+          //  目标 圆环放大 并 透明
+          mesh._s += 0.01
+          mesh.scale.set(1 * mesh._s, 1 * mesh._s, 1 * mesh._s)
+          if (mesh._s <= 2) {
+            mesh.material.opacity = 2 - mesh._s
+          } else {
+            mesh._s = 1
+          }
+        })
+
+        moveArr.forEach(function (mesh) {
+          mesh._s += 0.01
+          let tankPosition = new THREE.Vector3()
+          tankPosition = mesh.curve.getPointAt(mesh._s % 1)
+          mesh.position.set(tankPosition.x, tankPosition.y, tankPosition.z)
         })
 
         renderer.clear()
@@ -214,8 +240,10 @@
         return texture
       }
 
-      // 顶层地球，月亮
+      // 地球，月亮 3D层
       const landOrbitObject = new THREE.Object3D()
+      // 地球3D层
+      const earthObject = new THREE.Object3D()
       /**
        * 球相关加载
        * */
@@ -231,7 +259,6 @@
           map: earthTexture
         })
         const earthMesh = new THREE.Mesh(sphereGeometry, earthMaterial)
-        earthMesh.rotation.set(0.5, 2.9, 0.1)
 
         // 月球
         const moonTexture = loader.load('./2.jpg')
@@ -240,18 +267,176 @@
         moonMesh.scale.set(0.2, 0.2, 0.2)
         moonMesh.position.x = 10
 
-        // 顶层月亮
+        // 月亮3D层
         const moonObject = new THREE.Object3D()
         moonObject.add(moonMesh)
-        // 加入旋转队列
+        // 加入动画队列
         rotateArr.push(moonObject)
 
-        // 加入 地球
-        landOrbitObject.add(earthMesh)
-        // 加入 顶层月亮
+        // 地球加入 地球3D层
+        earthObject.add(earthMesh)
+        earthObject.rotation.set(0.5, 2.9, 0.1)
+        earthObject._y = 2.0
+        // 加入动画队列
+        rotateSlowArr.push(earthObject)
+
+        // 加入 地球3D层
+        landOrbitObject.add(earthObject)
+        // 加入 月亮3D层
         landOrbitObject.add(moonObject)
 
         scene.add(landOrbitObject)
+      }
+
+      /**
+       * 经维度 转换坐标
+       * THREE.Spherical 球类坐标
+       * lng:经度
+       * lat:维度
+       * radius:地球半径
+       */
+      function lglt2xyz(lng, lat, radius) {
+        // 以z轴正方向为起点的水平方向弧度值
+        const theta = (90 + lng) * (Math.PI / 180)
+        // 以y轴正方向为起点的垂直方向弧度值
+        const phi = (90 - lat) * (Math.PI / 180)
+
+        return new THREE.Vector3().setFromSpherical(new THREE.Spherical(radius, phi, theta))
+      }
+
+      /**
+       * 画图
+       * */
+      function drawChart() {
+        let markPos = lglt2xyz(106.553091, 29.57337, 5)
+        // 目标点
+        spotCircle([markPos.x, markPos.y, markPos.z])
+
+        lineConnect([121.48, 31.23], [116.4, 39.91])
+        lineConnect([121.48, 31.23], [121.564136, 25.071558])
+        lineConnect([121.48, 31.23], [104.896185, 11.598253])
+        lineConnect([121.48, 31.23], [130.376441, -16.480708])
+        lineConnect([121.48, 31.23], [-71.940328, -13.5304])
+        lineConnect([121.48, 31.23], [-3.715707, 40.432926])
+      }
+
+      /**
+       * 绘制 目标点
+       * */
+      function spotCircle(spot) {
+        // 圆
+        const geometry1 = new THREE.CircleGeometry(0.02, 100)
+        const material1 = new THREE.MeshBasicMaterial({ color: 0xff0000, side: THREE.DoubleSide })
+        const circle = new THREE.Mesh(geometry1, material1)
+        circle.position.set(spot[0], spot[1], spot[2])
+        // mesh在球面上的法线方向(球心和球面坐标构成的方向向量)
+        var coordVec3 = new THREE.Vector3(spot[0], spot[1], spot[2]).normalize()
+        // mesh默认在XOY平面上，法线方向沿着z轴new THREE.Vector3(0, 0, 1)
+        var meshNormal = new THREE.Vector3(0, 0, 1)
+        // 四元数属性.quaternion表示mesh的角度状态
+        //.setFromUnitVectors();计算两个向量之间构成的四元数值
+        circle.quaternion.setFromUnitVectors(meshNormal, coordVec3)
+        earthObject.add(circle)
+
+        // 圆环
+        const geometry2 = new THREE.RingGeometry(0.03, 0.04, 100)
+        // transparent 设置 true 开启透明
+        const material2 = new THREE.MeshBasicMaterial({ color: 0xff0000, side: THREE.DoubleSide, transparent: true })
+        const circleY = new THREE.Mesh(geometry2, material2)
+        circleY.position.set(spot[0], spot[1], spot[2])
+
+        // // mesh在球面上的法线方向(球心和球面坐标构成的方向向量)
+        // var coordVec3 = new THREE.Vector3(spot[0], spot[1], spot[2]).normalize()
+        // // mesh默认在XOY平面上，法线方向沿着z轴new THREE.Vector3(0, 0, 1)
+        // var meshNormal = new THREE.Vector3(0, 0, 1)
+        // // 四元数属性.quaternion表示mesh的角度状态
+        // //.setFromUnitVectors();计算两个向量之间构成的四元数值
+        // circleY.quaternion.setFromUnitVectors(meshNormal, coordVec3)
+        // 指向圆心
+        circleY.lookAt(new THREE.Vector3(0, 0, 0))
+        earthObject.add(circleY)
+        // 加入动画队列
+        bigByOpacityArr.push(circleY)
+      }
+
+      /**
+       * 绘制 两个目标点并连线
+       * */
+      function lineConnect(posStart, posEnd) {
+        // 地球半径
+        const globeRadius = 5
+
+        const v0 = lglt2xyz(posStart[0], posStart[1], globeRadius)
+        const v3 = lglt2xyz(posEnd[0], posEnd[1], globeRadius)
+
+        const angle = v0.angleTo(v3)
+        let vtop = v0.clone().add(v3)
+        vtop = vtop.normalize().multiplyScalar(globeRadius)
+
+        let n
+        if (angle <= 1) {
+          n = (globeRadius / 5) * angle
+        } else if (angle > 1 && angle < 2) {
+          n = (globeRadius / 5) * Math.pow(angle, 2)
+        } else {
+          n = (globeRadius / 5) * Math.pow(angle, 1.5)
+        }
+
+        const v1 = v0
+          .clone()
+          .add(vtop)
+          .normalize()
+          .multiplyScalar(globeRadius + n)
+        const v2 = v3
+          .clone()
+          .add(vtop)
+          .normalize()
+          .multiplyScalar(globeRadius + n)
+        // 三维三次贝塞尔曲线(v0起点，v1第一个控制点，v2第二个控制点，v3终点)
+        const curve = new THREE.CubicBezierCurve3(v0, v1, v2, v3)
+
+        // 绘制 目标位置
+        spotCircle([v0.x, v0.y, v0.z])
+        spotCircle([v3.x, v3.y, v3.z])
+        moveSpot(curve)
+
+        const lineGeometry = new THREE.BufferGeometry()
+        // 获取曲线 上的50个点
+        var points = curve.getPoints(50)
+        var positions = []
+        var colors = []
+        var color = new THREE.Color()
+
+        // 给每个顶点设置演示 实现渐变
+        for (var j = 0; j < points.length; j++) {
+          color.setHSL(0.81666 + j, 0.88, 0.715 + j * 0.0025) // 粉色
+          colors.push(color.r, color.g, color.b)
+          positions.push(points[j].x, points[j].y, points[j].z)
+        }
+        // 放入顶点 和 设置顶点颜色
+        lineGeometry.addAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3, true))
+        lineGeometry.addAttribute('color', new THREE.BufferAttribute(new Float32Array(colors), 3, true))
+
+        const material = new THREE.LineBasicMaterial({ vertexColors: THREE.VertexColors, side: THREE.DoubleSide })
+        const line = new THREE.Line(lineGeometry, material)
+
+        earthObject.add(line)
+      }
+
+      /**
+       * 线上移动物体
+       * */
+      function moveSpot(curve) {
+        // 线上的移动物体
+        const aGeo = new THREE.SphereGeometry(0.04, 0.04, 0.04)
+        const aMater = new THREE.MeshPhongMaterial({ color: 0xff0000, side: THREE.DoubleSide })
+        const aMesh = new THREE.Mesh(aGeo, aMater)
+        // 保存曲线实例
+        aMesh.curve = curve
+        aMesh._s = 0
+
+        moveArr.push(aMesh)
+        earthObject.add(aMesh)
       }
 
       window.onload = () => {
@@ -264,6 +449,7 @@
         // 绘制
         bg()
         earth()
+        drawChart()
 
         // 渲染
         animate()
