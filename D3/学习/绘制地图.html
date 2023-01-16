@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>学习</title>
+  </head>
+  <style type="text/css">
+    * {
+      padding: 0;
+      margin: 0;
+    }
+    .porvince {
+      stroke: black;
+      stroke-width: 1px;
+    }
+  </style>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <body>
+    <div class="d3Chart"></div>
+  </body>
+  <script type="text/javascript">
+    // 画布
+    let width = (window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth) * 0.92
+    let height = (window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight) * 0.92
+
+    const svg = d3
+      .select('.d3Chart')
+      .append('svg')
+      .attr('width', width)
+      .attr('height', height)
+      .style('background-color', '#1a3055')
+
+    //定义地图的投影
+    let projection = d3
+      .geoMercator()
+      .center([111.5, 31.1])
+      .scale(700)
+      .translate([width / 2, height / 2])
+
+    //定义地形路径生成器
+    let geoPath = d3.geoPath().projection(projection) //设定投影
+
+    // 创建颜色比例尺
+    const colorScale = d3.scaleOrdinal(d3.schemeSet3)
+
+    // 获取json文件数据  areas_v2 版本数据
+    // 阿里云 geoJSON https://datav.aliyun.com/portal/school/atlas/area_selector  数据有问题 需要修改错误的数据 形成闭环
+    d3.json('./file/100000_full.json').then(function (root) {
+      console.log(root)
+      const group = svg.append('g')
+
+      group
+        .selectAll('g')
+        .data(root.features)
+        .enter()
+        .append('g')
+        .append('path')
+        .attr('class', (d, i) => {
+          return 'porvince'
+        })
+        .style('fill', (d, i) => {
+          return colorScale(i)
+        })
+        .attr('d', geoPath)
+
+      const pos = projection([116.404269, 39.913828])
+
+      const posInvert = projection.invert(pos)
+      console.log('🚀 ~ file: 绘制地图.html:71 ~ posInvert', posInvert)
+
+      const spot = svg.append('g')
+      spot.append('circle').attr('cx', pos[0]).attr('cy', pos[1]).attr('r', 5).attr('fill', 'red')
+    })
+  </script>
+</html>

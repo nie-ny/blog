@@ -9,35 +9,14 @@
   <style type="text/css">
     * {
     }
+    .overlay {
+      fill: none;
+      pointer-events: all;
+    }
+    .fLine {
+    }
   </style>
-  <!-- 按需引入模块 UMD包 -->
-  <!-- 选择器模块 -->
-  <script src="https://cdn.jsdelivr.net/npm/d3-selection@3"></script>
-
-  <!-- 比例尺模块 和 依赖 -->
-  <script src="https://cdn.jsdelivr.net/npm/d3-array@3"></script>
-  <script src="https://cdn.jsdelivr.net/npm/d3-color@3"></script>
-  <script src="https://cdn.jsdelivr.net/npm/d3-format@3"></script>
-  <script src="https://cdn.jsdelivr.net/npm/d3-interpolate@3"></script>
-  <script src="https://cdn.jsdelivr.net/npm/d3-time@3"></script>
-  <script src="https://cdn.jsdelivr.net/npm/d3-time-format@4"></script>
-  <script src="https://cdn.jsdelivr.net/npm/d3-scale@4"></script>
-
-  <!-- 坐标轴 -->
-  <script src="https://cdn.jsdelivr.net/npm/d3-axis@3"></script>
-
-  <!-- 形状 -->
-  <script src="https://cdn.jsdelivr.net/npm/d3-path@3"></script>
-  <script src="https://cdn.jsdelivr.net/npm/d3-shape@3"></script>
-
-  <!-- 动画 -->
-  <!-- <script src="https://cdn.jsdelivr.net/npm/d3-color@3"></script> -->
-  <script src="https://cdn.jsdelivr.net/npm/d3-dispatch@3"></script>
-  <script src="https://cdn.jsdelivr.net/npm/d3-ease@3"></script>
-  <!-- <script src="https://cdn.jsdelivr.net/npm/d3-interpolate@3"></script> -->
-  <!-- <script src="https://cdn.jsdelivr.net/npm/d3-selection@3"></script> -->
-  <script src="https://cdn.jsdelivr.net/npm/d3-timer@3"></script>
-  <script src="https://cdn.jsdelivr.net/npm/d3-transition@3"></script>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
   <body>
     <div class="d3Chart"></div>
   </body>
@@ -184,5 +163,69 @@
       .ease(d3.easeLinear)
       .attr('r', 4)
       .style('stroke-width', 3)
+
+    var focusC = svg.append('g').attr('class', '').attr('display', 'none')
+    focusC.append('circle').attr('r', 4)
+    focusC.append('text').attr('dx', 10).attr('dy', '-0.2em')
+
+    // .attr('display', 'none')
+    var focusL = svg.append('g').attr('class', 'fLine')
+    var vL = focusL.append('line')
+    var hL = focusL.append('line')
+
+    svg
+      .append('rect')
+      .attr('class', 'overlay')
+      .attr('x', margin * 2)
+      .attr('y', margin)
+      .attr('width', 400)
+      .attr('height', 400)
+      .on('mouseover', function () {
+        // 鼠标移入
+        focusC.attr('display', 'null')
+        focusL.attr('display', 'null')
+      })
+      .on('mouseout', function () {
+        // 鼠标移出
+        focusC.attr('display', 'none')
+        focusL.attr('display', 'none')
+      })
+      .on('mousemove', function (event) {
+        // 鼠标滑动
+
+        var mouseX = d3.pointer(event)[0]
+        var mouseY = d3.pointer(event)[1]
+
+        var x0 = Math.round(mouseX / (400 / dataArr.length)) - 1
+        var y0 = yScale.invert(mouseY)
+
+        x0 = x0 > dataArr.length - 1 ? dataArr.length - 1 : x0
+        var x1 = dataArr[x0].label
+        var y1 = dataArr[x0].value
+
+        var foX = xScale(x1) + margin * 4 - 7
+        var foY = yScale(y1) + margin
+
+        focusC.attr('transform', `translate(${foX}, ${foY})`)
+        focusC.select('text').text(`${x1}:${y1}`)
+
+        vL.attr('x1', foX)
+          .attr('y1', foY)
+          .attr('x2', foX)
+          .attr('y2', 400 + margin)
+          .attr('stroke', 'red')
+          .attr('stroke-width', '3')
+          .attr('stroke-opacity', '0.5')
+          .attr('stroke-dasharray', '5')
+
+        hL.attr('x1', 2 * margin)
+          .attr('y1', foY)
+          .attr('x2', foX)
+          .attr('y2', foY)
+          .attr('stroke', 'red')
+          .attr('stroke-width', '3')
+          .attr('stroke-opacity', '0.5')
+          .attr('stroke-dasharray', '5')
+      })
   </script>
 </html>
