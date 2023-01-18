@@ -15,6 +15,10 @@
       stroke: black;
       stroke-width: 1px;
     }
+    .overlay {
+      fill: none;
+      pointer-events: all;
+    }
   </style>
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <body>
@@ -45,33 +49,93 @@
     // 创建颜色比例尺
     const colorScale = d3.scaleOrdinal(d3.schemeSet3)
 
+    const pale = d3.rgb(0, 255, 255)
+    const dark = d3.rgb(0, 0, 255)
+    const color = d3.interpolate(pale, dark)
+    // .domain([10, 500]).range([0, 1])
+    const linear = d3.scaleLinear()
+
+    console.log(color(linear(200)))
+
     // 获取json文件数据  areas_v2 版本数据
     // 阿里云 geoJSON https://datav.aliyun.com/portal/school/atlas/area_selector  数据有问题 需要修改错误的数据 形成闭环
     d3.json('./file/100000_full.json').then(function (root) {
-      console.log(root)
-      const group = svg.append('g')
+      console.log('100000_full.json', root)
+      root.features.forEach((item) => {
+        item.properties.val = Math.ceil(Math.random() * 500)
+      })
 
-      group
-        .selectAll('g')
-        .data(root.features)
-        .enter()
-        .append('g')
+      const maxVal = d3.max(root.features, (d) => d.properties.val)
+      // console.log('🚀 ~ file: 绘制地图.html:64 ~ maxVal', maxVal)
+      linear.domain([0, maxVal]).range([0, 1])
+
+      // 绘制地图
+      const group = svg.append('g')
+      const groupG = group.selectAll('g').data(root.features).enter().append('g')
+      const groupPath = groupG
         .append('path')
         .attr('class', (d, i) => {
           return 'porvince'
         })
         .style('fill', (d, i) => {
-          return colorScale(i)
+          return color(linear(d.properties.val))
         })
         .attr('d', geoPath)
 
-      const pos = projection([116.404269, 39.913828])
+      // 经纬度 位置转换
+      // const pos = projection([116.404269, 39.913828])
+      // const posInvert = projection.invert(pos)
+      // const spot = svg.append('g')
+      // spot.append('circle').attr('cx', pos[0]).attr('cy', pos[1]).attr('r', 5).attr('fill', 'red')
 
-      const posInvert = projection.invert(pos)
-      console.log('🚀 ~ file: 绘制地图.html:71 ~ posInvert', posInvert)
+      // 颜色差值展示
+      const defs = svg.append('defs')
+      const linearGr = defs
+        .append('linearGradient')
+        .attr('id', 'linearColor')
+        .attr('x1', '0%')
+        .attr('y1', '0%')
+        .attr('x2', '100%')
+        .attr('y2', '0%')
 
-      const spot = svg.append('g')
-      spot.append('circle').attr('cx', pos[0]).attr('cy', pos[1]).attr('r', 5).attr('fill', 'red')
+      linearGr.append('stop').attr('offset', '0%').style('stop-color', pale.toString())
+      linearGr.append('stop').attr('offset', '100%').style('stop-color', dark.toString())
+
+      svg
+        .append('rect')
+        .attr('x', 20)
+        .attr('y', height - 40)
+        .attr('width', 150)
+        .attr('height', 20)
+        .style('fill', `url(#linearColor)`)
+
+      // 缩放
+      const initTran = projection.translate()
+      const initScale = projection.scale()
+
+      // console.log('🚀 ~ file: 绘制地图.html:114 ~ initTran', initTran, initScale)
+
+      // .scaleExtent() 设置允许的刻度范围
+      const zoom = d3
+        .zoom()
+        .scaleExtent([1, 10])
+        .on('zoom', (d) => {
+          // d.transform {x,y,k}  x、y 平移系数 k 缩放系数
+
+          projection.translate([initTran[0] + d.transform.x, initTran[1] + d.transform.y])
+          projection.scale(initScale * d.transform.k)
+
+          groupPath.attr('d', geoPath)
+        })
+
+      svg
+        .append('rect')
+        .attr('class', 'overlay')
+        .attr('x', 0)
+        .attr('y', 0)
+        .attr('width', width)
+        .attr('height', height)
+        .call(zoom)
     })
   </script>
 </html>
