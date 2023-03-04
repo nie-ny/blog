@@ -111,6 +111,13 @@
       const bigByOpacityArr = []
       // 移动 队列
       const moveArr = []
+
+      // 边界 绘制点集合
+      const lines = []
+      // 炫光粒子 几何体
+      const geometryLz = new THREE.BufferGeometry()
+      // 炫光粒子 透明度
+      let opacitys = []
       /**
        * 渲染函数
        * */
@@ -121,7 +128,7 @@
           obj.rotation.y = time
         })
         rotateSlowArr.forEach((obj) => {
-          obj.rotation.y = obj._y + time * 0.1
+          // obj.rotation.y = obj._y + time * 0.1
         })
 
         bigByOpacityArr.forEach(function (mesh) {
@@ -141,6 +148,18 @@
           tankPosition = mesh.curve.getPointAt(mesh._s % 1)
           mesh.position.set(tankPosition.x, tankPosition.y, tankPosition.z)
         })
+
+        if (geometryLz.attributes.position) {
+          geometryLz.currentPos += geometryLz.pointSpeed
+          for (let i = 0; i < geometryLz.pointSpeed; i++) {
+            opacitys[(geometryLz.currentPos - i) % lines.length] = 0
+          }
+
+          for (let i = 0; i < 200; i++) {
+            opacitys[(geometryLz.currentPos + i) % lines.length] = i / 50 > 2 ? 2 : i / 50
+          }
+          geometryLz.attributes.aOpacity.needsUpdate = true
+        }
 
         renderer.clear()
         renderer.render(scene, camera)
@@ -244,11 +263,14 @@
       const landOrbitObject = new THREE.Object3D()
       // 地球3D层
       const earthObject = new THREE.Object3D()
+
+      // 地球半径
+      const globeRadius = 5
       /**
        * 球相关加载
        * */
       function earth() {
-        const radius = 5
+        const radius = globeRadius
         const widthSegments = 100
         const heightSegments = 100
         const sphereGeometry = new THREE.SphereGeometry(radius, widthSegments, heightSegments)
@@ -264,7 +286,7 @@
         const moonTexture = loader.load('./2.jpg')
         const moonMaterial = new THREE.MeshPhongMaterial({ map: moonTexture })
         const moonMesh = new THREE.Mesh(sphereGeometry, moonMaterial)
-        moonMesh.scale.set(0.2, 0.2, 0.2)
+        moonMesh.scale.set(0.1, 0.1, 0.1)
         moonMesh.position.x = 10
 
         // 月亮3D层
@@ -363,9 +385,6 @@
        * 绘制 两个目标点并连线
        * */
       function lineConnect(posStart, posEnd) {
-        // 地球半径
-        const globeRadius = 5
-
         const v0 = lglt2xyz(posStart[0], posStart[1], globeRadius)
         const v3 = lglt2xyz(posEnd[0], posEnd[1], globeRadius)
 
@@ -437,11 +456,144 @@
 
         moveArr.push(aMesh)
         earthObject.add(aMesh)
+      }
 
-        //
+      /**
+       * 定义 着色器
+       **/
+      const vertexShader = `
+                            attribute float aOpacity;
+                            uniform float uSize;
+                            varying float vOpacity;
+
+                            void main(){
+                                gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0);
+                                gl_PointSize = uSize;
+
+                                vOpacity=aOpacity;
+                            }
+                            `
+      const fragmentShader = `
+                      varying float vOpacity;
+                      uniform vec3 uColor;
+
+                      float invert(float n){
+                          return 1.-n;
+                      }
+
+                      void main(){
+                        if(vOpacity <=0.2){
+                            discard;
+                        }
+                        vec2 uv=vec2(gl_PointCoord.x,invert(gl_PointCoord.y));
+                        vec2 cUv=2.*uv-1.;
+                        vec4 color=vec4(1./length(cUv));
+                        color*=vOpacity;
+                        color.rgb*=uColor;
+
+                        gl_FragColor=color;
+                      }
+                      `
+
+      /**
+       * 边界炫光路径
+       * */
+      function dazzleLight() {
+        const loader = new THREE.FileLoader()
+        loader.load('./100000.json', (data) => {
+          const jsondata = JSON.parse(data)
+          console.log('🚀 ~ file: index.html:454 ~ loader.load ~ jsondata:', jsondata)
+
+          // 中国边界
+          const feature = jsondata.features[0]
+          const province = new THREE.Object3D()
+          province.properties = feature.properties.name
+          // 点数据
+          const coordinates = feature.geometry.coordinates
+
+          coordinates.forEach((coordinate) => {
+            // coordinate 多边形数据
+            coordinate.forEach((rows) => {
+              // 绘制线
+              const line = lineDraw(rows, 0xaa381e)
+              province.add(line)
+            })
+          })
+          // 添加地图边界
+          earthObject.add(province)
+
+          // 拉平 为一维数组
+          const positions = new Float32Array(lines.flat(1))
+          // 设置顶点
+          geometryLz.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+          // 设置 粒子透明度为 0
+          opacitys = new Float32Array(positions.length).map(() => 0)
+          geometryLz.setAttribute('aOpacity', new THREE.BufferAttribute(opacitys, 1))
+
+          geometryLz.currentPos = 0
+          // 炫光移动速度
+          geometryLz.pointSpeed = 20
+
+          // 控制 颜色和粒子大小
+          const params = {
+            pointSize: 2.0,
+            pointColor: '#4ec0e9'
+          }
+
+          // 创建着色器材质
+          const material = new THREE.ShaderMaterial({
+            vertexShader: vertexShader,
+            fragmentShader: fragmentShader,
+            transparent: true, // 设置透明
+            uniforms: {
+              uSize: {
+                value: params.pointSize
+              },
+              uColor: {
+                value: new THREE.Color(params.pointColor)
+              }
+            }
+          })
+          const points = new THREE.Points(geometryLz, material)
+
+          earthObject.add(points)
+        })
+      }
+
+      /**
+       * 边框 图形绘制
+       * @param polygon 多边形 点数组
+       * @param color 材质颜色
+       * */
+      let indexBol = true
+      function lineDraw(polygon, color) {
+        const lineGeometry = new THREE.BufferGeometry()
+        const pointsArray = new Array()
+        polygon.forEach((row) => {
+          // 转换坐标
+          const xyz = lglt2xyz(row[0], row[1], globeRadius)
+          // 创建三维点
+          pointsArray.push(xyz)
+
+          if (indexBol) {
+            // 为了好看 这里只要内陆边界
+            lines.push([xyz.x, xyz.y, xyz.z])
+          }
+        })
+
+        indexBol = false
+
+        // 放入多个点
+        lineGeometry.setFromPoints(pointsArray)
+
+        const lineMaterial = new THREE.LineBasicMaterial({
+          color: color
+        })
+        return new THREE.Line(lineGeometry, lineMaterial)
       }
 
       window.onload = () => {
+        // 初始化
         initRenderer()
         initCamera()
         initScene()
@@ -452,6 +604,7 @@
         bg()
         earth()
         drawChart()
+        dazzleLight()
 
         // 渲染
         animate()
