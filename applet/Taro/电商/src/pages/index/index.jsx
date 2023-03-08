@@ -1,81 +1,48 @@
-import { Component } from 'react';
-import { View, Text, Input } from '@tarojs/components';
-import './index.scss';
+import { Component } from 'react'
+import { connect } from 'react-redux'
+import { View, Button, Text } from '@tarojs/components'
 
-export default class Index extends Component {
-  constructor(props) {
-    super(props);
-    // 创建一个初始的 Todolist
-    this.state = {
-      list: ['get up', 'coding', 'sleep'],
-      inputVal: ''
-    };
+import { add, minus, asyncAdd } from '../../actions/counter'
+
+import './index.scss'
+
+
+@connect(({ counter }) => ({
+  counter
+}), (dispatch) => ({
+  add () {
+    dispatch(add())
+  },
+  dec () {
+    dispatch(minus())
+  },
+  asyncAdd () {
+    dispatch(asyncAdd())
+  }
+}))
+class Index extends Component {
+  componentWillReceiveProps (nextProps) {
+    console.log(this.props, nextProps)
   }
 
-  config = {
-    navigationBarTitleText: '首页'
-  };
+  componentWillUnmount () { }
 
-  addItem() {
-    let { list, inputVal } = this.state;
+  componentDidShow () { }
 
-    // 如果输入框的值为空，则返回，否则添加到事项列表里
-    if (inputVal == '') return;
-    else {
-      list.push(inputVal);
-    }
+  componentDidHide () { }
 
-    this.setState({
-      list,
-      inputVal: ''
-    });
-  }
-
-  // 输入框 onInput 的时候，它的值暂存起来
-  inputHandler(e) {
-    this.setState({
-      inputVal: e.target.value
-    });
-  }
-  // 根据索引删除事项，然后更新 list
-  delItem(index) {
-    let { list } = this.state;
-    list.splice(index, 1);
-    this.setState({
-      list
-    });
-  }
-
-  render() {
-    let { list, inputVal } = this.state;
-
+  render () {
     return (
       <View className='index'>
-        <Input
-          className='input'
-          type='text'
-          value={inputVal}
-          onInput={this.inputHandler.bind(this)}
-        />
-        <Text className='add' onClick={this.addItem.bind(this)}>
-          添加
-        </Text>
-        <View className='list_wrap'>
-          <Text>Todo list</Text>
-          {list.map((item, index) => {
-            return (
-              <View key={index}>
-                <Text>
-                  {index + 1}.{item}
-                </Text>
-                <Text className='del' onClick={this.delItem.bind(this, index)}>
-                  删除
-                </Text>
-              </View>
-            );
-          })}
-        </View>
+        <Button className='add_btn' onClick={this.props.add}>+</Button>
+        <Button className='dec_btn' onClick={this.props.dec}>-</Button>
+        <Button className='dec_btn' onClick={this.props.asyncAdd}>async</Button>
+        <View><Text>{this.props.counter.num}</Text></View>
+        <View><Text>Hello, World</Text></View>
       </View>
-    );
+    )
   }
 }
+
+export default Index
+

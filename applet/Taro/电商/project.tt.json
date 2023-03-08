@@ -1,9 +1,13 @@
 {
   "miniprogramRoot": "./",
   "projectname": "电商",
+  "description": "电商",
   "appid": "wx825cee6bc02c8213",
   "setting": {
+    "urlCheck": true,
     "es6": false,
+    "postcss": false,
     "minified": false
-  }
+  },
+  "compileType": "miniprogram"
 }
