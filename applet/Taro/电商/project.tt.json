@@ -1,0 +1,9 @@
+{
+  "miniprogramRoot": "./",
+  "projectname": "电商",
+  "appid": "wx825cee6bc02c8213",
+  "setting": {
+    "es6": false,
+    "minified": false
+  }
+}
