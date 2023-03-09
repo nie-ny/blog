@@ -1,15 +1,37 @@
 {
-  "pages": [
-    "pages/index/index",
-    "pages/getOpenId/index"
-  ],
+  "pages": ["pages/homepage/homepage", "pages/cart/cart", "pages/me/me"],
   "window": {
     "backgroundColor": "#F6F6F6",
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#F6F6F6",
-    "navigationBarTitleText": "云开发 QuickStart",
+    "navigationBarTitleText": "水果小店",
     "navigationBarTextStyle": "black"
   },
   "sitemapLocation": "sitemap.json",
-  "style": "v2"
+  "style": "v2",
+  "tabBar": {
+    "selectedColor": "#EEAD0E",
+    "color": "#878787",
+    "backgroundColor": "#FFF5EE",
+    "list": [
+      {
+        "pagePath": "pages/homepage/homepage",
+        "text": "水果",
+        "iconPath": "images/tabBar/homepage-sel.png",
+        "selectedIconPath": "images/tabBar/homepage.png"
+      },
+      {
+        "pagePath": "pages/cart/cart",
+        "text": "购物车",
+        "iconPath": "images/tabBar/cart-sel.png",
+        "selectedIconPath": "images/tabBar/cart.png"
+      },
+      {
+        "pagePath": "pages/me/me",
+        "text": "我的",
+        "iconPath": "images/tabBar/me-sel.png",
+        "selectedIconPath": "images/tabBar/me.png"
+      }
+    ]
+  }
 }

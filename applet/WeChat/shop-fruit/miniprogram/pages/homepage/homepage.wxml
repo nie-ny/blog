@@ -1,0 +1,59 @@
+<!-- index.wxml -->
+<!-- 维护 -->
+<view class='offLineHome' wx:if="{{offLine}}">打烊啦~~~~~</view>
+<!-- 页面 -->
+<view wx:if="{{isShow && !offLine}}">
+  <!-- 搜索框 -->
+  <mySearch></mySearch>
+  <!-- 轮播图 -->
+  <view class='swiperHome'>
+    <swiper></swiper>
+  </view>
+  <!-- 分类展示 -->
+  <view class='type-container'>
+    <view class='type-item' wx:for="{{typeCat}}" wx:key="id">
+      <view id='{{item.id}}' class="type-name {{activeTypeId === item.id ? 'type-item-on' : ''}}" bindtap='typeSwitch'>
+        {{item.name}}
+      </view>
+    </view>
+  </view>
+  <!-- 水果展示 -->
+  <view class='extra'></view>
+  <view class='fruit-container'>
+    <!-- 水果信息卡片 -->
+    <block wx:for="{{fruitInfo}}" wx:key='fruitID'>
+      <view class='fruit-item' bindtap='tapToDetail' data-fID="{{item._id}}" wx:if="{{item.onShow}}">
+        <!-- 图片 -->
+        <view class='fruit-image'>
+          <image src='{{item.imgUrl}}' mode='aspectFill'></image>
+        </view>
+        <!-- 其他信息 -->
+        <view class='fruit-info'>
+          <view class='line1'>
+            <!-- 名称 -->
+            <text class='name'>{{item.fruitName}}</text>
+          </view>
+          <view class='line2'>
+            <!-- 价格 -->
+            <view class='price'>
+              <text>￥{{item.price}}</text>
+              <text class='unit'>/{{item.unit}}</text>
+            </view>
+            <!-- 购物车 -->
+            <!-- <view class='like-image' catchtap="addCartByHome" data-_id="{{item._id}}"> -->
+            <image src='../../images/icon/cart4.png' mode='aspectFit' catchtap="addCartByHome" data-_id="{{item._id}}"></image>
+            <!-- </view> -->
+            <!-- 销量 -->
+            <!-- <view class='like-num'>添加</view> -->
+          </view>
+        </view>
+      </view>
+    </block>
+  </view>
+  <!-- 底部 -->
+  <view class='homeBottom'>
+    <view class='bottomLine'></view>
+    <view class='bottomWord'>没有更多了</view>
+    <view class='bottomLine'></view>
+  </view>
+</view>

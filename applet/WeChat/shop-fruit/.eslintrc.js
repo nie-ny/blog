@@ -7,14 +7,14 @@ module.exports = {
   env: {
     es6: true,
     browser: true,
-    node: true,
+    node: true
   },
   ecmaFeatures: {
-    modules: true,
+    modules: true
   },
   parserOptions: {
     ecmaVersion: 2018,
-    sourceType: 'module',
+    sourceType: 'module'
   },
   globals: {
     wx: true,
@@ -24,8 +24,8 @@ module.exports = {
     getApp: true,
     Component: true,
     requirePlugin: true,
-    requireMiniProgram: true,
+    requireMiniProgram: true
   },
   // extends: 'eslint:recommended',
-  rules: {},
+  rules: {}
 }
