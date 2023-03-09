@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style type="text/css">
+      .main {
+        width: 1000px;
+        min-height: 600px;
+        margin: 50px auto;
+        background-color: #f0f0f0;
+        box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.35);
+        position: relative;
+        top: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        /* 3D视距 透视 */
+        -webkit-perspective: 800px;
+        perspective: 800px;
+      }
+
+      .container {
+        width: 200px;
+        height: 200px;
+        position: relative;
+
+        transform: rotateX(30deg);
+
+        /* 添加动画  */
+        animation: rotateAn 5s linear infinite;
+        -webkit-animation: rotateAn 5s linear infinite;
+
+        /* 修改子元素 为3D变换 */
+        -webkit-transform-style: preserve-3d;
+        transform-style: preserve-3d;
+      }
+
+      /* 内框 */
+      .withinBox {
+        width: 100px;
+        height: 100px;
+        position: absolute;
+        top: 50px;
+        left: 50px;
+
+        /* 修改子元素 为3D变换 */
+        -webkit-transform-style: preserve-3d;
+        transform-style: preserve-3d;
+      }
+      .withinBox .inner {
+        width: 100px;
+        height: 100px;
+        position: absolute;
+        left: 0;
+        top: 0;
+      }
+      .withinBox .inner:nth-child(1) {
+        background-color: #ccffff;
+        /* 正面 */
+        transform: translateZ(50px);
+        -webkit-transform: translateZ(50px);
+      }
+      .withinBox .inner:nth-child(2) {
+        background-color: #ccccff;
+        /* 背面 */
+        transform: rotateX(180deg) translateZ(50px);
+        -webkit-transform: rotateX(180deg) translateZ(50px);
+      }
+      .withinBox .inner:nth-child(3) {
+        background-color: #99ffff;
+        /* 下面 */
+        transform: rotateX(-90deg) translateZ(50px);
+        -webkit-transform: rotateX(-90deg) translateZ(50px);
+      }
+      .withinBox .inner:nth-child(4) {
+        background-color: #99ffcc;
+        /* 上面 */
+        transform: rotateX(90deg) translateZ(50px);
+        -webkit-transform: rotateX(90deg) translateZ(50px);
+      }
+      .withinBox .inner:nth-child(5) {
+        background-color: #ffccff;
+        /* 左面 */
+        transform: rotateY(-90deg) translateZ(50px);
+        -webkit-transform: rotateY(-90deg) translateZ(50px);
+      }
+      .withinBox .inner:nth-child(6) {
+        background-color: #ffcccc;
+        /* 右面 */
+        transform: rotateY(90deg) translateZ(50px);
+        -webkit-transform: rotateY(90deg) translateZ(50px);
+      }
+
+      @keyframes rotateAn {
+        0% {
+          transform: rotateX(30deg) rotateY(0deg);
+          -webkit-transform: rotateX(30deg) rotateY(0deg);
+        }
+        100% {
+          transform: rotateX(30deg) rotateY(360deg);
+          -webkit-transform: rotateX(30deg) rotateY(360deg);
+        }
+      }
+
+      /* 外框 */
+      .outsideBox{
+        width: 200px;
+        height: 200px;
+        position: absolute;
+
+        /* 修改子元素 为3D变换 */
+        -webkit-transform-style: preserve-3d;
+        transform-style: preserve-3d;
+      }
+      .outsideBox .inner{
+        width: 200px;
+	      height: 200px;
+        position: absolute;
+        background: #fff;
+        border:1px solid #ccc;
+        position: absolute;
+        left: 0;
+        top: 0;
+        opacity: 0.2;
+      }
+
+      .outsideBox .inner:nth-child(1) {
+        background-color: #ccffff;
+        /* 正面 */
+        transform: translateZ(100px);
+        -webkit-transform: translateZ(100px);
+      }
+      .outsideBox .inner:nth-child(2) {
+        background-color: #ccccff;
+        /* 背面 */
+        transform: rotateX(180deg) translateZ(100px);
+        -webkit-transform: rotateX(180deg) translateZ(100px);
+      }
+      .outsideBox .inner:nth-child(3) {
+        background-color: #99ffff;
+        /* 下面 */
+        transform: rotateX(-90deg) translateZ(100px);
+        -webkit-transform: rotateX(-90deg) translateZ(100px);
+      }
+      .outsideBox .inner:nth-child(4) {
+        background-color: #99ffcc;
+        /* 上面 */
+        transform: rotateX(90deg) translateZ(100px);
+        -webkit-transform: rotateX(90deg) translateZ(100px);
+      }
+      .outsideBox .inner:nth-child(5) {
+        background-color: #ffccff;
+        /* 左面 */
+        transform: rotateY(-90deg) translateZ(100px);
+        -webkit-transform: rotateY(-90deg) translateZ(100px);
+      }
+      .outsideBox .inner:nth-child(6) {
+        background-color: #ffcccc;
+        /* 右面 */
+        transform: rotateY(90deg) translateZ(100px);
+        -webkit-transform: rotateY(90deg) translateZ(100px);
+      }
+
+      /* 展开效果 */
+      .outsideBox:hover .inner:nth-child(1) {
+        /* 正面 */
+        transform: translateZ(200px);
+        -webkit-transform: translateZ(200px);
+        opacity: 0.8;
+        
+      }
+      .outsideBox:hover .inner:nth-child(2) {
+        /* 背面 */
+        transform: rotateX(180deg) translateZ(200px);
+        -webkit-transform: rotateX(180deg) translateZ(200px);
+        opacity: 0.8;
+      }
+      .outsideBox:hover .inner:nth-child(3) {
+        /* 下面 */
+        transform: rotateX(-90deg) translateZ(200px);
+        -webkit-transform: rotateX(-90deg) translateZ(200px);
+        opacity: 0.8;
+      }
+      .outsideBox:hover .inner:nth-child(4) {
+        /* 上面 */
+        transform: rotateX(90deg) translateZ(200px);
+        -webkit-transform: rotateX(90deg) translateZ(200px);
+        opacity: 0.8;
+      }
+      .outsideBox:hover .inner:nth-child(5) {
+        /* 左面 */
+        transform: rotateY(-90deg) translateZ(200px);
+        -webkit-transform: rotateY(-90deg) translateZ(200px);
+        opacity: 0.8;
+      }
+      .outsideBox:hover .inner:nth-child(6) {
+        /* 右面 */
+        transform: rotateY(90deg) translateZ(200px);
+        -webkit-transform: rotateY(90deg) translateZ(200px);
+        opacity: 0.8;
+      }
+      
+
+    </style>
+  </head>
+  <body>
+    <!-- 舞台 -->
+    <div class="main">
+      <!-- 容器 -->
+      <div id="container" class="container">
+        <!-- 内 -->
+        <div class="withinBox">
+          <div class="inner"></div>
+          <div class="inner"></div>
+          <div class="inner"></div>
+          <div class="inner"></div>
+          <div class="inner"></div>
+          <div class="inner"></div>
+        </div>
+        <!-- 外 -->
+        <div class="outsideBox">
+          <div class="inner"></div>
+          <div class="inner"></div>
+          <div class="inner"></div>
+          <div class="inner"></div>
+          <div class="inner"></div>
+          <div class="inner"></div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

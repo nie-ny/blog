@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style type="text/css">
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        background-color: #000;
+        overflow: hidden;
+      }
+
+      /* 设置视距1000px 子元素在3D中变换  */
+      .preserve {
+        transform-style: preserve-3d;
+        perspective: 800px;
+      }
+
+      /* 容器 */
+      .container {
+        position: relative;
+        margin-top: 10vh;
+        text-align: center;
+        /* animation: rotateReverse 10s infinite linear; */
+      }
+
+      /* 舞台 */
+      .stage {
+        transform: rotateX(10deg) rotateZ(0);
+        /* animation: rotate 10s infinite linear; */
+      }
+
+      /* 数字样式  */
+      .number {
+        position: relative;
+        width: 3vw;
+        height: 12vw;
+        display: inline-block;
+        margin: 3vw 3vw 0 0;
+      }
+
+      /* 减少我们的距离 实现阴影效果 */
+      .translate::before,
+      .translate::after {
+        transform: translateZ(70px);
+      }
+
+      .line {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 3vw;
+        height: 2px;
+        background: #181919;
+      }
+
+      /* 计算每根线的位置 */
+      .line:nth-child(1) {
+        top: -0.2vw;
+      }
+      .line:nth-child(2) {
+        top: 3.2vw;
+      }
+      .line:nth-child(3) {
+        transform: rotate(180deg) translateY(-0.2vw);
+        top: 6.4vw;
+      }
+
+      .line:nth-child(4) {
+        transform: rotate(90deg) translateY(0.2vw);
+        /* 设置 旋转中心为 最左边 元素中点  */
+        transform-origin: 0 center;
+      }
+      .line:nth-child(5) {
+        transform: rotate(-90deg) translateY(0.2vw);
+        /* 设置 旋转中心为 最右边 元素中点  */
+        transform-origin: 100% center;
+      }
+
+      .line:nth-child(6) {
+        top: 3.4vw;
+        transform: rotate(90deg) translateY(0.2vw);
+        transform-origin: 0 center;
+      }
+      .line:nth-child(7) {
+        top: 3.4vw;
+        transform: rotate(-90deg) translateY(0.2vw);
+        transform-origin: 100% center;
+      }
+
+      .line::before,
+      .line::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        width: 50%;
+        height: 100%;
+        background-color: #34eabc;
+        box-shadow: 0 0 1vw #0bfdfd, inset 0 0 0.125vmin #0bfdfd;
+      }
+      .line::before {
+        left: 0;
+        transition: all 0.5s ease-in;
+      }
+      .line::after {
+        right: 0;
+        transition: all 0.5s ease-out;
+      }
+
+      .number[data-digit="1"] .line:nth-child(1)::before,
+      .number[data-digit="1"] .line:nth-child(1)::after,
+      .number[data-digit="1"] .line:nth-child(2)::before,
+      .number[data-digit="1"] .line:nth-child(2)::after,
+      .number[data-digit="1"] .line:nth-child(3)::before,
+      .number[data-digit="1"] .line:nth-child(3)::after,
+      .number[data-digit="1"] .line:nth-child(4)::before,
+      .number[data-digit="1"] .line:nth-child(4)::after,
+      .number[data-digit="1"] .line:nth-child(6)::before,
+      .number[data-digit="1"] .line:nth-child(6)::after,
+      .number[data-digit="2"] .line:nth-child(4)::before,
+      .number[data-digit="2"] .line:nth-child(4)::after,
+      .number[data-digit="2"] .line:nth-child(7)::before,
+      .number[data-digit="2"] .line:nth-child(7)::after,
+      .number[data-digit="3"] .line:nth-child(4)::before,
+      .number[data-digit="3"] .line:nth-child(4)::after,
+      .number[data-digit="3"] .line:nth-child(6)::before,
+      .number[data-digit="3"] .line:nth-child(6)::after,
+      .number[data-digit="4"] .line:nth-child(1)::before,
+      .number[data-digit="4"] .line:nth-child(1)::after,
+      .number[data-digit="4"] .line:nth-child(3)::before,
+      .number[data-digit="4"] .line:nth-child(3)::after,
+      .number[data-digit="4"] .line:nth-child(6)::before,
+      .number[data-digit="4"] .line:nth-child(6)::after,
+      .number[data-digit="5"] .line:nth-child(5)::before,
+      .number[data-digit="5"] .line:nth-child(5)::after,
+      .number[data-digit="5"] .line:nth-child(6)::before,
+      .number[data-digit="5"] .line:nth-child(6)::after,
+      .number[data-digit="6"] .line:nth-child(5)::before,
+      .number[data-digit="6"] .line:nth-child(5)::after,
+      .number[data-digit="7"] .line:nth-child(2)::before,
+      .number[data-digit="7"] .line:nth-child(2)::after,
+      .number[data-digit="7"] .line:nth-child(3)::before,
+      .number[data-digit="7"] .line:nth-child(3)::after,
+      .number[data-digit="7"] .line:nth-child(4)::before,
+      .number[data-digit="7"] .line:nth-child(4)::after,
+      .number[data-digit="7"] .line:nth-child(6)::before,
+      .number[data-digit="7"] .line:nth-child(6)::after,
+      .number[data-digit="9"] .line:nth-child(6)::before,
+      .number[data-digit="9"] .line:nth-child(6)::after,
+      .number[data-digit="0"] .line:nth-child(2)::before,
+      .number[data-digit="0"] .line:nth-child(2)::after {
+        transform: translateZ(25px);
+        background: #3c4444;
+        box-shadow: 0 0 1vw #425454;
+      }
+
+      .colon {
+        position: relative;
+        display: inline-block;
+        width: 2vw;
+        height: 12vw;
+        margin: 1vw 2vw 0 0;
+        animation: colonFra 1s linear infinite;
+      }
+      .colon::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 1vw;
+        height: 1vw;
+        background-color: #34eabc;
+        border-radius: 50%;
+      }
+      .colon::after {
+        content: "";
+        position: absolute;
+        top: 4vw;
+        left: 0;
+        width: 1vw;
+        height: 1vw;
+        background-color: #34eabc;
+        border-radius: 50%;
+      }
+      .colonS {
+        left: -1.3vw;
+      }
+      .colonF {
+        left: 1vw;
+      }
+      @keyframes colonFra {
+        0% {
+          opacity: 0;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container preserve">
+      <div class="stage preserve">
+        <div class="number preserve" data-digit="0">
+          <div class="line preserve translate"></div>
+          <div class="line preserve translate"></div>
+          <div class="line preserve translate"></div>
+          <div class="line preserve translate"></div>
+          <div class="line preserve translate"></div>
+          <div class="line preserve translate"></div>
+          <div class="line preserve translate"></div>
+        </div>
+        <div class="number preserve" data-digit="0">
+          <div class="line preserve translate"></div>
+          <div class="line preserve translate"></div>
+          <div class="line preserve translate"></div>
+          <div class="line preserve translate"></div>
+          <div class="line preserve translate"></div>
+          <div class="line preserve translate"></div>
+          <div class="line preserve translate"></div>
+        </div>
+        <div class="colon preserve colonS"></div>
+        <div class="number preserve" data-digit="0">
+          <div class="line preserve translate"></div>
+          <div class="line preserve translate"></div>
+          <div class="line preserve translate"></div>
+          <div class="line preserve translate"></div>
+          <div class="line preserve translate"></div>
+          <div class="line preserve translate"></div>
+          <div class="line preserve translate"></div>
+        </div>
+        <div class="number preserve" data-digit="0">
+          <div class="line preserve translate"></div>
+          <div class="line preserve translate"></div>
+          <div class="line preserve translate"></div>
+          <div class="line preserve translate"></div>
+          <div class="line preserve translate"></div>
+          <div class="line preserve translate"></div>
+          <div class="line preserve translate"></div>
+        </div>
+        <div class="colon preserve colonF"></div>
+        <div class="number preserve" data-digit="0">
+          <div class="line preserve translate"></div>
+          <div class="line preserve translate"></div>
+          <div class="line preserve translate"></div>
+          <div class="line preserve translate"></div>
+          <div class="line preserve translate"></div>
+          <div class="line preserve translate"></div>
+          <div class="line preserve translate"></div>
+        </div>
+        <div class="number preserve" data-digit="0">
+          <div class="line preserve translate"></div>
+          <div class="line preserve translate"></div>
+          <div class="line preserve translate"></div>
+          <div class="line preserve translate"></div>
+          <div class="line preserve translate"></div>
+          <div class="line preserve translate"></div>
+          <div class="line preserve translate"></div>
+        </div>
+      </div>
+    </div>
+
+    <script type="text/javascript">
+      function time() {
+        let timeTem = new Date();
+        let a = "0";
+        let b = "0";
+        if (String(timeTem.getHours()).length > 1) {
+          a = String(timeTem.getHours()).substring(0, 1);
+          b = String(timeTem.getHours()).substring(1, 2);
+        } else {
+          a = "0";
+          b = String(timeTem.getHours()).substring(0, 1);
+        }
+
+        let c = "0";
+        let d = "0";
+        if (String(timeTem.getMinutes()).length > 1) {
+          c = String(timeTem.getMinutes()).substring(0, 1);
+          d = String(timeTem.getMinutes()).substring(1, 2);
+        } else {
+          c = "0";
+          d = String(timeTem.getMinutes()).substring(0, 1);
+        }
+
+        let e = "0";
+        let f = "0";
+        if (String(timeTem.getSeconds()).length > 1) {
+          e = String(timeTem.getSeconds()).substring(0, 1);
+          f = String(timeTem.getSeconds()).substring(1, 2);
+        } else {
+          e = "0";
+          f = String(timeTem.getSeconds()).substring(0, 1);
+        }
+        return [a, b, c, d, e, f];
+      }
+      (function () {
+        let numbers = document.getElementsByClassName("number");
+        setInterval(() => {
+          let arr = time();
+
+          Array.prototype.slice.call(numbers).forEach((key, index) => {
+            key.setAttribute("data-digit", arr[index]);
+          });
+        }, 1000);
+      })();      
+    </script>
+  </body>
+</html>

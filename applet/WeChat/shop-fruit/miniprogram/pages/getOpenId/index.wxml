@@ -1,0 +1,8 @@
+<view>
+  <view class="top_tip">无需维护鉴权机制及登录票据，仅一行代码即可获得。</view>
+  <view class="box_text">{{ openId ? openId : 'OpenID将展示在这里' }}</view>
+  <view class="button" bindtap="getOpenId" wx:if="{{!haveGetOpenId}}">获取OpenId</view>
+  <view class="button_clear" bindtap="clearOpenId" wx:if="{{haveGetOpenId}}">清空</view>
+  <view class="tip">在”资源管理器>cloudfunctions>quickstartFunctions>getOpenId>index.js“找到获取openId函数，体验该能力</view>
+  <cloud-tip-modal showUploadTipProps="{{showUploadTip}}"></cloud-tip-modal>
+</view>

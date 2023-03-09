@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "获取OpenId",
+  "usingComponents": {
+    "cloud-tip-modal": "/components/cloudTipModal/index"
+  }
+}
