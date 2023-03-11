@@ -74,7 +74,7 @@ Page({
         break
       // 今日特惠
       case '1':
-        app.getInfoWhere('fruit', { myClass: '1' }, (data) => {
+        app.getInfoWhere('fruit', { recommend: '1' }, (data) => {
           this.setData({
             fruitInfo: data.data
           })
@@ -90,13 +90,39 @@ Page({
         break
       // 店主推荐
       case '3':
-        app.getInfoWhere('fruit', { myClass: '0' }, (data) => {
+        app.getInfoWhere('fruit', { myClass: '1' }, (data) => {
           this.setData({
             fruitInfo: data.data
           })
         })
         break
     }
+  },
+
+  /**
+   * 加入购物车
+   * @param {*} e
+   */
+  addCartByHome: function (e) {
+    app.getInfoWhere('fruit', { _id: e.currentTarget.dataset._id }, (e) => {
+      var newCartItem = e.data['0']
+      newCartItem.num = 1
+      //
+      app.isNotRepeteToCart(newCartItem)
+      wx.showToast({
+        title: '已添加至购物车'
+      })
+    })
+  },
+
+  /**
+   * 进入 水果详情页
+   * @param {*} e
+   */
+  tapToDetail: function (e) {
+    wx.navigateTo({
+      url: '../detail/detail?_id=' + e.currentTarget.dataset.fid
+    })
   },
 
   // ------------生命周期函数------------
@@ -129,13 +155,14 @@ Page({
       })
       wx.hideLoading()
     })
-    // console.log(app.globalData.offLine)
+
     // 是否下线
-    // app.getInfoWhere('setting', { option: 'offLine' }, (e) => {
-    //   that.setData({
-    //     offLine: e.data['0'].offLine
-    //   })
-    // })
+    // 是否下线
+    app.getInfoWhere('setting', {}, (e) => {
+      that.setData({
+        offLine: e.data[0].offLine
+      })
+    })
   },
 
   // 页面隐藏/切入后台时触发
