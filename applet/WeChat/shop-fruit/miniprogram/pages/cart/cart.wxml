@@ -4,7 +4,7 @@
     <!-- 选项卡 -->
     <view class="cart-box">
       <!-- 商品卡片 -->
-      <view class="cart-list" wx:for="{{carts}}" wx:key="{{index}}">
+      <view class="cart-list" wx:for="{{carts}}" wx:key="_id">
         <!-- 勾选图标 -->
         <icon wx:if="{{item.selected}}" type="success" color="orange" data-index="{{index}}" class="cart-pro-select" bindtap="selectList" />
         <icon wx:else type="circle" class="cart-pro-select" data-index="{{index}}" bindtap="selectList" />

@@ -2,6 +2,7 @@ const app = getApp()
 
 Page({
   data: {
+    carts: [],
     // 列表是否有数据
     hasList: false,
     selectAllStatus: false, // 全选状态，默认全选

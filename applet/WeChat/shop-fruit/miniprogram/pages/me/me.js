@@ -1,5 +1,5 @@
 // index.js
-// const app = getApp()
+const app = getApp()
 
 Page({
   data: {
@@ -31,6 +31,25 @@ Page({
           openId: openid,
           isAdmin: that.data.adiminArr.indexOf(openid)
         })
+
+        // 获取本人订单信息
+        app.getInfoWhere(
+          'order_master',
+          {
+            openid: openid
+          },
+          (e) => {
+            console.log(e.data)
+            var tmp = []
+            var len = e.data.length
+            for (var i = 0; i < len; i++) {
+              tmp.push(e.data.pop())
+            }
+            that.setData({
+              orders: tmp
+            })
+          }
+        )
       })
       .catch((e) => {
         console.error(e)
@@ -40,6 +59,11 @@ Page({
   goToBgInfo: function () {
     wx.navigateTo({
       url: '/pages/bgInfo/bgInfo'
+    })
+  },
+  goToBgManage: function () {
+    wx.navigateTo({
+      url: '/pages/bgManage/bgManage'
     })
   },
 
@@ -62,6 +86,8 @@ Page({
         })
       }
     })
+
+    this.getOpenId()
   },
   onPullDownRefresh: function () {
     var that = this

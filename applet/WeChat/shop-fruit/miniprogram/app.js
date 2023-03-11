@@ -16,10 +16,20 @@ App({
     }
 
     this.globalData = {
-      offLine: false,
+      appid: 'wx825cee6bc02c8213',
+      // 支付商户号
+      mch_id: '',
+      apikey: '',
+      school_Arr: ['1栋', '2栋', '3栋'],
+
       // 购物车
       carts: []
     }
+  },
+
+  // 随机数生成函数
+  RndNum: function () {
+    return Math.random().toString(32).substring(3)
   },
 
   /**
@@ -177,6 +187,29 @@ App({
     clock += mm
     if (ss < 10) clock += '0'
     clock += ss
+    return clock
+  },
+  CurrentTime_show: function () {
+    var now = new Date()
+    var year = now.getFullYear() //年
+    var month = now.getMonth() + 1 //月
+    var day = now.getDate() //日
+    var hh = now.getHours() //时
+    var mm = now.getMinutes() //分
+    var ss = now.getSeconds() //秒
+
+    var clock = year.toString() + '-'
+    if (month < 10) clock += '0'
+    clock += month + '-'
+    if (day < 10) clock += '0'
+    clock += day + ' '
+    if (hh < 10) clock += '0'
+    clock += hh + ':'
+    if (mm < 10) clock += '0'
+    clock += mm + ':'
+    if (ss < 10) clock += '0'
+    clock += ss
+
     return clock
   }
 })

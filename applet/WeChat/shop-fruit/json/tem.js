@@ -17,3 +17,42 @@ var fruit = {
   unit: '个',
   time: ''
 }
+
+var setting = {
+  offLine: false
+}
+
+var order_master = {
+  // 支付时间
+  payTime: '',
+  // 商品信息列表
+  fruitList: [],
+  // 楼栋
+  building: '',
+  // 备注
+  message: '',
+  name: '',
+  phone: '',
+  // 详细地址
+  detail: '',
+  // 总价格
+  total: '',
+  // 用户ID
+  openid: '',
+  //订单号
+  out_trade_no: '',
+  name: '',
+  phone: '',
+  // 订单生成时间
+  orderTime: '',
+  // 订单支付成功
+  paySuccess: false,
+  // 配送中
+  sending: false,
+  // 已收货
+  finished: false,
+  // 配送时间
+  sendingTime: false,
+  // 送达时间
+  finishedTime: false
+}

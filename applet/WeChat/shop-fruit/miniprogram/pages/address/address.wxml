@@ -1,0 +1,21 @@
+<view class="main">
+  <!-- <view class="weui-cells__title">个人信息</view> -->
+  <view class="form-box">
+    <form bindsubmit="formSubmit">
+      <input value="{{address.name}}" name="name" placeholder="姓名" />
+      <input type="digit" name="phone" value="{{address.phone}}" placeholder="电话号码" />
+      <view class="weui-cell__bd cell-title">选择楼栋:</view>
+      <view class="weui-cell__ft">
+        <picker range="{{school_Arr}}" value="{{address.building}}" name='building' bindchange="getSchool">
+          {{school_Arr[address.building]||'选择'}}
+        </picker>
+      </view>
+      <input value="{{address.detail}}" name="detail" placeholder="详细地址：" />
+      <view>备注：</view>
+      <view class='message'>
+        <textarea name="message" value="{{address.message}}"></textarea>
+      </view>
+      <button form-type="submit">保存</button>
+    </form>
+  </view>
+</view>

@@ -22,7 +22,7 @@
     <view wx:if="{{hasAddress}}" class="address-list">
       <view>姓名：{{address.name}}</view>
       <view>电话：{{address.phone}}</view>
-      <view>宿舍楼：{{address.detail}}</view>
+      <view>地址：{{address.detail}}</view>
     </view>
   </view>
   <!-- 我的订单 -->
@@ -35,6 +35,7 @@
       <view class="orders-number" wx:if="{{item.paySuccess && !item.sending}}">
         下单时间：{{item.orderTime}}
       </view>
+      <view class="orders-number" wx:if="{{!item.paySuccess}}">订单状态：未支付</view>
       <view class="orders-number" wx:if="{{item.finished}}">送达时间：{{item.finishedTime}}</view>
       <view style='padding:15rpx 0;'>
         <view wx:for="{{item.fruitList}}" wx:for-item="fruitArr" wx:key="fruit">
