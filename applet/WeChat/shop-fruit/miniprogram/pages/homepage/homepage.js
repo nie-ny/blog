@@ -54,6 +54,26 @@ Page({
         console.error(e)
         // wx.hideLoading()
       })
+
+      // 测试 云函数查询
+      wx.cloud
+      .callFunction({
+        name: 'fruitFunctions',
+        config: {
+          env: this.data.envId
+        },
+        data: {
+          type: 'getInfoWhere',
+          setName:"fruit",
+          ruleObj:{ myClass: '1' }
+        }
+      })
+      .then((resp) => {
+        console.log("211111222222",resp);
+      })
+      .catch((e) => {
+        console.error(e)
+      })
   },
   /**
    * 分类切换
