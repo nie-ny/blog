@@ -1,0 +1,24 @@
+@import "../../styles/mixin";
+
+.home-page {
+  @include wh(100%, 100%);
+
+  .nav-list {
+    @include fj(center);
+    flex-wrap: wrap;
+    margin-top: 20rpx;
+
+    .nav-item {
+      width: 23%;
+      margin: 0 5rpx;
+    }
+  }
+  
+  .recommend {
+    display: block;
+    width: 100%;
+    text-align: center;
+    margin: 30rpx 0;
+    font-size: 36rpx;
+  }
+}
